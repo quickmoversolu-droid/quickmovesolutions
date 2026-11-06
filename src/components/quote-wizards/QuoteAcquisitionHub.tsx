@@ -25,7 +25,7 @@ interface QuoteAcquisitionHubProps {
   defaultTab?: AcquisitionTab;
 }
 
-export function QuoteAcquisitionHub({ defaultTab = 'junk-removal' }: QuoteAcquisitionHubProps) {
+function QuoteAcquisitionHubContent({ defaultTab = 'junk-removal' }: QuoteAcquisitionHubProps) {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<AcquisitionTab>(defaultTab);
   const [selectedCity, setSelectedCity] = useState<string>('Calgary');
@@ -210,5 +210,20 @@ export function QuoteAcquisitionHub({ defaultTab = 'junk-removal' }: QuoteAcquis
         </aside>
       </div>
     </div>
+  );
+}
+
+export function QuoteAcquisitionHub(props: QuoteAcquisitionHubProps) {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="w-full rounded-3xl border border-white/10 bg-[#0A1324]/80 p-8 text-center text-white/70 backdrop-blur-md">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-brand-orange border-t-transparent" />
+          <p className="mt-3 text-xs uppercase tracking-wider text-slate-400">Loading Quote Wizard...</p>
+        </div>
+      }
+    >
+      <QuoteAcquisitionHubContent {...props} />
+    </React.Suspense>
   );
 }
