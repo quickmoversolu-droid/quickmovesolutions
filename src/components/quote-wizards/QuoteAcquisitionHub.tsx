@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Home,
@@ -26,13 +25,14 @@ interface QuoteAcquisitionHubProps {
 }
 
 function QuoteAcquisitionHubContent({ defaultTab = 'junk-removal' }: QuoteAcquisitionHubProps) {
-  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<AcquisitionTab>(defaultTab);
   const [selectedCity, setSelectedCity] = useState<string>('Calgary');
 
   useEffect(() => {
-    const serviceParam = searchParams.get('service') || searchParams.get('flow');
-    const cityParam = searchParams.get('city');
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const serviceParam = params.get('service') || params.get('flow');
+    const cityParam = params.get('city');
     if (cityParam) {
       setSelectedCity(cityParam);
     }
@@ -46,7 +46,7 @@ function QuoteAcquisitionHubContent({ defaultTab = 'junk-removal' }: QuoteAcquis
         setActiveTab('moving');
       }
     }
-  }, [searchParams]);
+  }, []);
 
   const TABS: {
     id: AcquisitionTab;

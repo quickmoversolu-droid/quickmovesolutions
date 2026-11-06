@@ -27,12 +27,12 @@ import { ReviewsGalleryFaqCta } from '@/components/home/ReviewsGalleryFaqCta';
  */
 export default function HomePage() {
   return (
-    <>
+    <React.Suspense fallback={null}>
       <HeroSection />
       <ServiceHighlightsAndTrust />
       <ServiceSpotlights />
       <ProcessAndWhyChooseUs />
       <ReviewsGalleryFaqCta />
-    </>
+    </React.Suspense>
   );
 }
