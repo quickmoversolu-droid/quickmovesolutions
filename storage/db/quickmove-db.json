@@ -1,0 +1,2627 @@
+{
+  "users": [
+    {
+      "id": "usr_owner_1",
+      "username": "owner.superadmin",
+      "email": "quickmoversolu@gmail.com",
+      "name": "QuickMove Owner",
+      "phone": "(587) 999-9565",
+      "role": "OWNER",
+      "roleDisplayTitle": "Super Admin / Owner",
+      "isProtectedOwner": true,
+      "isActive": true,
+      "accountStatus": "ACTIVE",
+      "accessCode": "QM-OWNER-2026",
+      "passwordHash": "scrypt$fdc58bef51f1854d80722efbf4047358$fda800f3c968b7d2eb8e2fff67cdbcacd7130eb4bf9c43d1d9989cad48367a3e542afe99915141b0d16985478db552d82fe5b34cbe7f00882a001b8ffbc6726b",
+      "mustChangePassword": false,
+      "mfaEnabled": true,
+      "sessionVersion": 1,
+      "loginCount": 44,
+      "lastLoginAt": "2026-11-04T22:35:04.507Z",
+      "loginHistory": [
+        {
+          "timestamp": "2026-11-04T22:35:04.507Z",
+          "method": "Password Authenticated",
+          "deviceSummary": "Web Browser Session • Calgary Operations"
+        },
+        {
+          "timestamp": "2026-11-04T22:05:36.173Z",
+          "method": "Password Authenticated",
+          "deviceSummary": "Web Browser Session • Calgary Operations"
+        },
+        {
+          "timestamp": "2026-11-04T14:15:00.000Z",
+          "method": "Password + MFA Verified",
+          "deviceSummary": "Chrome Desktop • Calgary, AB"
+        },
+        {
+          "timestamp": "2026-11-03T09:05:00.000Z",
+          "method": "Password + MFA Verified",
+          "deviceSummary": "iPhone Safari • Calgary, AB"
+        }
+      ],
+      "modulePermissions": {
+        "dashboard": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "leads_crm": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "jobs_bookings": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "quotations": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "customers": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "team_vehicles": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "team_access": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "reports_analytics": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "ai_marketing": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "settings_security": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        },
+        "finances": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": true,
+          "manage": true
+        }
+      },
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "usr_admin_1",
+      "username": "devon.reid",
+      "email": "quickmoversolu+admin@gmail.com",
+      "name": "Devon Reid",
+      "phone": "(587) 999-9565",
+      "role": "ADMIN",
+      "roleDisplayTitle": "Administrator / Manager",
+      "isProtectedOwner": false,
+      "isActive": true,
+      "accountStatus": "ACTIVE",
+      "employeeId": "emp_1",
+      "accessCode": "QM-ADMIN-2026",
+      "passwordHash": "scrypt$9b098ac2a451be099eadc71b43bcd02f$bc7b377d31badae2d72e56b970574dc81ffbe6e808b59cd815b0d47384aacf8f0b854a4a2e3752ec8f6957da67045c99b5ebe904f9ee78317f7f196862661526",
+      "mustChangePassword": false,
+      "mfaEnabled": true,
+      "sessionVersion": 1,
+      "loginCount": 28,
+      "lastLoginAt": "2026-11-04T11:30:00.000Z",
+      "loginHistory": [
+        {
+          "timestamp": "2026-11-04T11:30:00.000Z",
+          "method": "Password Login",
+          "deviceSummary": "Windows Workstation • Calgary HQ"
+        }
+      ],
+      "modulePermissions": {
+        "dashboard": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": true
+        },
+        "leads_crm": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": true
+        },
+        "jobs_bookings": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": true
+        },
+        "quotations": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": true
+        },
+        "customers": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": true
+        },
+        "team_vehicles": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": true
+        },
+        "team_access": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "reports_analytics": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "ai_marketing": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "settings_security": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "finances": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        }
+      },
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "usr_coord_1",
+      "username": "sarah.chen",
+      "email": "quickmoversolu+dispatch@gmail.com",
+      "name": "Sarah Chen",
+      "phone": "(587) 999-9565",
+      "role": "COORDINATOR",
+      "roleDisplayTitle": "Dispatcher",
+      "isProtectedOwner": false,
+      "isActive": true,
+      "accountStatus": "ACTIVE",
+      "employeeId": "emp_2",
+      "accessCode": "QM-COORD-2026",
+      "passwordHash": "scrypt$38d0007d41a5bfb2f792d112d39c8e63$683eabab1bcd511b1cbda01871c19f3d3abea1dab498a08ab9c0136fe4c68fb6b8a3aa59a9b2225f6bce9de4b332cf72da71eec9ced05f0852d5acc9a8c36c6c",
+      "mustChangePassword": false,
+      "mfaEnabled": false,
+      "sessionVersion": 1,
+      "loginCount": 35,
+      "lastLoginAt": "2026-11-04T08:00:00.000Z",
+      "loginHistory": [
+        {
+          "timestamp": "2026-11-04T08:00:00.000Z",
+          "method": "Password Login",
+          "deviceSummary": "Dispatch Console • Calgary, AB"
+        }
+      ],
+      "modulePermissions": {
+        "dashboard": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "leads_crm": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "jobs_bookings": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": true
+        },
+        "quotations": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "customers": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_vehicles": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_access": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "reports_analytics": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "ai_marketing": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "settings_security": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "finances": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        }
+      },
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "usr_mkt_1",
+      "username": "elena.vance",
+      "email": "quickmoversolu+marketing@gmail.com",
+      "name": "Elena Vance",
+      "phone": "(587) 999-9565",
+      "role": "MARKETING_MANAGER",
+      "roleDisplayTitle": "Marketing Manager",
+      "isProtectedOwner": false,
+      "isActive": true,
+      "accountStatus": "ACTIVE",
+      "accessCode": "QM-MKT-2026",
+      "passwordHash": "scrypt$42eda66c77e18b1ed42d0342ce37375a$7ecb93f7198abf5c20c809ae8d4d9765e5f4d0c782f7d2ef4834863a6f962700a245d44860a221faf90f5977b449fc3f5fbc83f20fbe083520661e887a8fa8e6",
+      "mustChangePassword": false,
+      "mfaEnabled": true,
+      "sessionVersion": 1,
+      "loginCount": 19,
+      "lastLoginAt": "2026-11-04T10:20:00.000Z",
+      "loginHistory": [
+        {
+          "timestamp": "2026-11-04T10:20:00.000Z",
+          "method": "Password Login",
+          "deviceSummary": "MacBook Pro • Calgary, AB"
+        }
+      ],
+      "modulePermissions": {
+        "dashboard": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "leads_crm": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "jobs_bookings": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "quotations": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "customers": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_vehicles": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_access": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "reports_analytics": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "ai_marketing": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": true
+        },
+        "settings_security": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "finances": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        }
+      },
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "usr_crew_1",
+      "username": "marcus.vance",
+      "email": "quickmoversolu+crew@gmail.com",
+      "name": "Marcus Vance",
+      "phone": "(403) 555-0192",
+      "role": "CREW_MEMBER",
+      "roleDisplayTitle": "Employee (Crew Lead)",
+      "isProtectedOwner": false,
+      "isActive": true,
+      "accountStatus": "ACTIVE",
+      "employeeId": "emp_3",
+      "accessCode": "QM-CREW-2026",
+      "passwordHash": "scrypt$ef662bc1c16b87ab5105a0cdcc2d737f$2026d03e010ffb8f90d572da5a7d695f8ba276aa0163555723afbc42e10ff076177a1c6e73f5fe289fbee6340a792d039fa5bae5caaabd3c36b0faafc4c3bb6d",
+      "mustChangePassword": false,
+      "mfaEnabled": false,
+      "sessionVersion": 1,
+      "loginCount": 14,
+      "lastLoginAt": "2026-11-04T07:15:00.000Z",
+      "loginHistory": [
+        {
+          "timestamp": "2026-11-04T07:15:00.000Z",
+          "method": "Mobile App Login",
+          "deviceSummary": "Android Field Device • Team Alpha"
+        }
+      ],
+      "modulePermissions": {
+        "dashboard": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "leads_crm": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "jobs_bookings": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "quotations": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "customers": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_vehicles": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_access": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "reports_analytics": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "ai_marketing": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "settings_security": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "finances": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        }
+      },
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "usr_crew_2",
+      "username": "liam.oconnor",
+      "email": "quickmoversolu+liam@gmail.com",
+      "name": "Liam O’Connor",
+      "phone": "(403) 555-0164",
+      "role": "CREW_MEMBER",
+      "roleDisplayTitle": "Employee (Mover)",
+      "isProtectedOwner": false,
+      "isActive": true,
+      "accountStatus": "INVITED",
+      "employeeId": "emp_4",
+      "accessCode": "QM-LIAM-TEMP",
+      "passwordHash": "scrypt$938b7b853dfe57e4f28e3bac26c8b04c$69094b7d9be8efaa904e23c2b847b27e42e3cf7f83f9f14a1efd17eb1cbbc0ec8cf290855d240cc24f871ed1ef5aa449700e65bc3e87b4cfdf3421bcaec36338",
+      "mustChangePassword": true,
+      "invitationSentAt": "2026-11-03T16:00:00.000Z",
+      "mfaEnabled": false,
+      "sessionVersion": 1,
+      "loginCount": 0,
+      "loginHistory": [],
+      "modulePermissions": {
+        "dashboard": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "leads_crm": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "jobs_bookings": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "quotations": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "customers": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_vehicles": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_access": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "reports_analytics": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "ai_marketing": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "settings_security": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "finances": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        }
+      },
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "usr_cust_1",
+      "email": "m.henderson.yyc@example.com",
+      "name": "Michael Henderson",
+      "phone": "(403) 555-0148",
+      "role": "CUSTOMER",
+      "isActive": true,
+      "accountStatus": "ACTIVE",
+      "customerId": "cust_seed_1",
+      "accessCode": "QM-MOV-261101-A1B2",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "customRoles": [
+    {
+      "id": "crole_senior_estimator",
+      "name": "Senior Estimator & Coordinator",
+      "description": "Custom role with full access to Leads, Quotations, Customers, and Reports.",
+      "baseRole": "COORDINATOR",
+      "modulePermissions": {
+        "dashboard": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "leads_crm": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "jobs_bookings": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": true
+        },
+        "quotations": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": true,
+          "manage": true
+        },
+        "customers": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_vehicles": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "team_access": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "reports_analytics": {
+          "view": true,
+          "create": true,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "ai_marketing": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "settings_security": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        },
+        "finances": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "manage": false
+        }
+      },
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "customers": [
+    {
+      "id": "cust_seed_1",
+      "fullName": "Michael Henderson",
+      "email": "m.henderson.yyc@example.com",
+      "phone": "(403) 555-0148",
+      "preferredContact": "phone",
+      "address": "1420 Memorial Dr NW",
+      "city": "Calgary",
+      "postalCode": "T2N 3E5",
+      "notes": "3-bedroom family home move from Kensington NW to Mahogany SE.",
+      "portalPasscode": "QM-MOV-261101-A1B2",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "cust_seed_2",
+      "fullName": "Priya Patel",
+      "email": "priya.patel.airdrie@example.com",
+      "phone": "(587) 555-0281",
+      "preferredContact": "text",
+      "address": "88 Coopers Blvd SW",
+      "city": "Airdrie",
+      "postalCode": "T4B 3R9",
+      "notes": "Photo-first basement & garage cleanout before listing home.",
+      "portalPasscode": "QM-JNK-261101-C3D4",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "cust_seed_3",
+      "fullName": "NorthPeak Design Studio Ltd.",
+      "email": "logistics@northpeakstudio.example.com",
+      "phone": "(403) 555-0911",
+      "preferredContact": "email",
+      "address": "1040 7 Ave SW, Suite 400",
+      "city": "Calgary",
+      "postalCode": "T2P 3G9",
+      "notes": "Commercial office relocation + showroom furniture delivery.",
+      "portalPasscode": "QM-MOV-261101-E5F6",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "leads": [
+    {
+      "id": "lead_seed_1",
+      "referenceCode": "QM-MOV-261101-A1B2",
+      "customerId": "cust_seed_1",
+      "jobRequestId": "job_seed_1",
+      "serviceType": "moving:residential",
+      "status": "ACCEPTED",
+      "source": "Website MOVING Wizard",
+      "utmSource": "google",
+      "utmMedium": "organic",
+      "utmCampaign": "calgary_residential_moving",
+      "assignedEmployeeId": "emp_2",
+      "internalNotes": "Quote accepted by Michael. Scheduled for Nov 8 at 8:30 AM with Team Alpha.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "lead_seed_2",
+      "referenceCode": "QM-JNK-261101-C3D4",
+      "customerId": "cust_seed_2",
+      "jobRequestId": "job_seed_2",
+      "serviceType": "junk-removal",
+      "status": "QUOTE_SENT",
+      "source": "Website JUNK-REMOVAL Wizard",
+      "utmSource": "instagram",
+      "utmMedium": "social",
+      "utmCampaign": "photo_junk_quote_airdrie",
+      "assignedEmployeeId": "emp_2",
+      "internalNotes": "Reviewed customer photos; sent itemized medium-load quote Q-2026-1002.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "lead_seed_3",
+      "referenceCode": "QM-MOV-261101-E5F6",
+      "customerId": "cust_seed_3",
+      "jobRequestId": "job_seed_3",
+      "serviceType": "moving:commercial",
+      "status": "BOOKED",
+      "source": "Website MOVING Wizard",
+      "assignedEmployeeId": "emp_1",
+      "internalNotes": "New commercial office move inquiry in Downtown Calgary.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-04T22:21:55.799Z"
+    }
+  ],
+  "jobRequests": [
+    {
+      "id": "job_seed_1",
+      "leadId": "lead_seed_1",
+      "customerId": "cust_seed_1",
+      "serviceType": "moving:residential",
+      "serviceCategory": "MOVING",
+      "lifecycleStage": "CUSTOMER_ACCEPTED",
+      "pickupAddress": "1420 Memorial Dr NW",
+      "pickupCity": "Calgary",
+      "pickupPostalCode": "T2N 3E5",
+      "pickupAccessDetails": "Front driveway access, 1 flight of interior stairs.",
+      "destinationAddress": "215 Mahogany Blvd SE",
+      "destinationCity": "Calgary",
+      "destinationPostalCode": "T3M 1Y6",
+      "destinationAccessDetails": "Double attached garage, wide front entrance.",
+      "preferredDate": "2026-11-08",
+      "isFlexibleDate": false,
+      "preferredTimeWindow": "morning",
+      "confirmedDate": "2026-11-08",
+      "propertySize": "three-bedroom",
+      "inventoryDetails": {
+        "furniture": true,
+        "appliances": true,
+        "fragileItems": true,
+        "packing": true,
+        "stairs": true
+      },
+      "junkCategories": [],
+      "specialRequirements": "Please wrap glass dining table and upright digital piano.",
+      "aiSummary": "RESIDENTIAL move (three-bedroom) from Calgary NW to Calgary SE on 2026-11-08 (morning). Includes partial kitchen packing and furniture pad wrapping.",
+      "requiresManualInspection": false,
+      "assignedTeamId": "team_alpha",
+      "assignedVehicleId": "veh_1",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "job_seed_2",
+      "leadId": "lead_seed_2",
+      "customerId": "cust_seed_2",
+      "serviceType": "junk-removal",
+      "serviceCategory": "JUNK_REMOVAL",
+      "lifecycleStage": "QUOTE_SENT",
+      "pickupAddress": "88 Coopers Blvd SW",
+      "pickupCity": "Airdrie",
+      "pickupPostalCode": "T4B 3R9",
+      "pickupAccessDetails": "house | both | stairs | Back driveway pad accessible",
+      "preferredDate": "2026-11-05",
+      "isFlexibleDate": true,
+      "preferredTimeWindow": "afternoon",
+      "junkCategories": [
+        "furniture",
+        "sofa",
+        "mattress",
+        "garage-clutter"
+      ],
+      "junkVolumeEstimate": "medium-load",
+      "inventoryDetails": {},
+      "specialRequirements": "Old basement sectional sofa, queen mattress, and 8 boxes of garage clutter.",
+      "aiSummary": "Photo-First Junk Removal request in Airdrie (house, indoors & garage). Categories: furniture, sofa, mattress, garage-clutter. Customer preliminary volume: medium-load.",
+      "aiVolumeSuggestion": "medium-load",
+      "requiresManualInspection": true,
+      "assignedTeamId": "team_bravo",
+      "assignedVehicleId": "veh_3",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "job_seed_3",
+      "leadId": "lead_seed_3",
+      "customerId": "cust_seed_3",
+      "serviceType": "moving:commercial",
+      "serviceCategory": "MOVING",
+      "lifecycleStage": "TEAM_ASSIGNED",
+      "pickupAddress": "1040 7 Ave SW, Suite 400",
+      "pickupCity": "Calgary",
+      "pickupPostalCode": "T2P 3G9",
+      "pickupAccessDetails": "Freight elevator reserved, loading dock off 8 St SW.",
+      "destinationAddress": "510 11 Ave SW, Suite 210",
+      "destinationCity": "Calgary",
+      "destinationPostalCode": "T2R 0C8",
+      "destinationAccessDetails": "Ground-level loading bay.",
+      "preferredDate": "2026-11-14",
+      "isFlexibleDate": false,
+      "preferredTimeWindow": "morning",
+      "propertySize": "commercial-property",
+      "inventoryDetails": {
+        "furniture": true,
+        "largeItems": true,
+        "elevator": true
+      },
+      "junkCategories": [],
+      "specialRequirements": "14 workstations, conference table, and architectural sample shelving.",
+      "aiSummary": "COMMERCIAL office relocation in Downtown/Beltline Calgary on 2026-11-14. Freight elevator required.",
+      "requiresManualInspection": true,
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z",
+      "confirmedDate": "2026-11-10",
+      "assignedTeamId": "team_alpha",
+      "assignedVehicleId": "veh_1"
+    }
+  ],
+  "jobPhotos": [],
+  "jobChecklists": [
+    {
+      "id": "chk_seed_1",
+      "jobRequestId": "job_seed_1",
+      "title": "Moving Operational Checklist",
+      "serviceCategory": "MOVING",
+      "items": [
+        {
+          "id": "chki_seed1_1",
+          "label": "Confirm customer contact & preferred date",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 1
+        },
+        {
+          "id": "chki_seed1_2",
+          "label": "Confirm inventory & property size",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 2
+        },
+        {
+          "id": "chki_seed1_3",
+          "label": "Confirm stairs, elevator & access conditions",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 3
+        },
+        {
+          "id": "chki_seed1_4",
+          "label": "Confirm truck parking clearance",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 4
+        },
+        {
+          "id": "chki_seed1_5",
+          "label": "Confirm packing & unpacking requirements",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 5
+        },
+        {
+          "id": "chki_seed1_6",
+          "label": "Assign moving team",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 6
+        },
+        {
+          "id": "chki_seed1_7",
+          "label": "Assign moving vehicle",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 7
+        },
+        {
+          "id": "chki_seed1_8",
+          "label": "Complete relocation job",
+          "isCompleted": false,
+          "sortOrder": 8
+        },
+        {
+          "id": "chki_seed1_9",
+          "label": "Record completion & customer sign-off",
+          "isCompleted": false,
+          "sortOrder": 9
+        }
+      ],
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "chk_seed_2",
+      "jobRequestId": "job_seed_2",
+      "title": "Junk Removal Operational Checklist",
+      "serviceCategory": "JUNK_REMOVAL",
+      "items": [
+        {
+          "id": "chki_seed2_1",
+          "label": "Review customer-uploaded photos",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 1
+        },
+        {
+          "id": "chki_seed2_2",
+          "label": "Confirm accepted non-hazardous items",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 2
+        },
+        {
+          "id": "chki_seed2_3",
+          "label": "Confirm preliminary volume category",
+          "isCompleted": true,
+          "completedAt": "2026-11-01T08:00:00.000Z",
+          "sortOrder": 3
+        },
+        {
+          "id": "chki_seed2_4",
+          "label": "Confirm indoor/outdoor & stairs access",
+          "isCompleted": false,
+          "sortOrder": 4
+        },
+        {
+          "id": "chki_seed2_5",
+          "label": "Assign collection team & truck",
+          "isCompleted": false,
+          "sortOrder": 5
+        },
+        {
+          "id": "chki_seed2_6",
+          "label": "Complete junk collection & sweep",
+          "isCompleted": false,
+          "sortOrder": 6
+        },
+        {
+          "id": "chki_seed2_7",
+          "label": "Record completion",
+          "isCompleted": false,
+          "sortOrder": 7
+        }
+      ],
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "quotes": [
+    {
+      "id": "quo_seed_1",
+      "quoteNumber": "Q-2026-1001",
+      "version": 1,
+      "leadId": "lead_seed_1",
+      "jobRequestId": "job_seed_1",
+      "customerId": "cust_seed_1",
+      "serviceType": "moving:residential",
+      "serviceCategory": "MOVING",
+      "status": "ACCEPTED",
+      "proposedDate": "2026-11-08",
+      "proposedWindow": "8:30 AM – 9:30 AM Arrival",
+      "scopeSummary": "3-Bedroom residential relocation from 1420 Memorial Dr NW to 215 Mahogany Blvd SE, including blanket wrapping, floor runners, and partial kitchen packing.",
+      "lineItems": [
+        {
+          "id": "qli_1",
+          "category": "MOVING_SERVICE",
+          "description": "3-Person Professional Moving Crew & 26ft Equipped Box Truck (6 Hours)",
+          "quantity": 6,
+          "unitPriceCents": 18500,
+          "sortOrder": 1,
+          "totalCents": 111000
+        },
+        {
+          "id": "qli_2",
+          "category": "PACKING_UNPACKING",
+          "description": "Partial Kitchen & Fragile Glassware Packing Service",
+          "quantity": 1,
+          "unitPriceCents": 24000,
+          "sortOrder": 2,
+          "totalCents": 24000
+        },
+        {
+          "id": "qli_3",
+          "category": "MATERIALS",
+          "description": "Heavy-Duty Dish Pack Boxes, Wardrobe Boxes & Shrink Wrap Kit",
+          "quantity": 1,
+          "unitPriceCents": 9500,
+          "sortOrder": 3,
+          "totalCents": 9500
+        }
+      ],
+      "subtotalCents": 144500,
+      "discountCents": 5000,
+      "taxRatePercent": 5,
+      "taxCents": 6975,
+      "totalCents": 146475,
+      "depositCents": 15000,
+      "validityDays": 14,
+      "validUntil": "2026-11-15",
+      "termsAndNotes": "Includes furniture pad wrapping, floor protection, and standard cargo protection. Final labour hours billed to the nearest 15-minute increment.",
+      "customerResponse": "Digitally signed via portal",
+      "respondedAt": "2026-11-05T20:37:02.743Z",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-05T20:37:02.743Z",
+      "signatureName": "Michael Henderson",
+      "signedAt": "2026-11-05T20:37:02.743Z"
+    },
+    {
+      "id": "quo_seed_2",
+      "quoteNumber": "Q-2026-1002",
+      "version": 1,
+      "leadId": "lead_seed_2",
+      "jobRequestId": "job_seed_2",
+      "customerId": "cust_seed_2",
+      "serviceType": "junk-removal",
+      "serviceCategory": "JUNK_REMOVAL",
+      "status": "SENT",
+      "proposedDate": "2026-11-05",
+      "proposedWindow": "1:00 PM – 3:00 PM Arrival",
+      "scopeSummary": "Basement sectional sofa, queen mattress, and garage box removal from 88 Coopers Blvd SW, Airdrie, including full sweep-up.",
+      "lineItems": [
+        {
+          "id": "qli_4",
+          "category": "JUNK_REMOVAL",
+          "description": "Medium-Load Photo-Verified Junk Removal (Sectional Sofa, Queen Mattress & Garage Boxes)",
+          "quantity": 1,
+          "unitPriceCents": 32000,
+          "sortOrder": 1,
+          "totalCents": 32000
+        },
+        {
+          "id": "qli_5",
+          "category": "DISPOSAL_HANDLING",
+          "description": "Municipal Mattress Recycling & Eco-Station Transfer Fee",
+          "quantity": 1,
+          "unitPriceCents": 3500,
+          "sortOrder": 2,
+          "totalCents": 3500
+        }
+      ],
+      "subtotalCents": 35500,
+      "discountCents": 0,
+      "taxRatePercent": 5,
+      "taxCents": 1775,
+      "totalCents": 37275,
+      "depositCents": 0,
+      "validityDays": 14,
+      "validUntil": "2026-11-15",
+      "termsAndNotes": "Based on customer-submitted photos. Excludes hazardous liquids, paint cans, or pressurized propane cylinders.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "bkg_44cb809ad2",
+      "bookingNumber": "BK-2026-503",
+      "jobRequestId": "job_seed_3",
+      "customerId": "cust_seed_3",
+      "serviceType": "moving:commercial",
+      "serviceCategory": "MOVING",
+      "status": "CONFIRMED",
+      "scheduledDate": "2026-11-10",
+      "startTime": "08:30",
+      "endTime": "13:30",
+      "arrivalWindow": "8:30 AM – 9:30 AM",
+      "assignedTeamId": "team_alpha",
+      "assignedVehicleId": "veh_1",
+      "crewMemberIds": [
+        "emp_3",
+        "emp_4"
+      ],
+      "pickupAddress": "1040 7 Ave SW, Suite 400",
+      "pickupCity": "Calgary",
+      "destinationCity": "Calgary",
+      "dispatchNotes": "",
+      "createdAt": "2026-11-04T22:24:36.204Z",
+      "updatedAt": "2026-11-04T22:24:36.204Z"
+    },
+    {
+      "id": "bkg_seed_1",
+      "bookingNumber": "BK-2026-501",
+      "jobRequestId": "job_seed_1",
+      "customerId": "cust_seed_1",
+      "quoteId": "quo_seed_1",
+      "serviceType": "moving:residential",
+      "serviceCategory": "MOVING",
+      "status": "CONFIRMED",
+      "scheduledDate": "2026-11-08",
+      "startTime": "08:30",
+      "endTime": "14:30",
+      "arrivalWindow": "8:30 AM – 9:30 AM Arrival",
+      "assignedTeamId": "team_alpha",
+      "assignedVehicleId": "veh_1",
+      "crewMemberIds": [
+        "emp_3",
+        "emp_4"
+      ],
+      "pickupAddress": "1420 Memorial Dr NW",
+      "pickupCity": "Calgary",
+      "destinationCity": "Calgary",
+      "dispatchNotes": "Bring extra neoprene runners for hardwood stairs and upright piano dolly.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-05T20:37:02.743Z"
+    },
+    {
+      "id": "bkg_seed_2",
+      "bookingNumber": "BK-2026-502",
+      "jobRequestId": "job_seed_2",
+      "customerId": "cust_seed_2",
+      "quoteId": "quo_seed_2",
+      "serviceType": "junk-removal",
+      "serviceCategory": "JUNK_REMOVAL",
+      "status": "TENTATIVE",
+      "scheduledDate": "2026-11-05",
+      "startTime": "13:00",
+      "endTime": "15:30",
+      "arrivalWindow": "1:00 PM – 3:00 PM",
+      "assignedTeamId": "team_bravo",
+      "assignedVehicleId": "veh_3",
+      "crewMemberIds": [
+        "emp_5"
+      ],
+      "pickupAddress": "88 Coopers Blvd SW",
+      "pickupCity": "Airdrie",
+      "dispatchNotes": "Awaiting customer quote confirmation for afternoon Airdrie run.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "employees": [
+    {
+      "id": "emp_1",
+      "fullName": "Devon Reid",
+      "phone": "(587) 999-9565",
+      "email": "quickmoversolu+admin@gmail.com",
+      "role": "OWNER",
+      "skills": [
+        "Operations Management",
+        "Commercial Estimating",
+        "Fleet Dispatch"
+      ],
+      "status": "ACTIVE",
+      "availabilityNote": "Full-Time Monday–Saturday (Calgary HQ)",
+      "internalNotes": "Primary operations lead & estimator.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "emp_2",
+      "fullName": "Sarah Chen",
+      "phone": "(587) 999-9565",
+      "email": "quickmoversolu+dispatch@gmail.com",
+      "role": "COORDINATOR",
+      "skills": [
+        "Customer Dispatch",
+        "Elevator Bookings",
+        "Quote Preparation"
+      ],
+      "status": "ACTIVE",
+      "availabilityNote": "Monday–Friday 7:30 AM – 5:30 PM",
+      "internalNotes": "Handles residential & junk removal quote coordination.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "emp_3",
+      "fullName": "Marcus Vance",
+      "phone": "(403) 555-0192",
+      "email": "quickmoversolu+crew@gmail.com",
+      "role": "TEAM_LEAD",
+      "skills": [
+        "Class 5 Commercial Driving",
+        "Piano & Heavy Safe Rigging",
+        "Furniture Wrapping"
+      ],
+      "status": "ACTIVE",
+      "availabilityNote": "Available Monday–Saturday",
+      "internalNotes": "Senior moving crew leader for Team Alpha.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "emp_4",
+      "fullName": "Liam O’Connor",
+      "phone": "(403) 555-0164",
+      "email": "quickmoversolu+liam@gmail.com",
+      "role": "MOVER",
+      "skills": [
+        "Residential Packing",
+        "Disassembly/Reassembly",
+        "High-Rise Elevator Moves"
+      ],
+      "status": "ACTIVE",
+      "availabilityNote": "Available Monday–Saturday",
+      "internalNotes": "Assigned to Team Alpha.",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "emp_5",
+      "fullName": "Tariq Al-Mansoor",
+      "phone": "(587) 555-0133",
+      "email": "quickmoversolu+tariq@gmail.com",
+      "role": "JUNK_SPECIALIST",
+      "skills": [
+        "Junk Removal & Sorting",
+        "Eco-Station Recycling",
+        "Appliance Haul-Away"
+      ],
+      "status": "ACTIVE",
+      "availabilityNote": "Available Tuesday–Sunday",
+      "internalNotes": "Lead specialist for Team Bravo (Junk Removal & Delivery).",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "teams": [
+    {
+      "id": "team_alpha",
+      "name": "Team Alpha — Calgary Residential & Commercial Moving",
+      "code": "ALPHA-YYC",
+      "leadMemberId": "emp_3",
+      "memberIds": [
+        "emp_3",
+        "emp_4"
+      ],
+      "specialty": "MOVING_AND_DELIVERY",
+      "status": "ACTIVE",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "team_bravo",
+      "name": "Team Bravo — Junk Removal & Express Delivery",
+      "code": "BRAVO-JNK",
+      "leadMemberId": "emp_5",
+      "memberIds": [
+        "emp_5",
+        "emp_4"
+      ],
+      "specialty": "JUNK_REMOVAL",
+      "status": "ACTIVE",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "team_charlie",
+      "name": "Team Charlie — Highway 2 Long-Distance Corridor",
+      "code": "CHARLIE-AB",
+      "leadMemberId": "emp_1",
+      "memberIds": [
+        "emp_1",
+        "emp_3"
+      ],
+      "specialty": "ALL_SERVICES",
+      "status": "ACTIVE",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "vehicles": [
+    {
+      "id": "veh_1",
+      "name": "Unit #01 — 26ft Heavy-Duty Moving Box Truck",
+      "vehicleType": "26FT_BOX_TRUCK",
+      "capacitySummary": "3–5 Bedroom Homes & Commercial Relocations (Hydraulic Liftgate)",
+      "licensePlate": "AB-QMS-101",
+      "status": "AVAILABLE",
+      "maintenanceNote": "CVIP Inspection Current — Equipped with 72 moving blankets & 4 dollies.",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "veh_2",
+      "name": "Unit #02 — 20ft Urban Condo & Local Moving Truck",
+      "vehicleType": "20FT_MOVING_TRUCK",
+      "capacitySummary": "1–3 Bedroom Moves & Tight Beltline Alley Access",
+      "licensePlate": "AB-QMS-102",
+      "status": "AVAILABLE",
+      "maintenanceNote": "Equipped with neoprene floor runners & appliance straps.",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "veh_3",
+      "name": "Unit #03 — High-Wall Junk Removal & Cleanout Truck",
+      "vehicleType": "16FT_JUNK_DUMP_TRUCK",
+      "capacitySummary": "Full Property Cleanouts, Furniture, Mattresses & Garage Hauls",
+      "licensePlate": "AB-QMS-201",
+      "status": "AVAILABLE",
+      "maintenanceNote": "Equipped with heavy tarps, brooms, and loading ramps.",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "reviewRequests": [
+    {
+      "id": "rev_seed_1",
+      "customerId": "cust_seed_1",
+      "jobRequestId": "job_seed_1",
+      "status": "NOT_REQUESTED",
+      "reviewLinkUrl": "https://www.google.com/search?q=quickmove+solutions",
+      "notes": "Send Google review invitation once Nov 8 move is marked completed.",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "tst_seed_1",
+      "customerName": "Calgary Homeowner (Verified Workflow Sample — Unpublished)",
+      "serviceType": "Residential Moving & Junk Removal",
+      "city": "Calgary",
+      "quoteText": "Sample internal placeholder: Only verified customer reviews approved by the owner are published publicly.",
+      "isVerified": false,
+      "isPublished": false,
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "marketingCampaigns": [
+    {
+      "id": "cmp_seed_1",
+      "name": "Calgary Fall Condo & Home Relocation Campaign",
+      "theme": "Stress-Free Calgary Moving & Elevator Preparation",
+      "targetCity": "Calgary",
+      "serviceFocus": "Residential & Condo Moving",
+      "status": "ACTIVE",
+      "startDate": "2026-11-01",
+      "endDate": "2026-11-30",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "cmp_seed_2",
+      "name": "Snap-a-Photo Garage & Basement Junk Clearout",
+      "theme": "Photo-First Junk Removal Before Winter Parking",
+      "targetCity": "Calgary & Airdrie",
+      "serviceFocus": "Full Junk Removal",
+      "status": "ACTIVE",
+      "startDate": "2026-11-01",
+      "endDate": "2026-11-30",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "marketingPosts": [
+    {
+      "id": "mp_m_bc3223d8be",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 4: Monthly Wrap-Up: 100+ Calgary Families & Businesses Moved with Care",
+      "platform": "FACEBOOK",
+      "contentPillar": "Customer Testimonial & Social Proof",
+      "serviceFocus": "Complete Moving & Clearout",
+      "targetCity": "Calgary & Surrounding",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 4: Monthly Wrap-Up: 100+ Calgary Families & Businesses Moved with Care",
+      "primaryCaption": "Week 4: Monthly Wrap-Up: 100+ Calgary Families & Businesses Moved with Care\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=facebook&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 4: Monthly Wrap-Up: 100+ Calgary Families & Businesses Moved with Care — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#CalgarySurrounding",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Full team photo with thumbs up in front of equipped QuickMove fleet.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Full team photo with thumbs up in front of equipped QuickMove fleet. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "COMPLETE MOVING & CLEAROUT • CALGARY & SURROUNDING",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-12-02T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_8bd7d5cc75",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 4: Calgary Condo Elevator Booking & Moving Rules You Must Know",
+      "platform": "INSTAGRAM",
+      "contentPillar": "Moving Tips & Education",
+      "serviceFocus": "Condo & Apartment Moving",
+      "targetCity": "Beltline, Calgary",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 4: Calgary Condo Elevator Booking & Moving Rules You Must Know",
+      "primaryCaption": "Week 4: Calgary Condo Elevator Booking & Moving Rules You Must Know\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=instagram&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 4: Calgary Condo Elevator Booking & Moving Rules You Must Know — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#BeltlineCalgary",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Elevator padded protection walls and smooth rolling dollies in downtown high-rise.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Elevator padded protection walls and smooth rolling dollies in downtown high-rise. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "CONDO & APARTMENT MOVING • BELTLINE, CALGARY",
+      "aspectRatio": "4:5",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-30T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_75172921b4",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 4: Inter-City Moves: Calgary to Red Deer, Edmonton & Beyond",
+      "platform": "BOTH",
+      "contentPillar": "Local Area Awareness",
+      "serviceFocus": "Highway 2 Long Distance",
+      "targetCity": "Red Deer & Edmonton",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 4: Inter-City Moves: Calgary to Red Deer, Edmonton & Beyond",
+      "primaryCaption": "Week 4: Inter-City Moves: Calgary to Red Deer, Edmonton & Beyond\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=both&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 4: Inter-City Moves: Calgary to Red Deer, Edmonton & Beyond — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#RedDeerEdmonton",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "QuickMove truck driving down Alberta Highway 2 under blue prairie skies.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: QuickMove truck driving down Alberta Highway 2 under blue prairie skies. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "HIGHWAY 2 LONG DISTANCE • RED DEER & EDMONTON",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-28T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_05a126105b",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 3: Moving Pianos, Safes & Heavy Exercise Equipment Safely",
+      "platform": "FACEBOOK",
+      "contentPillar": "Moving Tips & Education",
+      "serviceFocus": "Specialty Item Handling",
+      "targetCity": "Calgary",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 3: Moving Pianos, Safes & Heavy Exercise Equipment Safely",
+      "primaryCaption": "Week 3: Moving Pianos, Safes & Heavy Exercise Equipment Safely\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=facebook&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 3: Moving Pianos, Safes & Heavy Exercise Equipment Safely — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Calgary",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Heavy equipment rigging with hydraulic liftgate truck and protective blankets.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Heavy equipment rigging with hydraulic liftgate truck and protective blankets. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "SPECIALTY ITEM HANDLING • CALGARY",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-25T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_cb1a28be1a",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 3: Bought a New Couch or Fridge? White-Glove Store-to-Living-Room Delivery",
+      "platform": "INSTAGRAM",
+      "contentPillar": "Delivery & Commercial Spotlight",
+      "serviceFocus": "Furniture & Appliance Delivery",
+      "targetCity": "Calgary",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 3: Bought a New Couch or Fridge? White-Glove Store-to-Living-Room Delivery",
+      "primaryCaption": "Week 3: Bought a New Couch or Fridge? White-Glove Store-to-Living-Room Delivery\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=instagram&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 3: Bought a New Couch or Fridge? White-Glove Store-to-Living-Room Delivery — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Calgary",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Clean delivery crew bringing wrapped designer sofa through double front doors.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Clean delivery crew bringing wrapped designer sofa through double front doors. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "FURNITURE & APPLIANCE DELIVERY • CALGARY",
+      "aspectRatio": "4:5",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-23T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_6cbcefffb0",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 3: Zero-Downtime Weekend Corporate & Office Relocations in Calgary",
+      "platform": "BOTH",
+      "contentPillar": "Delivery & Commercial Spotlight",
+      "serviceFocus": "Commercial Office Relocation",
+      "targetCity": "Calgary Downtown",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 3: Zero-Downtime Weekend Corporate & Office Relocations in Calgary",
+      "primaryCaption": "Week 3: Zero-Downtime Weekend Corporate & Office Relocations in Calgary\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=both&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 3: Zero-Downtime Weekend Corporate & Office Relocations in Calgary — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#CalgaryDowntown",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Modern office workstations and conference suites neatly packed and protected.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Modern office workstations and conference suites neatly packed and protected. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "COMMERCIAL OFFICE RELOCATION • CALGARY DOWNTOWN",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-21T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_d31002e640",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 2: Post-Renovation Cleanup: Drywall, Tiles & Scrap Lumber Hauled Away",
+      "platform": "FACEBOOK",
+      "contentPillar": "Junk Removal & Space Clearing",
+      "serviceFocus": "Renovation Debris Removal",
+      "targetCity": "Cochrane",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 2: Post-Renovation Cleanup: Drywall, Tiles & Scrap Lumber Hauled Away",
+      "primaryCaption": "Week 2: Post-Renovation Cleanup: Drywall, Tiles & Scrap Lumber Hauled Away\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=facebook&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 2: Post-Renovation Cleanup: Drywall, Tiles & Scrap Lumber Hauled Away — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Cochrane",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Heavy-duty hauling crew clearing renovation debris cleanly from driveway.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Heavy-duty hauling crew clearing renovation debris cleanly from driveway. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "RENOVATION DEBRIS REMOVAL • COCHRANE",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-18T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_0f4021f01b",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 2: Where Does Your Junk Go? 80%+ Donated or Recycled in Alberta",
+      "platform": "INSTAGRAM",
+      "contentPillar": "Eco-Friendly Recycling",
+      "serviceFocus": "Junk Removal & Donation",
+      "targetCity": "Okotoks",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 2: Where Does Your Junk Go? 80%+ Donated or Recycled in Alberta",
+      "primaryCaption": "Week 2: Where Does Your Junk Go? 80%+ Donated or Recycled in Alberta\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=instagram&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 2: Where Does Your Junk Go? 80%+ Donated or Recycled in Alberta — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Okotoks",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Infographic card showing electronics, scrap metal, and wood diversion from landfills.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Infographic card showing electronics, scrap metal, and wood diversion from landfills. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "JUNK REMOVAL & DONATION • OKOTOKS",
+      "aspectRatio": "4:5",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-16T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_2c9833583f",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 2: Spring Garage & Basement Cleanout: Photo-First Estimates in 15 Minutes",
+      "platform": "BOTH",
+      "contentPillar": "Junk Removal & Space Clearing",
+      "serviceFocus": "Full Junk Removal",
+      "targetCity": "Calgary",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 2: Spring Garage & Basement Cleanout: Photo-First Estimates in 15 Minutes",
+      "primaryCaption": "Week 2: Spring Garage & Basement Cleanout: Photo-First Estimates in 15 Minutes\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=both&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 2: Spring Garage & Basement Cleanout: Photo-First Estimates in 15 Minutes — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Calgary",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Before and after garage declutter transformation with donation sorting.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Before and after garage declutter transformation with donation sorting. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "FULL JUNK REMOVAL • CALGARY",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-14T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_81647814a6",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 1: \"Moved our 4-bedroom home in 6 hours with zero scratches!\" — 5-Star Review",
+      "platform": "FACEBOOK",
+      "contentPillar": "Customer Testimonial & Social Proof",
+      "serviceFocus": "Residential Moving",
+      "targetCity": "Chestermere",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 1: \"Moved our 4-bedroom home in 6 hours with zero scratches!\" — 5-Star Review",
+      "primaryCaption": "Week 1: \"Moved our 4-bedroom home in 6 hours with zero scratches!\" — 5-Star Review\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=facebook&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 1: \"Moved our 4-bedroom home in 6 hours with zero scratches!\" — 5-Star Review — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Chestermere",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Smiling family holding new house keys next to QuickMove branded moving truck.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Smiling family holding new house keys next to QuickMove branded moving truck. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "RESIDENTIAL MOVING • CHESTERMERE",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-11T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_5f460dafab",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 1: Top 5 Packing Hacks for Moving Without Broken Dishes",
+      "platform": "INSTAGRAM",
+      "contentPillar": "Moving Tips & Education",
+      "serviceFocus": "Packing & Unpacking",
+      "targetCity": "Airdrie",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 1: Top 5 Packing Hacks for Moving Without Broken Dishes",
+      "primaryCaption": "Week 1: Top 5 Packing Hacks for Moving Without Broken Dishes\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=instagram&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 1: Top 5 Packing Hacks for Moving Without Broken Dishes — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Airdrie",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Side-by-side comparison of bubble-wrapped fragile items and packed wardrobe boxes.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Side-by-side comparison of bubble-wrapped fragile items and packed wardrobe boxes. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "PACKING & UNPACKING • AIRDRIE",
+      "aspectRatio": "4:5",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-09T21:15:22.833Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_m_c8f4ba1ae4",
+      "campaignId": "camp_calgary_strategic_month",
+      "title": "Week 1: Stress-Free Mount Royal & SW Calgary Home Relocations",
+      "platform": "BOTH",
+      "contentPillar": "Moving Services Spotlight",
+      "serviceFocus": "Residential Moving",
+      "targetCity": "Calgary",
+      "tone": "Authoritative, Reassuring & Local",
+      "goal": "Monthly Comprehensive Lead Generation & Brand Presence",
+      "hook": "Week 1: Stress-Free Mount Royal & SW Calgary Home Relocations",
+      "primaryCaption": "Week 1: Stress-Free Mount Royal & SW Calgary Home Relocations\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nFull-service relocations, furniture transport, and photo-first junk removal across Calgary, Airdrie, Chestermere, Cochrane, Okotoks, Red Deer, and Edmonton.\n\n✨ Why Calgary chooses us:\n• Transparent upfront pricing (No hidden fees)\n• Equipped moving trucks with 50+ furniture pads & straps\n• Fully licensed & Alberta cargo insured\n• Photo-first junk quotes in 15 minutes\n\n👉 Get your free instant estimate: http://localhost:3000//get-a-quote?utm_source=both&utm_medium=social&utm_campaign=monthly_plan\n📞 Call or text our dispatch team: (587) 999-9565",
+      "shortCaption": "Week 1: Stress-Free Mount Royal & SW Calgary Home Relocations — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Calgary",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval",
+        "#AlbertaBusiness",
+        "#YYCLocal"
+      ],
+      "ctaText": "Get a quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Photo of QuickMove truck parked outside modern luxury home in Calgary.",
+      "imagePrompt": "Professional editorial photography for QuickMove Solutions: Photo of QuickMove truck parked outside modern luxury home in Calgary. High dynamic range, natural lighting, brand colors navy and orange.",
+      "overlayText": "RESIDENTIAL MOVING • CALGARY",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-07T21:15:22.832Z",
+      "createdAt": "2026-11-05T21:15:22.832Z",
+      "updatedAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "mp_8627833570",
+      "title": "Friday Store-to-Home Furniture & Appliance Delivery Across Calgary",
+      "platform": "INSTAGRAM",
+      "contentPillar": "Delivery & Commercial Spotlight",
+      "serviceFocus": "Delivery Services",
+      "targetCity": "Calgary",
+      "tone": "Professional, Reassuring & Local",
+      "goal": "Balanced Weekly Brand & Lead Generation",
+      "hook": "Friday Store-to-Home Furniture & Appliance Delivery Across Calgary",
+      "primaryCaption": "Friday Store-to-Home Furniture & Appliance Delivery Across Calgary\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nServing Calgary, Airdrie, Strathmore, Red Deer, and Edmonton with careful moving, delivery, and full junk removal. Request your free written quote at https://localhost:3000//get-a-quote or call (587) 999-9565.",
+      "shortCaption": "Friday Store-to-Home Furniture & Appliance Delivery Across Calgary — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Calgary",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval"
+      ],
+      "ctaText": "Call (587) 999-9565 or get a quote at localhost:3000",
+      "visualConcept": "Branded navy and orange visual highlighting Delivery Services in Calgary.",
+      "imagePrompt": "Professional photography of QuickMove Solutions crew performing Delivery Services in Calgary Alberta.",
+      "overlayText": "Delivery Services • Calgary",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-09T22:39:37.574Z",
+      "createdAt": "2026-11-04T22:39:37.573Z",
+      "updatedAt": "2026-11-04T22:39:37.573Z"
+    },
+    {
+      "id": "mp_13e4447f5e",
+      "title": "Thursday Highway 2 Corridor Moves: Coordinated Calgary, Red Deer & Edmonton Relocations",
+      "platform": "BOTH",
+      "contentPillar": "Local Area Awareness",
+      "serviceFocus": "Long-Distance Moving",
+      "targetCity": "Red Deer",
+      "tone": "Professional, Reassuring & Local",
+      "goal": "Balanced Weekly Brand & Lead Generation",
+      "hook": "Thursday Highway 2 Corridor Moves: Coordinated Calgary, Red Deer & Edmonton Relocations",
+      "primaryCaption": "Thursday Highway 2 Corridor Moves: Coordinated Calgary, Red Deer & Edmonton Relocations\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nServing Calgary, Airdrie, Strathmore, Red Deer, and Edmonton with careful moving, delivery, and full junk removal. Request your free written quote at https://localhost:3000//get-a-quote or call (587) 999-9565.",
+      "shortCaption": "Thursday Highway 2 Corridor Moves: Coordinated Calgary, Red Deer & Edmonton Relocations — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#RedDeer",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval"
+      ],
+      "ctaText": "Call (587) 999-9565 or get a quote at localhost:3000",
+      "visualConcept": "Branded navy and orange visual highlighting Long-Distance Moving in Red Deer.",
+      "imagePrompt": "Professional photography of QuickMove Solutions crew performing Long-Distance Moving in Red Deer Alberta.",
+      "overlayText": "Long-Distance Moving • Red Deer",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-08T22:39:37.574Z",
+      "createdAt": "2026-11-04T22:39:37.573Z",
+      "updatedAt": "2026-11-04T22:39:37.573Z"
+    },
+    {
+      "id": "mp_4e898758e4",
+      "title": "Wednesday Packing Tip: How to Pack fragile Kitchen Glassware for an Airdrie Move",
+      "platform": "FACEBOOK",
+      "contentPillar": "Moving Tips & Education",
+      "serviceFocus": "Packing & Unpacking",
+      "targetCity": "Airdrie",
+      "tone": "Professional, Reassuring & Local",
+      "goal": "Balanced Weekly Brand & Lead Generation",
+      "hook": "Wednesday Packing Tip: How to Pack fragile Kitchen Glassware for an Airdrie Move",
+      "primaryCaption": "Wednesday Packing Tip: How to Pack fragile Kitchen Glassware for an Airdrie Move\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nServing Calgary, Airdrie, Strathmore, Red Deer, and Edmonton with careful moving, delivery, and full junk removal. Request your free written quote at https://localhost:3000//get-a-quote or call (587) 999-9565.",
+      "shortCaption": "Wednesday Packing Tip: How to Pack fragile Kitchen Glassware for an Airdrie Move — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Airdrie",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval"
+      ],
+      "ctaText": "Call (587) 999-9565 or get a quote at localhost:3000",
+      "visualConcept": "Branded navy and orange visual highlighting Packing & Unpacking in Airdrie.",
+      "imagePrompt": "Professional photography of QuickMove Solutions crew performing Packing & Unpacking in Airdrie Alberta.",
+      "overlayText": "Packing & Unpacking • Airdrie",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-07T22:39:37.574Z",
+      "createdAt": "2026-11-04T22:39:37.573Z",
+      "updatedAt": "2026-11-04T22:39:37.573Z"
+    },
+    {
+      "id": "mp_cbdf9ef085",
+      "title": "Tuesday Photo-First Junk Removal: Snap a Photo of Old Furniture or Mattresses",
+      "platform": "INSTAGRAM",
+      "contentPillar": "Junk Removal & Space Clearing",
+      "serviceFocus": "Full Junk Removal",
+      "targetCity": "Calgary",
+      "tone": "Professional, Reassuring & Local",
+      "goal": "Balanced Weekly Brand & Lead Generation",
+      "hook": "Tuesday Photo-First Junk Removal: Snap a Photo of Old Furniture or Mattresses",
+      "primaryCaption": "Tuesday Photo-First Junk Removal: Snap a Photo of Old Furniture or Mattresses\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nServing Calgary, Airdrie, Strathmore, Red Deer, and Edmonton with careful moving, delivery, and full junk removal. Request your free written quote at https://localhost:3000//get-a-quote or call (587) 999-9565.",
+      "shortCaption": "Tuesday Photo-First Junk Removal: Snap a Photo of Old Furniture or Mattresses — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Calgary",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval"
+      ],
+      "ctaText": "Call (587) 999-9565 or get a quote at localhost:3000",
+      "visualConcept": "Branded navy and orange visual highlighting Full Junk Removal in Calgary.",
+      "imagePrompt": "Professional photography of QuickMove Solutions crew performing Full Junk Removal in Calgary Alberta.",
+      "overlayText": "Full Junk Removal • Calgary",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-06T22:39:37.574Z",
+      "createdAt": "2026-11-04T22:39:37.573Z",
+      "updatedAt": "2026-11-04T22:39:37.573Z"
+    },
+    {
+      "id": "mp_efb8e42b6c",
+      "title": "Monday Calgary Residential Moving Checklist: Protecting Floors & Doorframes",
+      "platform": "BOTH",
+      "contentPillar": "Moving Services Spotlight",
+      "serviceFocus": "Residential Moving",
+      "targetCity": "Calgary",
+      "tone": "Professional, Reassuring & Local",
+      "goal": "Balanced Weekly Brand & Lead Generation",
+      "hook": "Monday Calgary Residential Moving Checklist: Protecting Floors & Doorframes",
+      "primaryCaption": "Monday Calgary Residential Moving Checklist: Protecting Floors & Doorframes\n\nQuickMove Solutions — \"Moving Made Easy. Space Made Clear.\"\n\nServing Calgary, Airdrie, Strathmore, Red Deer, and Edmonton with careful moving, delivery, and full junk removal. Request your free written quote at https://localhost:3000//get-a-quote or call (587) 999-9565.",
+      "shortCaption": "Monday Calgary Residential Moving Checklist: Protecting Floors & Doorframes — Call (587) 999-9565 or visit localhost:3000.",
+      "hashtags": [
+        "#QuickMoveSolutions",
+        "#Calgary",
+        "#CalgaryMovers",
+        "#CalgaryJunkRemoval"
+      ],
+      "ctaText": "Call (587) 999-9565 or get a quote at localhost:3000",
+      "visualConcept": "Branded navy and orange visual highlighting Residential Moving in Calgary.",
+      "imagePrompt": "Professional photography of QuickMove Solutions crew performing Residential Moving in Calgary Alberta.",
+      "overlayText": "Residential Moving • Calgary",
+      "aspectRatio": "1:1",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-05T22:39:37.573Z",
+      "createdAt": "2026-11-04T22:39:37.573Z",
+      "updatedAt": "2026-11-04T22:39:37.573Z"
+    },
+    {
+      "id": "mp_seed_1",
+      "campaignId": "cmp_seed_1",
+      "title": "Moving Tips",
+      "platform": "FACEBOOK",
+      "contentPillar": "Moving Tips & Education",
+      "serviceFocus": "Residential Moving",
+      "targetCity": "Calgary",
+      "tone": "Helpful, Professional & Local",
+      "goal": "Drive Visual Moving Quote Requests",
+      "hook": "Moving into or out of a Calgary high-rise this month? One detail saves hours on moving day:",
+      "primaryCaption": "Moving into or out of a Calgary condo or apartment? Securing your dedicated service elevator window in advance keeps your move smooth, protected, and on schedule.\n\nAt QuickMove Solutions, our crews arrive with padded elevator blankets, floor runners, and organized dollies to make your transition seamless.\n\nPlanning a move in Calgary, Airdrie, Strathmore, Red Deer, or Edmonton? Request your free itemized quote at https://localhost:3000//get-a-quote or call (587) 999-9565.",
+      "shortCaption": "Moving in Calgary? Book your service elevator early and let QuickMove Solutions handle the heavy lifting. Call (587) 999-9565.",
+      "hashtags": [
+        "#CalgaryMovers",
+        "#QuickMoveSolutions",
+        "#YYCMoving",
+        "#AlbertaMovers"
+      ],
+      "ctaText": "Get a Free Visual Moving Quote at localhost:3000 or call (587) 999-9565",
+      "visualConcept": "Two uniformed QuickMove Solutions movers in navy and orange gear rolling a padded sofa onto a protected condo service elevator in Calgary.",
+      "imagePrompt": "Photorealistic commercial photography of two professional movers in navy blue polo shirts with orange accents carefully moving a blanket-wrapped sofa in a modern Calgary condo lobby.",
+      "overlayText": "Moving Made Easy. Calgary Condo & Home Movers.",
+      "aspectRatio": "4:5",
+      "status": "PUBLISHED",
+      "approvedBy": "QuickMove Owner",
+      "approvedAt": "2026-11-01T08:00:00.000Z",
+      "publishedAt": "2026-11-01T08:00:00.000Z",
+      "scheduledFor": "2026-11-02T10:00:00.000Z",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "mp_seed_2",
+      "campaignId": "cmp_seed_2",
+      "title": "Junk Removal",
+      "platform": "INSTAGRAM",
+      "contentPillar": "Junk Removal & Space Clearing",
+      "serviceFocus": "Full Junk Removal",
+      "targetCity": "Calgary",
+      "tone": "Action-Oriented & Reassuring",
+      "goal": "Drive 6-Step Photo Junk Removal Submissions",
+      "hook": "Want to park your car inside the garage before the next Calgary cold snap?",
+      "primaryCaption": "Reclaim your garage, basement, or spare room without lifting a finger! With QuickMove Solutions’ Photo-First Junk Removal flow, simply snap a few photos of old furniture, mattresses, appliances, or boxed clutter from your phone.\n\nStart your 6-step photo quote at https://localhost:3000//get-a-quote/junk-removal or call (587) 999-9565.",
+      "shortCaption": "Snap photos of unwanted furniture or garage clutter for a fast Calgary junk removal quote! Call (587) 999-9565.",
+      "hashtags": [
+        "#CalgaryJunkRemoval",
+        "#YYCCleanout",
+        "#QuickMoveSolutions",
+        "#SpaceMadeClear"
+      ],
+      "ctaText": "Upload Photos for a Quote at localhost:3000/get-a-quote/junk-removal",
+      "visualConcept": "Split before-and-after style visual of a cluttered residential garage transformed into a clean, swept two-car garage.",
+      "imagePrompt": "Clean organized residential garage in Calgary Alberta after professional junk removal service.",
+      "overlayText": "Space Made Clear. Send Photos for a Junk Quote.",
+      "aspectRatio": "1:1",
+      "status": "PUBLISHED",
+      "approvedBy": "QuickMove Owner",
+      "approvedAt": "2026-11-01T08:00:00.000Z",
+      "scheduledFor": "2026-11-03T11:00:00.000Z",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-05T21:16:03.085Z",
+      "publishedAt": "2026-11-05T21:16:03.085Z",
+      "externalPostId": "meta_graph_instagram_1793913363085"
+    },
+    {
+      "id": "mp_seed_3",
+      "campaignId": "cmp_seed_1",
+      "title": "Residential Moving",
+      "platform": "FACEBOOK",
+      "contentPillar": "Moving Services Spotlight",
+      "serviceFocus": "Residential Moving",
+      "targetCity": "Calgary",
+      "tone": "Professional & Reassuring",
+      "goal": "Generate Residential Quote Leads",
+      "hook": "Relocating your family home in Calgary this month?",
+      "primaryCaption": "From multi-bedroom houses to townhouses and condos, QuickMove Solutions protects floors, banisters, and furniture at every step. Call (587) 999-9565.",
+      "shortCaption": "Careful, organized household moving across Calgary & Alberta.",
+      "hashtags": [
+        "#CalgaryMoving",
+        "#QuickMoveSolutions",
+        "#ResidentialMovers"
+      ],
+      "ctaText": "Call (587) 999-9565",
+      "visualConcept": "QuickMove Solutions box truck parked in front of a modern Calgary home.",
+      "imagePrompt": "Branded QuickMove Solutions truck parked outside a Calgary family home.",
+      "overlayText": "Residential Moving • Calgary & Area",
+      "aspectRatio": "4:5",
+      "status": "PUBLISHED",
+      "approvedBy": "QuickMove Owner",
+      "approvedAt": "2026-11-01T08:00:00.000Z",
+      "scheduledFor": "2026-11-05T10:00:00.000Z",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-05T21:16:03.085Z",
+      "publishedAt": "2026-11-05T21:16:03.085Z",
+      "externalPostId": "meta_graph_facebook_1793913363085"
+    },
+    {
+      "id": "mp_seed_4",
+      "campaignId": "cmp_seed_1",
+      "title": "Local Service Calgary",
+      "platform": "BOTH",
+      "contentPillar": "Local Area Awareness",
+      "serviceFocus": "Local Moving",
+      "targetCity": "Calgary",
+      "tone": "Local & Community-Focused",
+      "goal": "Local Brand Awareness",
+      "hook": "Serving every quadrant of Calgary (NW, NE, SW, SE) plus Airdrie & Strathmore!",
+      "primaryCaption": "Moving Made Easy. Space Made Clear. Whether you are moving across Calgary or clearing out unwanted furniture, our crew is ready. Call (587) 999-9565.",
+      "shortCaption": "Local Calgary Moving & Junk Removal — (587) 999-9565.",
+      "hashtags": [
+        "#YYC",
+        "#CalgaryLocal",
+        "#QuickMoveSolutions"
+      ],
+      "ctaText": "Request a Free Quote Today",
+      "visualConcept": "QuickMove Solutions crew with Calgary skyline in background.",
+      "imagePrompt": "Moving truck with Calgary skyline.",
+      "overlayText": "Local Service Calgary • (587) 999-9565",
+      "aspectRatio": "1:1",
+      "status": "PUBLISHED",
+      "approvedBy": "QuickMove Owner",
+      "approvedAt": "2026-11-01T08:00:00.000Z",
+      "scheduledFor": "2026-11-07T11:00:00.000Z",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-05T21:16:03.085Z",
+      "publishedAt": "2026-11-05T21:16:03.085Z",
+      "externalPostId": "meta_graph_both_1793913363085"
+    },
+    {
+      "id": "mp_seed_5",
+      "campaignId": "cmp_seed_1",
+      "title": "Packing Tips",
+      "platform": "BOTH",
+      "contentPillar": "Moving Tips & Education",
+      "serviceFocus": "Packing & Unpacking",
+      "targetCity": "Airdrie",
+      "tone": "Educational & Helpful",
+      "goal": "Promote Packing Add-On Service",
+      "hook": "Save days of pre-move stress with organized room-by-room packing:",
+      "primaryCaption": "Need help wrapping fragile kitchenware, mirrors, and household rooms before moving day? QuickMove Solutions offers full and partial packing & unpacking support.",
+      "shortCaption": "Professional packing & unpacking assistance in Calgary & Airdrie.",
+      "hashtags": [
+        "#PackingTips",
+        "#QuickMoveSolutions",
+        "#AirdrieMovers"
+      ],
+      "ctaText": "Add Packing Support to Your Move",
+      "visualConcept": "Neatly labeled moving boxes and bubble-wrapped glassware.",
+      "imagePrompt": "Organized moving boxes in bright living room.",
+      "overlayText": "Packing & Unpacking Made Easy",
+      "aspectRatio": "4:5",
+      "status": "PENDING_APPROVAL",
+      "scheduledFor": "2026-11-09T10:00:00.000Z",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "mp_seed_6",
+      "campaignId": "cmp_seed_1",
+      "title": "Commercial Moving",
+      "platform": "FACEBOOK",
+      "contentPillar": "Moving Services Spotlight",
+      "serviceFocus": "Commercial Moving",
+      "targetCity": "Calgary",
+      "tone": "Executive & Structured",
+      "goal": "B2B Office Relocation Leads",
+      "hook": "Relocating your Calgary office, retail space, or commercial studio?",
+      "primaryCaption": "Minimize downtime with structured commercial moving from QuickMove Solutions. We handle workstations, boardroom furniture, equipment, and office cleanouts.",
+      "shortCaption": "Structured commercial & office relocations in Calgary.",
+      "hashtags": [
+        "#CalgaryBusiness",
+        "#CommercialMoving",
+        "#QuickMoveSolutions"
+      ],
+      "ctaText": "Request a Commercial Quote",
+      "visualConcept": "Crew relocating modern office workstations.",
+      "imagePrompt": "Commercial office relocation in downtown Calgary.",
+      "overlayText": "Commercial & Office Moving",
+      "aspectRatio": "16:9",
+      "status": "PUBLISHED",
+      "approvedBy": "QuickMove Owner",
+      "approvedAt": "2026-11-01T08:00:00.000Z",
+      "scheduledFor": "2026-11-11T10:00:00.000Z",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-05T21:16:03.085Z",
+      "publishedAt": "2026-11-05T21:16:03.085Z",
+      "externalPostId": "meta_graph_facebook_1793913363085"
+    },
+    {
+      "id": "mp_seed_7",
+      "campaignId": "cmp_seed_2",
+      "title": "Delivery Services",
+      "platform": "INSTAGRAM",
+      "contentPillar": "Delivery & Commercial Spotlight",
+      "serviceFocus": "Delivery Services",
+      "targetCity": "Calgary",
+      "tone": "Fast & Dependable",
+      "goal": "Drive 4-Step Delivery Quote Requests",
+      "hook": "Bought a new sectional sofa or heavy appliance? Let us pick it up and deliver it!",
+      "primaryCaption": "Skip the truck rental! QuickMove Solutions provides blanket-wrapped store-to-home and private-sale furniture & appliance delivery across Calgary and surrounding areas.",
+      "shortCaption": "Store-to-home furniture & appliance delivery — (587) 999-9565.",
+      "hashtags": [
+        "#CalgaryDelivery",
+        "#FurnitureDelivery",
+        "#QuickMoveSolutions"
+      ],
+      "ctaText": "Schedule a 4-Step Delivery Quote",
+      "visualConcept": "Crew delivering a wrapped sofa into a Calgary home.",
+      "imagePrompt": "Furniture delivery crew carrying padded sofa.",
+      "overlayText": "Furniture & Appliance Delivery",
+      "aspectRatio": "1:1",
+      "status": "PUBLISHED",
+      "approvedBy": "QuickMove Owner",
+      "approvedAt": "2026-11-01T08:00:00.000Z",
+      "scheduledFor": "2026-11-13T11:00:00.000Z",
+      "createdAt": "2026-11-01T08:00:00.000Z",
+      "updatedAt": "2026-11-05T21:16:03.085Z",
+      "publishedAt": "2026-11-05T21:16:03.085Z",
+      "externalPostId": "meta_graph_instagram_1793913363085"
+    }
+  ],
+  "socialAccounts": [
+    {
+      "id": "soc_fb",
+      "platform": "FACEBOOK",
+      "accountName": "QuickMove Solutions",
+      "accountUrl": "https://www.facebook.com/quickmovesolutions",
+      "externalPageId": "quickmovesolutions",
+      "connectionStatus": "CONNECTED",
+      "scopesGranted": [
+        "pages_manage_posts",
+        "pages_read_engagement",
+        "pages_show_list"
+      ],
+      "lastVerifiedAt": "2026-11-06T20:41:28.070Z",
+      "updatedAt": "2026-11-06T20:41:28.070Z",
+      "tokenExpiresAt": "2027-01-05T20:41:28.070Z"
+    },
+    {
+      "id": "soc_ig",
+      "platform": "INSTAGRAM",
+      "accountName": "@quickmoverssolution",
+      "accountUrl": "https://www.instagram.com/quickmoverssolution/",
+      "externalPageId": "quickmoverssolution",
+      "connectionStatus": "CONNECTED",
+      "scopesGranted": [
+        "instagram_basic",
+        "instagram_content_publish"
+      ],
+      "lastVerifiedAt": "2026-11-06T20:41:28.070Z",
+      "updatedAt": "2026-11-06T20:41:28.070Z",
+      "tokenExpiresAt": "2027-01-05T20:41:28.070Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "ntf_37519f4da1",
+      "eventType": "UPCOMING_BOOKING_REMINDER",
+      "channel": "EMAIL",
+      "recipientType": "CUSTOMER",
+      "recipientAddress": "m.henderson.yyc@example.com",
+      "subject": "QuickMove Solutions — 24h Moving Day Arrival Window & Parking Reminder",
+      "bodyPreview": "Your 3-Bedroom Move in Mount Royal is scheduled for tomorrow at 09:00 AM.",
+      "status": "SENT",
+      "createdAt": "2026-11-06T02:55:49.493Z"
+    },
+    {
+      "id": "ntf_d9eb19d540",
+      "eventType": "BOOKING_CHANGED",
+      "channel": "EMAIL",
+      "recipientType": "ADMIN",
+      "recipientAddress": "quickmoversolu@gmail.com",
+      "subject": "[Customer Change Request] Michael Henderson — DATE_OR_TIME",
+      "bodyPreview": "Michael Henderson requested a move change (DATE_OR_TIME): Elevator booked for morning only. [Proposed New Date: 2026-11-20 (Morning (08:00 AM - 11:00 AM))]. Booking: General",
+      "status": "SENT",
+      "createdAt": "2026-11-05T20:37:03.109Z"
+    },
+    {
+      "id": "ntf_8a7e290a84",
+      "eventType": "QUOTE_ACCEPTED",
+      "channel": "EMAIL",
+      "recipientType": "ADMIN",
+      "recipientAddress": "quickmoversolu@gmail.com",
+      "subject": "[Portal Accepted & Signed] Quote Q-2026-1001 — Michael Henderson",
+      "bodyPreview": "Michael Henderson ACCEPTED and signed (Signature: \"Michael Henderson\") Quote Q-2026-1001 ($1464.75 CAD). Dispatch schedule updated.",
+      "status": "SENT",
+      "relatedLeadId": "lead_seed_1",
+      "createdAt": "2026-11-05T20:37:02.743Z"
+    },
+    {
+      "id": "ntf_96ae02e053",
+      "eventType": "BOOKING_CONFIRMED",
+      "channel": "EMAIL",
+      "recipientType": "CUSTOMER",
+      "recipientAddress": "logistics@northpeakstudio.example.com",
+      "subject": "Booking Confirmed (BK-2026-503) — QuickMove Solutions",
+      "bodyPreview": "Hi NorthPeak Design Studio Ltd., your booking BK-2026-503 is confirmed for 2026-11-10 (8:30 AM – 9:30 AM).",
+      "status": "SENT",
+      "relatedLeadId": "lead_seed_3",
+      "createdAt": "2026-11-04T22:24:36.204Z"
+    },
+    {
+      "id": "ntf_seed_1",
+      "eventType": "QUOTE_ACCEPTED",
+      "channel": "EMAIL",
+      "recipientType": "ADMIN",
+      "recipientAddress": "quickmoversolu@gmail.com",
+      "subject": "[Quote Accepted Q-2026-1001] Michael Henderson — Residential Move",
+      "bodyPreview": "Michael Henderson accepted Quote Q-2026-1001 ($1,464.75 CAD incl. GST) for Nov 8, 2026.",
+      "status": "SENT",
+      "relatedLeadId": "lead_seed_1",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "ntf_seed_2",
+      "eventType": "QUOTE_SENT",
+      "channel": "EMAIL",
+      "recipientType": "CUSTOMER",
+      "recipientAddress": "priya.patel.airdrie@example.com",
+      "subject": "Your QuickMove Solutions Junk Removal Quotation (Q-2026-1002)",
+      "bodyPreview": "Hi Priya, your itemized junk removal quote Q-2026-1002 is ready for review in your Customer Portal.",
+      "status": "SENT",
+      "relatedLeadId": "lead_seed_2",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "activityLogs": [
+    {
+      "id": "act_1793997688070",
+      "actorRole": "OWNER",
+      "entityType": "SOCIAL_ACCOUNT",
+      "entityId": "meta_oauth",
+      "action": "META_OAUTH_VERIFIED",
+      "summary": "Verified Meta Graph API OAuth 2.0 connection for Facebook Page & Instagram Business Account.",
+      "createdAt": "2026-11-06T20:41:28.070Z"
+    },
+    {
+      "id": "act_1793997685993",
+      "actorRole": "OWNER",
+      "entityType": "SOCIAL_ACCOUNT",
+      "entityId": "meta_oauth",
+      "action": "META_OAUTH_VERIFIED",
+      "summary": "Verified Meta Graph API OAuth 2.0 connection for Facebook Page & Instagram Business Account.",
+      "createdAt": "2026-11-06T20:41:25.993Z"
+    },
+    {
+      "id": "act_1793997685452",
+      "actorRole": "OWNER",
+      "entityType": "SOCIAL_ACCOUNT",
+      "entityId": "meta_oauth",
+      "action": "META_OAUTH_VERIFIED",
+      "summary": "Verified Meta Graph API OAuth 2.0 connection for Facebook Page & Instagram Business Account.",
+      "createdAt": "2026-11-06T20:41:25.452Z"
+    },
+    {
+      "id": "act_1793938714963",
+      "actorRole": "OWNER",
+      "entityType": "SOCIAL_ACCOUNT",
+      "entityId": "meta_oauth",
+      "action": "META_OAUTH_VERIFIED",
+      "summary": "Verified Meta Graph API OAuth 2.0 connection for Facebook Page & Instagram Business Account.",
+      "createdAt": "2026-11-06T04:18:34.963Z"
+    },
+    {
+      "id": "act_e204c1465d",
+      "actorRole": "SYSTEM_AUTOMATION",
+      "entityType": "NOTIFICATION",
+      "entityId": "ntf_37519f4da1",
+      "action": "NOTIFICATION_DELIVERED",
+      "summary": "Delivered EMAIL alert [UPCOMING_BOOKING_REMINDER] to m.henderson.yyc@example.com: \"QuickMove Solutions — 24h Moving Day Arrival Window & Parking Reminder\"",
+      "createdAt": "2026-11-06T02:55:49.493Z"
+    },
+    {
+      "id": "act_1793913363085_mp_seed_7",
+      "actorRole": "SCHEDULER_CRON",
+      "entityType": "MARKETING_POST",
+      "entityId": "mp_seed_7",
+      "action": "SCHEDULED_POST_PUBLISHED",
+      "summary": "Background scheduler published \"Delivery Services\" to INSTAGRAM (External ID: meta_graph_instagram_1793913363085).",
+      "createdAt": "2026-11-05T21:16:03.085Z"
+    },
+    {
+      "id": "act_1793913363085_mp_seed_6",
+      "actorRole": "SCHEDULER_CRON",
+      "entityType": "MARKETING_POST",
+      "entityId": "mp_seed_6",
+      "action": "SCHEDULED_POST_PUBLISHED",
+      "summary": "Background scheduler published \"Commercial Moving\" to FACEBOOK (External ID: meta_graph_facebook_1793913363085).",
+      "createdAt": "2026-11-05T21:16:03.085Z"
+    },
+    {
+      "id": "act_1793913363085_mp_seed_4",
+      "actorRole": "SCHEDULER_CRON",
+      "entityType": "MARKETING_POST",
+      "entityId": "mp_seed_4",
+      "action": "SCHEDULED_POST_PUBLISHED",
+      "summary": "Background scheduler published \"Local Service Calgary\" to BOTH (External ID: meta_graph_both_1793913363085).",
+      "createdAt": "2026-11-05T21:16:03.085Z"
+    },
+    {
+      "id": "act_1793913363085_mp_seed_3",
+      "actorRole": "SCHEDULER_CRON",
+      "entityType": "MARKETING_POST",
+      "entityId": "mp_seed_3",
+      "action": "SCHEDULED_POST_PUBLISHED",
+      "summary": "Background scheduler published \"Residential Moving\" to FACEBOOK (External ID: meta_graph_facebook_1793913363085).",
+      "createdAt": "2026-11-05T21:16:03.085Z"
+    },
+    {
+      "id": "act_1793913363085_mp_seed_2",
+      "actorRole": "SCHEDULER_CRON",
+      "entityType": "MARKETING_POST",
+      "entityId": "mp_seed_2",
+      "action": "SCHEDULED_POST_PUBLISHED",
+      "summary": "Background scheduler published \"Junk Removal\" to INSTAGRAM (External ID: meta_graph_instagram_1793913363085).",
+      "createdAt": "2026-11-05T21:16:03.085Z"
+    },
+    {
+      "id": "act_7c1f97aa76",
+      "actorRole": "OWNER",
+      "entityType": "MARKETING_PLAN",
+      "entityId": "monthly_strategic_plan",
+      "action": "MONTHLY_PLAN_GENERATED",
+      "summary": "Generated 12-post strategic monthly marketing plan across all 4 weeks covering residential, junk removal, commercial, and Highway 2 corridor.",
+      "createdAt": "2026-11-05T21:15:22.832Z"
+    },
+    {
+      "id": "act_e1d771b4b5",
+      "actorRole": "CUSTOMER",
+      "entityType": "BOOKING",
+      "entityId": "general",
+      "action": "PORTAL_CHANGE_REQUESTED",
+      "summary": "Michael Henderson submitted a change request for Move: DATE_OR_TIME — Elevator booked for morning only.",
+      "createdAt": "2026-11-05T20:37:03.109Z"
+    },
+    {
+      "id": "act_016ef2f0a7",
+      "actorRole": "CUSTOMER",
+      "entityType": "QUOTE",
+      "entityId": "quo_seed_1",
+      "action": "PORTAL_QUOTE_ACCEPTED",
+      "summary": "Michael Henderson signed and accepted Quote Q-2026-1001 in the Customer Portal.",
+      "createdAt": "2026-11-05T20:37:02.743Z"
+    },
+    {
+      "id": "act_1acc994437",
+      "actorRole": "OWNER",
+      "entityType": "MARKETING_PLAN",
+      "entityId": "weekly_plan",
+      "action": "WEEKLY_PLAN_GENERATED",
+      "summary": "Generated 5-post balanced weekly content plan across Moving, Junk Removal, Packing, Delivery & Alberta Service Areas.",
+      "createdAt": "2026-11-04T22:39:37.573Z"
+    },
+    {
+      "id": "act_1793831704556",
+      "actorRole": "OWNER",
+      "entityType": "AUTH",
+      "entityId": "usr_owner_1",
+      "action": "STAFF_LOGIN",
+      "summary": "QuickMove Owner (OWNER) authenticated into the QuickMove platform.",
+      "createdAt": "2026-11-04T22:35:04.507Z"
+    },
+    {
+      "id": "act_13a37a7879",
+      "actorRole": "OWNER",
+      "entityType": "BOOKING",
+      "entityId": "bkg_44cb809ad2",
+      "action": "BOOKING_CREATED",
+      "summary": "Scheduled Booking BK-2026-503 on 2026-11-10 (08:30–13:30).",
+      "createdAt": "2026-11-04T22:24:36.204Z"
+    },
+    {
+      "id": "act_e1f7db1ff5",
+      "actorRole": "OWNER",
+      "entityType": "BOOKING",
+      "entityId": "bkg_seed_1",
+      "action": "BOOKING_UPDATED",
+      "summary": "Updated Booking BK-2026-501 (CONFIRMED, 2026-11-08).",
+      "createdAt": "2026-11-04T22:24:30.271Z"
+    },
+    {
+      "id": "act_cd8fd513e6",
+      "actorRole": "OWNER",
+      "entityType": "LEAD",
+      "entityId": "lead_seed_3",
+      "action": "LEAD_STATUS_UPDATED",
+      "summary": "Updated lead QM-MOV-261101-E5F6 status to IN_PROGRESS.",
+      "createdAt": "2026-11-04T22:21:55.799Z"
+    },
+    {
+      "id": "act_9092f5f7d4",
+      "actorRole": "OWNER",
+      "entityType": "LEAD",
+      "entityId": "lead_seed_3",
+      "action": "LEAD_STATUS_UPDATED",
+      "summary": "Updated lead QM-MOV-261101-E5F6 status to CONTACTED.",
+      "createdAt": "2026-11-04T22:21:50.999Z"
+    },
+    {
+      "id": "act_1793829936221",
+      "actorRole": "OWNER",
+      "entityType": "AUTH",
+      "entityId": "usr_owner_1",
+      "action": "STAFF_LOGIN",
+      "summary": "QuickMove Owner (OWNER) authenticated into the QuickMove platform.",
+      "createdAt": "2026-11-04T22:05:36.173Z"
+    },
+    {
+      "id": "act_seed_1",
+      "actorRole": "COORDINATOR",
+      "entityType": "BOOKING",
+      "entityId": "bkg_seed_1",
+      "action": "BOOKING_CONFIRMED",
+      "summary": "Confirmed Booking BK-2026-501 for Michael Henderson on 2026-11-08 (08:30–14:30) with Team Alpha & Unit #01.",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "act_seed_2",
+      "actorRole": "COORDINATOR",
+      "entityType": "QUOTE",
+      "entityId": "quo_seed_2",
+      "action": "QUOTE_SENT",
+      "summary": "Prepared and sent Junk Removal Quote Q-2026-1002 ($372.75 CAD) to Priya Patel.",
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ],
+  "settings": {
+    "companyName": "QuickMove Solutions",
+    "tagline": "Moving Made Easy. Space Made Clear.",
+    "phoneDisplay": "(587) 999-9565",
+    "email": "quickmoversolu@gmail.com",
+    "primaryLocation": "Calgary, Alberta, Canada",
+    "timezone": "America/Edmonton",
+    "albertaGstPercent": 5,
+    "defaultQuoteValidityDays": 14,
+    "requireOwnerMarketingApproval": true,
+    "updatedAt": "2026-11-01T08:00:00.000Z"
+  },
+  "finishedJobs": [
+    {
+      "id": "job_fin_1",
+      "title": "Luxury 4-Bedroom Home Relocation",
+      "serviceType": "RESIDENTIAL_MOVING",
+      "location": "Mount Royal, Calgary",
+      "completionDate": "2026-10-28",
+      "description": "Complete packing, protective furniture wrapping, transport, and room-by-room placement for a 4,200 sq.ft home with zero scratches.",
+      "afterPhotoUrl": "/images/quickmove-truck-hero.jpg",
+      "featuredOnHome": true,
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "job_fin_2",
+      "title": "Full 2-Car Garage Declutter & Cleanout",
+      "serviceType": "JUNK_REMOVAL",
+      "location": "Cooper’s Crossing, Airdrie",
+      "completionDate": "2026-11-02",
+      "description": "Photo-first estimate approved in 15 minutes. Hauled 8 cubic yards of old renovation debris, scrap lumber, and broken appliances for eco-friendly recycling.",
+      "afterPhotoUrl": "/images/quickmove-marketing-hero.jpg",
+      "featuredOnHome": true,
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    },
+    {
+      "id": "job_fin_3",
+      "title": "Corporate Office Expansion Setup",
+      "serviceType": "COMMERCIAL_MOVING",
+      "location": "Downtown Core, Calgary",
+      "completionDate": "2026-10-15",
+      "description": "Overnight relocation of 28 workstations, executive conference suites, and secure IT equipment with zero downtime for monday morning operations.",
+      "afterPhotoUrl": "/images/quickmove-truck-hero.jpg",
+      "featuredOnHome": true,
+      "createdAt": "2026-11-01T08:00:00.000Z"
+    }
+  ]
+}

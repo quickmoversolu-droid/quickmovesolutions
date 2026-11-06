@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-manrope: 'Manrope', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+
+  /* Official Brand Palette Tokens */
+  --color-brand-black: #05080D;
+  --color-brand-navy: #101D35;
+  --color-brand-orange: #F47732;
+  --color-brand-white: #FFFFFF;
+  --color-brand-grey: #F4F6F8;
+  --color-brand-charcoal: #222A35;
+}
+
+@layer utilities {
+  .qm-dark-panel {
+    background: linear-gradient(145deg, rgba(16, 29, 53, 0.85) 0%, rgba(9, 15, 28, 0.94) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .qm-dark-card {
+    background: linear-gradient(180deg, rgba(16, 29, 53, 0.72) 0%, rgba(10, 17, 30, 0.88) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+  }
+
+  .qm-orange-border-glow {
+    border: 1.5px solid #F47732;
+    box-shadow: 0 0 26px -4px rgba(244, 119, 50, 0.4), inset 0 0 16px rgba(244, 119, 50, 0.1);
+  }
+
+  .qm-orange-pill {
+    background: linear-gradient(135deg, #FF8A47 0%, #F47732 55%, #E0601B 100%);
+    box-shadow: 0 8px 24px -4px rgba(244, 119, 50, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+}
+
+/* Unified Dark SaaS Styling for Admin Platform Modules */
+.qm-admin-dark-workspace .bg-white {
+  background: linear-gradient(180deg, rgba(15, 25, 45, 0.92) 0%, rgba(10, 17, 31, 0.96) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.55) !important;
+}
+
+.qm-admin-dark-workspace .bg-brand-light,
+.qm-admin-dark-workspace .bg-brand-surface-grey,
+.qm-admin-dark-workspace .bg-\[\#F4F6F8\] {
+  background-color: rgba(8, 14, 26, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #E2E8F0 !important;
+}
+
+.qm-admin-dark-workspace .text-brand-navy,
+.qm-admin-dark-workspace .text-brand-charcoal {
+  color: #FFFFFF !important;
+}
+
+.qm-admin-dark-workspace .text-brand-muted,
+.qm-admin-dark-workspace .text-brand-charcoal-muted,
+.qm-admin-dark-workspace .text-brand-charcoal-subtle {
+  color: rgba(226, 232, 240, 0.68) !important;
+}
+
+.qm-admin-dark-workspace .border-brand-navy\/10,
+.qm-admin-dark-workspace .border-brand-navy\/15,
+.qm-admin-dark-workspace .border-brand-navy\/20,
+.qm-admin-dark-workspace .border-brand-surface-border {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.qm-admin-dark-workspace input:not([type="checkbox"]):not([type="radio"]),
+.qm-admin-dark-workspace select,
+.qm-admin-dark-workspace textarea {
+  background-color: #070C16 !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #FFFFFF !important;
+}
+
+.qm-admin-dark-workspace input::placeholder,
+.qm-admin-dark-workspace textarea::placeholder {
+  color: rgba(255, 255, 255, 0.38) !important;
+}
+
+.qm-admin-dark-workspace option {
+  background-color: #0B1322;
+  color: #FFFFFF;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #222A35;
+    background-color: #FFFFFF;
+  }
+
+  body {
+    font-family: var(--font-inter);
+    color: #222A35;
+    background-color: #FFFFFF;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-manrope);
+    color: #101D35;
+  }
+
+  ::selection {
+    background-color: rgba(244, 119, 50, 0.2);
+    color: #101D35;
+  }
+}
+
+/* Reduced Motion Accessibility Rules (KNOWLEDGE.md Section 3.4 & Part 15) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

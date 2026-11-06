@@ -1,0 +1,409 @@
+// QuickMove Solutions Digital Business Platform — Master Prisma Schema
+// Matches DATABASE.md and Part 13 of KNOWLEDGE.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  COORDINATOR
+  MARKETING_MANAGER
+  CREW_MEMBER
+  CUSTOMER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUOTE_PENDING
+  QUOTE_SENT
+  FOLLOW_UP_REQUIRED
+  ACCEPTED
+  BOOKED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  LOST
+}
+
+enum JobLifecycleStage {
+  NEW_LEAD
+  CONTACTED
+  QUOTE_PREPARATION
+  QUOTE_SENT
+  CUSTOMER_ACCEPTED
+  BOOKING_CONFIRMED
+  TEAM_ASSIGNED
+  JOB_IN_PROGRESS
+  JOB_COMPLETED
+  FOLLOW_UP
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  VIEWED
+  REVISED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum BookingStatus {
+  TENTATIVE
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum MarketingPostStatus {
+  IDEA
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  FAILED
+  ARCHIVED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  phone        String?
+  passwordHash String
+  role         UserRole  @default(COORDINATOR)
+  isActive     Boolean   @default(true)
+  customerId   String?
+  employeeId   String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Customer {
+  id               String          @id @default(cuid())
+  fullName         String
+  email            String          @unique
+  phone            String
+  preferredContact String          @default("phone")
+  address          String?
+  city             String          @default("Calgary")
+  postalCode       String?
+  notes            String?
+  portalPasscode   String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  leads            Lead[]
+  jobRequests      JobRequest[]
+  quotes           Quote[]
+  bookings         Booking[]
+  reviewRequests   ReviewRequest[]
+}
+
+model Lead {
+  id                 String     @id @default(cuid())
+  referenceCode      String     @unique
+  customerId         String
+  customer           Customer   @relation(fields: [customerId], references: [id])
+  jobRequestId       String     @unique
+  serviceType        String
+  status             LeadStatus @default(NEW)
+  source             String
+  utmSource          String?
+  utmMedium          String?
+  utmCampaign        String?
+  assignedEmployeeId String?
+  internalNotes      String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model JobRequest {
+  id                       String            @id @default(cuid())
+  leadId                   String            @unique
+  customerId               String
+  customer                 Customer          @relation(fields: [customerId], references: [id])
+  serviceType              String
+  serviceCategory          String
+  lifecycleStage           JobLifecycleStage @default(NEW_LEAD)
+  pickupAddress            String
+  pickupCity               String
+  pickupPostalCode         String?
+  pickupAccessDetails      String?
+  destinationAddress       String?
+  destinationCity          String?
+  destinationPostalCode    String?
+  destinationAccessDetails String?
+  preferredDate            String
+  isFlexibleDate           Boolean           @default(false)
+  preferredTimeWindow      String            @default("flexible")
+  confirmedDate            String?
+  propertySize             String?
+  inventoryDetails         Json?
+  junkCategories           String[]
+  junkVolumeEstimate       String?
+  specialRequirements      String?
+  aiSummary                String?
+  aiVolumeSuggestion       String?
+  requiresManualInspection Boolean           @default(true)
+  assignedTeamId           String?
+  assignedVehicleId        String?
+  completionNotes          String?
+  completedAt              DateTime?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  photos                   JobPhoto[]
+  checklists               JobChecklist[]
+  quotes                   Quote[]
+  bookings                 Booking[]
+}
+
+model JobPhoto {
+  id                   String     @id @default(cuid())
+  jobRequestId         String
+  jobRequest           JobRequest @relation(fields: [jobRequestId], references: [id], onDelete: Cascade)
+  storageKey           String
+  originalFilename     String
+  mimeType             String
+  fileSizeBytes        Int
+  caption              String?
+  aiDetectedCategories String[]
+  createdAt            DateTime   @default(now())
+}
+
+model JobChecklist {
+  id              String     @id @default(cuid())
+  jobRequestId    String
+  jobRequest      JobRequest @relation(fields: [jobRequestId], references: [id], onDelete: Cascade)
+  title           String
+  serviceCategory String
+  items           Json
+  createdAt       DateTime   @default(now())
+}
+
+model Quote {
+  id               String          @id @default(cuid())
+  quoteNumber      String          @unique
+  version          Int             @default(1)
+  leadId           String
+  jobRequestId     String
+  jobRequest       JobRequest      @relation(fields: [jobRequestId], references: [id])
+  customerId       String
+  customer         Customer        @relation(fields: [customerId], references: [id])
+  serviceType      String
+  status           QuoteStatus     @default(DRAFT)
+  proposedDate     String
+  proposedWindow   String
+  scopeSummary     String
+  subtotalCents    Int             @default(0)
+  discountCents    Int             @default(0)
+  taxRatePercent   Float           @default(5.0)
+  taxCents         Int             @default(0)
+  totalCents       Int             @default(0)
+  depositCents     Int             @default(0)
+  validityDays     Int             @default(14)
+  validUntil       String
+  termsAndNotes    String
+  customerResponse String?
+  respondedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  lineItems        QuoteLineItem[]
+}
+
+model QuoteLineItem {
+  id             String @id @default(cuid())
+  quoteId        String
+  quote          Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  category       String
+  description    String
+  quantity       Float  @default(1)
+  unitPriceCents Int    @default(0)
+  totalCents     Int    @default(0)
+  sortOrder      Int    @default(1)
+}
+
+model Booking {
+  id                String        @id @default(cuid())
+  bookingNumber     String        @unique
+  jobRequestId      String
+  jobRequest        JobRequest    @relation(fields: [jobRequestId], references: [id])
+  customerId        String
+  customer          Customer      @relation(fields: [customerId], references: [id])
+  quoteId           String?
+  serviceType       String
+  serviceCategory   String
+  status            BookingStatus @default(TENTATIVE)
+  scheduledDate     String
+  startTime         String
+  endTime           String
+  arrivalWindow     String
+  assignedTeamId    String?
+  assignedVehicleId String?
+  crewMemberIds     String[]
+  pickupAddress     String
+  pickupCity        String
+  destinationCity   String?
+  dispatchNotes     String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model Employee {
+  id               String   @id @default(cuid())
+  fullName         String
+  phone            String
+  email            String   @unique
+  role             String
+  skills           String[]
+  status           String   @default("ACTIVE")
+  availabilityNote String?
+  internalNotes    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Team {
+  id            String   @id @default(cuid())
+  name          String
+  code          String   @unique
+  leadMemberId  String?
+  memberIds     String[]
+  specialty     String
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+}
+
+model Vehicle {
+  id              String   @id @default(cuid())
+  name            String
+  vehicleType     String
+  capacitySummary String
+  licensePlate    String?
+  status          String   @default("AVAILABLE")
+  maintenanceNote String?
+  createdAt       DateTime @default(now())
+}
+
+model ReviewRequest {
+  id            String    @id @default(cuid())
+  customerId    String
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  jobRequestId  String
+  status        String    @default("NOT_REQUESTED")
+  sentAt        DateTime?
+  completedAt   DateTime?
+  reviewLinkUrl String
+  notes         String?
+  createdAt     DateTime  @default(now())
+}
+
+model Testimonial {
+  id           String   @id @default(cuid())
+  customerName String
+  serviceType  String
+  city         String
+  quoteText    String
+  isVerified   Boolean  @default(false)
+  isPublished  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model MarketingCampaign {
+  id              String          @id @default(cuid())
+  name            String
+  theme           String
+  targetCity      String
+  serviceFocus    String
+  status          String          @default("ACTIVE")
+  startDate       String
+  endDate         String?
+  createdAt       DateTime        @default(now())
+  posts           MarketingPost[]
+}
+
+model MarketingPost {
+  id                String              @id @default(cuid())
+  campaignId        String?
+  campaign          MarketingCampaign?  @relation(fields: [campaignId], references: [id])
+  title             String
+  platform          String
+  contentPillar     String
+  serviceFocus      String
+  targetCity        String
+  tone              String
+  goal              String
+  hook              String
+  primaryCaption    String
+  shortCaption      String
+  hashtags          String[]
+  ctaText           String
+  visualConcept     String
+  imagePrompt       String
+  overlayText       String
+  aspectRatio       String              @default("1:1")
+  status            MarketingPostStatus @default(DRAFT)
+  scheduledFor      String?
+  publishedAt       String?
+  externalPostId    String?
+  publishError      String?
+  approvedBy        String?
+  approvedAt        String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model SocialAccount {
+  id                String    @id @default(cuid())
+  platform          String    @unique
+  accountName       String
+  accountUrl        String
+  externalPageId    String?
+  connectionStatus  String    @default("DISCONNECTED")
+  tokenExpiresAt    String?
+  scopesGranted     String[]
+  lastVerifiedAt    String?
+  updatedAt         DateTime  @updatedAt
+}
+
+model Notification {
+  id               String   @id @default(cuid())
+  eventType        String
+  channel          String
+  recipientType    String
+  recipientAddress String
+  subject          String
+  bodyPreview      String
+  status           String   @default("SENT")
+  relatedLeadId    String?
+  errorMessage     String?
+  createdAt        DateTime @default(now())
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  actorRole  String
+  entityType String
+  entityId   String
+  action     String
+  summary    String
+  createdAt  DateTime @default(now())
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
