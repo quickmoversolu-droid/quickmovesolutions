@@ -28,6 +28,8 @@ import {
   RefreshCw,
   Camera,
   Copy,
+  Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { BUSINESS_INFO, OFFICIAL_SERVICES, SERVICE_AREAS } from '@/lib/constants/business';
 import { BLOG_POSTS } from '@/lib/data/blog-posts-data';
@@ -69,6 +71,8 @@ export default function AdminAiMarketingManagerPage() {
   const [activeDrawer, setActiveDrawer] = useState<ActiveDrawerTab>('none');
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [drawerFeedback, setDrawerFeedback] = useState<{ message: string; isError?: boolean } | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showAdvancedStudio, setShowAdvancedStudio] = useState(false);
 
@@ -209,21 +213,37 @@ export default function AdminAiMarketingManagerPage() {
 
   const handleUpdatePostStatus = async (postId: string, status: MarketingPostStatus) => {
     setFeedback(null);
-    const res = await fetch('/api/admin/platform', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'UPDATE_POST_STATUS',
-        postId,
-        status,
-      }),
-    });
-    const data = await res.json();
-    if (res.ok && data.ok) {
-      setFeedback(`Post "${data.post.title}" updated to ${status}.`);
-      await loadData();
-    } else {
-      setFeedback(data.error || 'Unable to update post status.');
+    setDrawerFeedback(null);
+    setUpdatingStatus(status);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_POST_STATUS',
+          postId,
+          status,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        const msg = status === 'PUBLISHED'
+          ? `🎉 Live on Meta! Post published successfully (ID: ${data.post?.externalPostId || 'meta_published'}).`
+          : `Post "${data.post?.title || postId}" successfully transitioned to ${status}.`;
+        setFeedback(msg);
+        setDrawerFeedback({ message: msg });
+        await loadData();
+      } else {
+        const errMsg = data.error || 'Unable to update post status.';
+        setFeedback(errMsg);
+        setDrawerFeedback({ message: errMsg, isError: true });
+      }
+    } catch (e: any) {
+      const errMsg = e.message || 'Network error updating post status.';
+      setFeedback(errMsg);
+      setDrawerFeedback({ message: errMsg, isError: true });
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -1321,30 +1341,71 @@ export default function AdminAiMarketingManagerPage() {
                 <div className="flex flex-wrap gap-2.5 pt-1">
                   <button
                     type="button"
+                    disabled={updatingStatus !== null}
                     onClick={() => handleUpdatePostStatus(activePost.id, 'APPROVED')}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-500"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-60 transition"
                   >
-                    <CheckCircle2 className="h-4 w-4" />
-                    Approve Post
+                    {updatingStatus === 'APPROVED' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    <span>{updatingStatus === 'APPROVED' ? 'Approving...' : 'Approve Post'}</span>
                   </button>
                   <button
                     type="button"
+                    disabled={updatingStatus !== null}
                     onClick={() => handleUpdatePostStatus(activePost.id, 'SCHEDULED')}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-sky-500"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-sky-500 disabled:opacity-60 transition"
                   >
-                    <Clock className="h-4 w-4" />
-                    Schedule on Calendar
+                    {updatingStatus === 'SCHEDULED' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Clock className="h-4 w-4" />
+                    )}
+                    <span>{updatingStatus === 'SCHEDULED' ? 'Scheduling...' : 'Schedule on Calendar'}</span>
                   </button>
                   <button
                     type="button"
+                    disabled={updatingStatus !== null}
                     onClick={() => handleUpdatePostStatus(activePost.id, 'PUBLISHED')}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#F47732] to-[#ff8b49] px-4 py-2.5 text-xs font-bold text-white shadow-orange-glow"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#F47732] to-[#ff8b49] px-4 py-2.5 text-xs font-bold text-white shadow-orange-glow hover:brightness-110 disabled:opacity-60 transition"
                   >
-                    <Send className="h-4 w-4" />
-                    Publish Now to Meta
+                    {updatingStatus === 'PUBLISHED' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                    <span>{updatingStatus === 'PUBLISHED' ? 'Publishing to Meta...' : 'Publish Now to Meta'}</span>
                   </button>
-    </div>
-  </div>
+                </div>
+
+                {drawerFeedback && (
+                  <div
+                    className={`mt-3 flex items-center justify-between gap-3 rounded-xl border p-3.5 text-xs font-bold transition-all ${
+                      drawerFeedback.isError
+                        ? 'border-rose-500/40 bg-rose-500/15 text-rose-200 shadow-sm'
+                        : 'border-emerald-500/40 bg-emerald-500/15 text-emerald-200 shadow-sm'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {drawerFeedback.isError ? (
+                        <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400" />
+                      ) : (
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                      )}
+                      <span>{drawerFeedback.message}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setDrawerFeedback(null)}
+                      className="rounded p-1 text-white/60 hover:bg-white/10 hover:text-white"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <div className="space-y-4 lg:col-span-5">
                 <div className="rounded-2xl border border-white/10 bg-[#060C18] p-4">

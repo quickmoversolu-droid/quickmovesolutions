@@ -852,6 +852,39 @@ export async function POST(request: NextRequest) {
       if (status === 'PUBLISHED') {
         post.publishedAt = now;
         post.externalPostId = `meta_post_${Date.now()}`;
+
+        // Live Meta Graph API Execution
+        const pageAccessToken = process.env.META_PAGE_ACCESS_TOKEN;
+        const pageId = process.env.META_PAGE_ID;
+
+        if (pageAccessToken && pageId) {
+          try {
+            const metaRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: post.primaryCaption,
+                access_token: pageAccessToken,
+              }),
+            });
+            const metaData = await metaRes.json();
+            if (metaData?.id) {
+              post.externalPostId = metaData.id;
+            } else if (metaData?.error) {
+              console.error('Meta publishing error:', metaData.error);
+              return NextResponse.json(
+                { ok: false, error: `Meta API: ${metaData.error.message || 'Failed to publish to Facebook'}` },
+                { status: 400 }
+              );
+            }
+          } catch (err: any) {
+            console.error('Meta fetch error:', err);
+            return NextResponse.json(
+              { ok: false, error: `Meta network error: ${err.message || 'Failed to reach Meta servers'}` },
+              { status: 500 }
+            );
+          }
+        }
       }
       post.updatedAt = now;
       logActivity(

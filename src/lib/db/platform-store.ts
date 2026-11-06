@@ -1802,6 +1802,22 @@ function createInitialSeedState(): PlatformDatabaseState {
 let inMemoryFallback: PlatformDatabaseState = createInitialSeedState();
 
 function getDbFilePath(): string {
+  // On Vercel / AWS Lambda, process.cwd() is read-only at runtime. The only writable location is /tmp.
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    const tmpFile = path.join('/tmp', 'quickmove-db.json');
+    if (!fs.existsSync(tmpFile)) {
+      try {
+        const bundledFile = path.join(process.cwd(), 'storage', 'db', 'quickmove-db.json');
+        if (fs.existsSync(bundledFile)) {
+          fs.copyFileSync(bundledFile, tmpFile);
+        }
+      } catch (e) {
+        console.error('Failed to copy bundled db to /tmp:', e);
+      }
+    }
+    return tmpFile;
+  }
+
   const dir = path.join(process.cwd(), 'storage', 'db');
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
