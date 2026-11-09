@@ -77,6 +77,9 @@ export const metadata: Metadata = {
       'Residential and commercial moves, delivery, and junk removal across Calgary and Alberta. Upfront pricing and verified 5-star crews.',
     images: [`${BUSINESS_INFO.website.replace(/\/$/, '')}/images/quickmove-logo.png`],
   },
+  verification: {
+    google: 'nO6RLIS3NpCEu1TkOcExIn3V8oF3bIukGazpYNQicug',
+  },
   other: {
     'geo.region': 'CA-AB',
     'geo.placename': 'Calgary, Alberta',
