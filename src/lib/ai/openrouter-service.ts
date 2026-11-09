@@ -207,6 +207,8 @@ function buildBrandSystemPrompt(): string {
 COMPANY IDENTITY:
 - Name: ${BUSINESS_INFO.name}
 - Tagline: "${BUSINESS_INFO.tagline}"
+- Official Website: ${BUSINESS_INFO.website} (https://www.quickmovesolution.ca)
+- Online Instant Quote Hub: ${BUSINESS_INFO.website}/get-a-quote
 - Official Phone: ${BUSINESS_INFO.phoneDisplay}
 - Official Email: ${BUSINESS_INFO.email}
 - Key Markets: Calgary, Airdrie, Strathmore, Red Deer, and Edmonton, Alberta.
@@ -217,7 +219,8 @@ STRICT BRAND RULES:
 1. Always emphasize stress-free relocation, respectful crews, transparent itemized quotes, and clean properties.
 2. For Junk Removal, highlight the "Photo-First" estimate: customers simply snap photos with their phones.
 3. Include relevant Alberta community mentions (e.g., Calgary Beltline, NW/SE communities, QEII corridor).
-4. Provide structured output in JSON format with fields: title, hook, primaryCaption, shortCaption, hashtags (array of strings), ctaText, visualConcept, imagePrompt, overlayText.`;
+4. For all website links and calls-to-action, ALWAYS use the official Canadian domain: ${BUSINESS_INFO.website} (e.g. ${BUSINESS_INFO.website}/get-a-quote). Never write vercel.app or localhost.
+5. Provide structured output in JSON format with fields: title, hook, primaryCaption, shortCaption, hashtags (array of strings), ctaText, visualConcept, imagePrompt, overlayText.`;
 }
 
 /**
