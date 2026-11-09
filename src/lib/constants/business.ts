@@ -34,7 +34,8 @@ export const BUSINESS_INFO = {
     facebook: 'https://www.facebook.com/quickmovesolutions',
     instagram: 'https://www.instagram.com/quickmoverssolution/',
   },
-  googleBusinessSearchUrl: 'https://www.google.com/search?q=quickmove+solutions',
+  googleBusinessSearchUrl: 'https://g.page/r/CX8yk46B6go4EAE/review',
+  googleReviewUrl: 'https://g.page/r/CX8yk46B6go4EAE/review',
 } as const;
 
 export const BUSINESS_CONSTANTS = BUSINESS_INFO;

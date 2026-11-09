@@ -71,7 +71,11 @@ export function StructuredDataJsonLd() {
             availableLanguage: ['English'],
           },
         ],
-        sameAs: [BUSINESS_INFO.socials.facebook, BUSINESS_INFO.socials.instagram],
+        sameAs: [
+          BUSINESS_INFO.socials.facebook,
+          BUSINESS_INFO.socials.instagram,
+          BUSINESS_INFO.googleReviewUrl,
+        ],
         hasOfferCatalog: {
           '@type': 'OfferCatalog',
           name: 'Moving, Delivery, Packing & Photo-First Junk Removal Services',
