@@ -146,6 +146,7 @@ export async function sendNotification(options: SendNotificationOptions): Promis
       const emailPayload = {
         from: fromEmail,
         to: [record.recipientAddress],
+        reply_to: process.env.ADMIN_NOTIFICATION_EMAIL || 'quickmoversolu@gmail.com',
         subject: record.subject,
         html: options.htmlContent || `<p>${record.bodyPreview}</p>`,
       };
