@@ -4,6 +4,8 @@
  * using the official Meta Graph API v20.0.
  */
 
+import { generateResonantMovingImageUrl } from '@/lib/marketing/image-prompt-builder';
+
 export interface MetaPublishResult {
   facebookPostId?: string;
   instagramPostId?: string;
@@ -73,15 +75,9 @@ export async function publishPostToMeta(post: {
         finalImageUrl = `${siteUrl}${finalImageUrl}`;
       }
 
-      // If missing or not an absolute URL, generate high-res photorealistic commercial moving brand visual
+      // If missing or not an absolute URL, generate high-res photorealistic commercial moving visual
       if (!finalImageUrl.startsWith('http://') && !finalImageUrl.startsWith('https://')) {
-        const rawPrompt = post.imagePrompt || post.title || 'Professional moving crew QuickMove Solutions Calgary';
-        const cleanPrompt = rawPrompt.replace(/[^\w\s,.-]/g, ' ').substring(0, 180);
-        const encodedPrompt = encodeURIComponent(
-          `Photorealistic commercial photography for QuickMove Solutions moving and junk removal: ${cleanPrompt}. Pristine moving truck, navy blue uniforms with orange accents, bright natural daylight, cinematic 8k, photorealistic`
-        );
-        const seed = Math.floor(Math.random() * 899999) + 100000;
-        finalImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1080&nologo=true&seed=${seed}`;
+        finalImageUrl = generateResonantMovingImageUrl('Residential Moving', post.title || post.primaryCaption, 'Calgary');
       }
 
       // Step 2A: Create Instagram Media Container

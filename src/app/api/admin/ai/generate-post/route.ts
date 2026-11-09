@@ -41,6 +41,7 @@ export async function POST(req: Request) {
       imagePrompt: result.imagePrompt,
       overlayText: result.overlayText,
       aspectRatio: result.aspectRatio,
+      imageUrl: result.generatedImageUrl || undefined,
       status: 'PENDING_APPROVAL' as const,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

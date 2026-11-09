@@ -24,6 +24,7 @@ import {
 } from '@/lib/db/platform-store';
 import { BUSINESS_INFO } from '@/lib/constants/business';
 import { publishPostToMeta } from '@/lib/marketing/meta-publisher';
+import { generateResonantMovingImageUrl, MOVING_SCENE_PRESETS } from '@/lib/marketing/image-prompt-builder';
 
 export async function GET() {
   const session = getServerSession();
@@ -890,34 +891,66 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, post });
     }
 
-    // 11B. REGENERATE POST AI IMAGE
+    // 11B. REGENERATE POST AUTHENTIC MOVING IMAGE
     if (action === 'REGENERATE_POST_IMAGE') {
       const { postId, customPrompt } = body;
       const post = db.marketingPosts.find((p) => p.id === postId);
       if (!post) {
         return NextResponse.json({ ok: false, error: 'Marketing post not found' }, { status: 404 });
       }
-      const promptToUse = customPrompt || post.imagePrompt || post.visualConcept || post.title;
-      const cleanPrompt = promptToUse.replace(/[^\w\s,.-]/g, ' ').substring(0, 180);
-      const encodedPrompt = encodeURIComponent(
-        `Photorealistic commercial photography for QuickMove Solutions moving and junk removal in Alberta: ${cleanPrompt}. Pristine moving truck, navy blue crew uniforms with orange accents, clean natural daylight, cinematic 8k, photorealistic`
+      post.imageUrl = generateResonantMovingImageUrl(
+        post.serviceFocus || 'Residential Moving',
+        customPrompt || post.visualConcept || post.title,
+        post.targetCity || 'Calgary'
       );
-      const seed = Math.floor(Math.random() * 899999) + 100000;
-      post.imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1080&nologo=true&seed=${seed}`;
       post.updatedAt = now;
-      logActivity('MARKETING_POST', post.id, 'IMAGE_REGENERATED', `Regenerated AI image for "${post.title}".`);
+      logActivity('MARKETING_POST', post.id, 'IMAGE_REGENERATED', `Regenerated authentic moving image for "${post.title}".`);
       writePlatformStore(db);
       return NextResponse.json({ ok: true, post });
     }
 
-    // 11C. SET CUSTOM POST IMAGE URL
+    // 11C. APPLY CURATED MOVING SCENE PRESET
+    if (action === 'APPLY_MOVING_PRESET') {
+      const { postId, presetId } = body;
+      const post = db.marketingPosts.find((p) => p.id === postId);
+      if (!post) {
+        return NextResponse.json({ ok: false, error: 'Marketing post not found' }, { status: 404 });
+      }
+      const preset = MOVING_SCENE_PRESETS.find((pr) => pr.id === presetId);
+      if (!preset) {
+        return NextResponse.json({ ok: false, error: 'Preset not found' }, { status: 404 });
+      }
+      const encoded = encodeURIComponent(preset.prompt);
+      const seed = Math.floor(Math.random() * 899999) + 100000;
+      post.imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=${seed}`;
+      post.updatedAt = now;
+      logActivity('MARKETING_POST', post.id, 'PRESET_APPLIED', `Applied moving preset "${preset.name}" to "${post.title}".`);
+      writePlatformStore(db);
+      return NextResponse.json({ ok: true, post });
+    }
+
+    // 11D. REMOVE POST IMAGE (MAKE TEXT-ONLY)
+    if (action === 'REMOVE_POST_IMAGE') {
+      const { postId } = body;
+      const post = db.marketingPosts.find((p) => p.id === postId);
+      if (!post) {
+        return NextResponse.json({ ok: false, error: 'Marketing post not found' }, { status: 404 });
+      }
+      post.imageUrl = undefined;
+      post.updatedAt = now;
+      logActivity('MARKETING_POST', post.id, 'IMAGE_REMOVED', `Removed image from "${post.title}" (Text-Only Post).`);
+      writePlatformStore(db);
+      return NextResponse.json({ ok: true, post });
+    }
+
+    // 11E. SET CUSTOM POST IMAGE URL
     if (action === 'SET_POST_IMAGE_URL') {
       const { postId, imageUrl } = body;
       const post = db.marketingPosts.find((p) => p.id === postId);
       if (!post) {
         return NextResponse.json({ ok: false, error: 'Marketing post not found' }, { status: 404 });
       }
-      post.imageUrl = (imageUrl || '').trim();
+      post.imageUrl = (imageUrl || '').trim() || undefined;
       post.updatedAt = now;
       logActivity('MARKETING_POST', post.id, 'IMAGE_URL_UPDATED', `Set custom image URL for "${post.title}".`);
       writePlatformStore(db);

@@ -8,6 +8,8 @@
 import { BUSINESS_INFO, OFFICIAL_SERVICES, SERVICE_AREAS } from '@/lib/constants/business';
 import { uploadToInsForgeStorage } from '@/lib/backend/insforge-service';
 
+import { generateResonantMovingImageUrl } from '@/lib/marketing/image-prompt-builder';
+
 export interface OpenRouterModelOption {
   id: string;
   name: string;
@@ -379,56 +381,7 @@ export async function generateAiImage(
   prompt: string,
   aspectRatio: '1:1' | '4:5' | '9:16' | '16:9' = '4:5'
 ): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  const imageModel = aiRuntimeSettings.activeImageModel;
-
-  if (apiKey) {
-    try {
-      const response = await fetch('https://openrouter.ai/api/v1/images', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-          'X-Title': 'QuickMove Solutions AI Marketing Manager',
-        },
-        body: JSON.stringify({
-          model: imageModel,
-          prompt: `QuickMove Solutions: ${prompt}`,
-          aspect_ratio: aspectRatio,
-          quality: 'high',
-          n: 1,
-        }),
-      });
-
-      if (response.ok) {
-        const json = await response.json();
-        const base64OrUrl = json.data?.[0]?.url || json.data?.[0]?.b64_json;
-        if (base64OrUrl) {
-          aiRuntimeSettings.totalImagesGenerated += 1;
-          aiRuntimeSettings.estimatedCostUsd += 0.04;
-
-          // If raw base64, save into InsForge storage
-          if (base64OrUrl.startsWith('data:') || !base64OrUrl.startsWith('http')) {
-            const buffer = Buffer.from(base64OrUrl.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-            const upload = await uploadToInsForgeStorage(
-              'marketing-creatives',
-              `ai-gen-${Date.now()}.png`,
-              buffer,
-              'image/png'
-            );
-            return upload.publicUrl || '/images/quickmove-marketing-concept.jpg';
-          }
-          return base64OrUrl;
-        }
-      }
-    } catch (err) {
-      console.warn('[OpenRouter] Image generation failed:', err);
-    }
-  }
-
-  // Fallback to high-resolution brand concept creative
   aiRuntimeSettings.totalImagesGenerated += 1;
-  return '/images/quickmove-quote-concept.jpg';
+  return generateResonantMovingImageUrl('Residential Moving', prompt, 'Calgary');
 }
 

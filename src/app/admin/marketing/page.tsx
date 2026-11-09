@@ -34,6 +34,7 @@ import {
 import { BUSINESS_INFO, OFFICIAL_SERVICES, SERVICE_AREAS } from '@/lib/constants/business';
 import { BLOG_POSTS } from '@/lib/data/blog-posts-data';
 import { AiMarketingHeroArtwork } from '@/components/ui/QuickMoveBrandVisuals';
+import { MOVING_SCENE_PRESETS } from '@/lib/marketing/image-prompt-builder';
 import type {
   PlatformDatabaseState,
   MarketingPostRecord,
@@ -295,6 +296,51 @@ export default function AdminAiMarketingManagerPage() {
       }
     } catch (e: any) {
       setDrawerFeedback({ message: e.message, isError: true });
+    }
+  };
+
+  const handleRemoveImage = async (postId: string) => {
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REMOVE_POST_IMAGE',
+          postId,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setDrawerFeedback({ message: 'Image removed — Post is now Text-Only (Ready for Facebook).' });
+        await loadData();
+      }
+    } catch (e: any) {
+      setDrawerFeedback({ message: e.message, isError: true });
+    }
+  };
+
+  const handleApplyPreset = async (postId: string, presetId: string) => {
+    setIsRegeneratingImage(true);
+    setDrawerFeedback(null);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'APPLY_MOVING_PRESET',
+          postId,
+          presetId,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setDrawerFeedback({ message: '🎯 Applied authentic moving scene preset!' });
+        await loadData();
+      }
+    } catch (e: any) {
+      setDrawerFeedback({ message: e.message, isError: true });
+    } finally {
+      setIsRegeneratingImage(false);
     }
   };
 
@@ -1459,67 +1505,112 @@ export default function AdminAiMarketingManagerPage() {
               </div>
 
               <div className="space-y-4 lg:col-span-5">
-                {/* Visual Image Preview Card */}
+                {/* Visual Image Card (Optional for Facebook / Text-Only) */}
                 <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#060C18] shadow-dark-card">
-                  <div className="relative aspect-square w-full bg-[#030712]">
-                    {activePost.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
+                  {activePost.imageUrl ? (
+                    <div className="relative aspect-square w-full bg-[#030712]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={activePost.imageUrl}
                         alt={activePost.title}
                         className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                       />
-                    ) : (
-                      <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
-                        <ImageIcon className="h-10 w-10 text-white/30" />
-                        <span className="mt-2 text-xs text-white/50">No image assigned</span>
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 text-white">
+                        <span className="inline-block rounded-md bg-brand-orange px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+                          {activePost.overlayText || 'QuickMove Solutions'}
+                        </span>
                       </div>
-                    )}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 text-white">
-                      <span className="inline-block rounded-md bg-brand-orange px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
-                        {activePost.overlayText || 'QuickMove Solutions'}
-                      </span>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-8 text-center bg-[#050B15]">
+                      <div className="rounded-full bg-white/5 p-3 text-white/50">
+                        <FolderOpen className="h-8 w-8" />
+                      </div>
+                      <h4 className="mt-2 text-sm font-bold text-white">📝 Text-Only Post (No Image)</h4>
+                      <p className="mt-1 text-xs text-white/60 max-w-xs">
+                        This post will publish as clean text on Facebook (no image needed). If you want an image or plan to publish to Instagram, choose a moving photo below.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="p-4 space-y-3">
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="text-[11px] font-bold uppercase tracking-wider text-brand-orange">
-                        Photorealistic AI Creative ({activePost.aspectRatio})
+                        {activePost.imageUrl ? `Moving Photo Creative (${activePost.aspectRatio})` : 'Image Optional'}
                       </div>
-                      <button
-                        type="button"
-                        disabled={isRegeneratingImage}
-                        onClick={() => handleRegenerateImage(activePost.id)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-brand-orange/40 bg-brand-orange/15 px-2.5 py-1 text-[11px] font-bold text-brand-orange hover:bg-brand-orange hover:text-white disabled:opacity-50"
-                      >
-                        {isRegeneratingImage ? (
+                      <div className="flex items-center gap-1.5">
+                        {activePost.imageUrl ? (
                           <>
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                            Generating...
+                            <button
+                              type="button"
+                              disabled={isRegeneratingImage}
+                              onClick={() => handleRegenerateImage(activePost.id)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-brand-orange/40 bg-brand-orange/15 px-2.5 py-1 text-[11px] font-bold text-brand-orange hover:bg-brand-orange hover:text-white disabled:opacity-50"
+                            >
+                              {isRegeneratingImage ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-3 w-3" />
+                              )}
+                              Regenerate
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(activePost.id)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2 py-1 text-[11px] font-bold text-red-400 hover:bg-red-500 hover:text-white"
+                            >
+                              <X className="h-3 w-3" />
+                              Remove Image
+                            </button>
                           </>
                         ) : (
-                          <>
-                            <Sparkles className="h-3 w-3" />
-                            Regenerate Image
-                          </>
+                          <button
+                            type="button"
+                            disabled={isRegeneratingImage}
+                            onClick={() => handleRegenerateImage(activePost.id)}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-orange px-3 py-1.5 text-xs font-bold text-white hover:brightness-110 disabled:opacity-50"
+                          >
+                            {isRegeneratingImage ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3.5 w-3.5" />
+                            )}
+                            Generate Moving Photo
+                          </button>
                         )}
-                      </button>
+                      </div>
                     </div>
 
-                    <p className="text-xs leading-relaxed text-white/75">
-                      {activePost.imagePrompt}
-                    </p>
+                    {/* Curated Authentic Moving Scene Presets */}
+                    <div className="pt-2 border-t border-white/5">
+                      <label className="text-[10px] uppercase tracking-wider font-semibold text-white/50 block mb-1.5">
+                        Authentic Moving Scene Presets (1-Click Select):
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {MOVING_SCENE_PRESETS.map((preset) => (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            disabled={isRegeneratingImage}
+                            onClick={() => handleApplyPreset(activePost.id, preset.id)}
+                            className="rounded-lg border border-white/10 bg-[#0A1324] px-2 py-1 text-[10px] font-semibold text-white/80 hover:border-brand-orange hover:bg-brand-orange/20 hover:text-white disabled:opacity-50"
+                            title={preset.description}
+                          >
+                            {preset.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
                     {/* Custom Image URL fallback */}
                     <div className="pt-2 border-t border-white/5">
                       <label className="text-[10px] uppercase tracking-wider font-semibold text-white/50 block mb-1">
-                        Or Use Custom Photo URL (e.g. Real Job Photo)
+                        Or Use Custom Photo URL (e.g. Real Job Photo from Phone)
                       </label>
                       <div className="flex gap-2">
                         <input
                           type="url"
-                          placeholder="https://.../my-moving-job.jpg"
+                          placeholder="https://.../my-real-moving-job.jpg"
                           value={customImageUrlInput}
                           onChange={(e) => setCustomImageUrlInput(e.target.value)}
                           className="flex-1 rounded-lg border border-white/10 bg-[#0A1324] px-2.5 py-1 text-xs text-white placeholder-white/30 focus:border-brand-orange focus:outline-none"
