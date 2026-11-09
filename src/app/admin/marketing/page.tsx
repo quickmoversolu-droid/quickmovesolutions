@@ -351,6 +351,7 @@ export default function AdminAiMarketingManagerPage() {
       const res = await fetch('/api/admin/platform', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'REGENERATE_POST_IMAGE',
           postId,
@@ -358,7 +359,7 @@ export default function AdminAiMarketingManagerPage() {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
-        setDrawerFeedback({ message: '🎨 New AI photorealistic moving visual generated!' });
+        setDrawerFeedback({ message: '🎨 New photorealistic moving image generated via Google AI / OpenRouter!' });
         await loadData();
       } else {
         setDrawerFeedback({ message: data.error || 'Failed to generate image', isError: true });
@@ -376,6 +377,7 @@ export default function AdminAiMarketingManagerPage() {
       const res = await fetch('/api/admin/platform', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'SET_POST_IMAGE_URL',
           postId,
@@ -398,6 +400,7 @@ export default function AdminAiMarketingManagerPage() {
       const res = await fetch('/api/admin/platform', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'REMOVE_POST_IMAGE',
           postId,
@@ -420,6 +423,7 @@ export default function AdminAiMarketingManagerPage() {
       const res = await fetch('/api/admin/platform', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'APPLY_MOVING_PRESET',
           postId,

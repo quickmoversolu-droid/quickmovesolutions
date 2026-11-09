@@ -8,7 +8,7 @@
 import { BUSINESS_INFO, OFFICIAL_SERVICES, SERVICE_AREAS } from '@/lib/constants/business';
 import { uploadToInsForgeStorage } from '@/lib/backend/insforge-service';
 
-import { generateResonantMovingImageUrl } from '@/lib/marketing/image-prompt-builder';
+import { generateResonantMovingImageUrl, buildResonantMovingPrompt } from '@/lib/marketing/image-prompt-builder';
 
 export interface OpenRouterModelOption {
   id: string;
@@ -86,6 +86,26 @@ export const SUPPORTED_TEXT_MODELS: OpenRouterModelOption[] = [
 
 export const SUPPORTED_IMAGE_MODELS: OpenRouterModelOption[] = [
   {
+    id: 'google/gemini-2.5-flash-image',
+    name: 'Gemini 2.5 Flash Image',
+    provider: 'Google',
+    contextLength: 4096,
+    type: 'image',
+    pricingPromptPerMillion: 30.0,
+    pricingCompletionPerMillion: 30.0,
+    recommendedFor: 'Photorealistic commercial moving trucks, crew uniforms & luxury homes with QuickMove brand styling',
+  },
+  {
+    id: 'openai/gpt-5-image-mini',
+    name: 'OpenAI GPT-5 Image Mini',
+    provider: 'OpenAI',
+    contextLength: 4096,
+    type: 'image',
+    pricingPromptPerMillion: 35.0,
+    pricingCompletionPerMillion: 35.0,
+    recommendedFor: 'Detailed scene composition with natural daylight and sharp focus',
+  },
+  {
     id: 'black-forest-labs/flux-1.1-pro',
     name: 'FLUX 1.1 Pro',
     provider: 'Black Forest Labs',
@@ -93,27 +113,7 @@ export const SUPPORTED_IMAGE_MODELS: OpenRouterModelOption[] = [
     type: 'image',
     pricingPromptPerMillion: 40.0,
     pricingCompletionPerMillion: 40.0,
-    recommendedFor: 'Photorealistic commercial moving truck, luxury homes & crew photography',
-  },
-  {
-    id: 'recraft/recraft-v3',
-    name: 'Recraft V3',
-    provider: 'Recraft',
-    contextLength: 4096,
-    type: 'image',
-    pricingPromptPerMillion: 35.0,
-    pricingCompletionPerMillion: 35.0,
-    recommendedFor: 'High-end vector brand creatives, icons & marketing banner illustrations',
-  },
-  {
-    id: 'openai/gpt-image-2',
-    name: 'DALL-E 3 / GPT Image',
-    provider: 'OpenAI',
-    contextLength: 4096,
-    type: 'image',
-    pricingPromptPerMillion: 40.0,
-    pricingCompletionPerMillion: 40.0,
-    recommendedFor: 'Detailed scene composition with natural lighting & typography overlays',
+    recommendedFor: 'Ultra-high fidelity studio-grade commercial photography',
   },
 ];
 
@@ -139,7 +139,7 @@ let aiRuntimeSettings: AiSettingsState = {
     ? `${process.env.OPENROUTER_API_KEY.substring(0, 7)}...${process.env.OPENROUTER_API_KEY.slice(-4)}`
     : '',
   activeTextModel: process.env.OPENROUTER_TEXT_MODEL || 'openai/gpt-4o',
-  activeImageModel: process.env.OPENROUTER_IMAGE_MODEL || 'black-forest-labs/flux-1.1-pro',
+  activeImageModel: process.env.OPENROUTER_IMAGE_MODEL || 'google/gemini-2.5-flash-image',
   temperature: 0.7,
   maxTokens: 1200,
   totalRequests: 24,
@@ -375,13 +375,92 @@ Respond STRICTLY with a valid JSON object matching this structure:
 }
 
 /**
- * Generates an image using OpenRouter Image API with InsForge storage integration
+ * Generates an authentic photorealistic moving image using OpenRouter AI
+ * Model: google/gemini-2.5-flash-image (Nano Banana) with brand colors & InsForge storage
  */
 export async function generateAiImage(
   prompt: string,
-  aspectRatio: '1:1' | '4:5' | '9:16' | '16:9' = '4:5'
+  aspectRatio: '1:1' | '4:5' | '9:16' | '16:9' = '4:5',
+  serviceFocus: string = 'Residential Moving',
+  targetCity: string = 'Calgary'
 ): Promise<string> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const enhancedPrompt = buildResonantMovingPrompt(serviceFocus, prompt, targetCity);
+
+  if (apiKey) {
+    const modelsToTry = [
+      aiRuntimeSettings.activeImageModel || 'google/gemini-2.5-flash-image',
+      'google/gemini-2.5-flash-image',
+      'openai/gpt-5-image-mini',
+    ];
+
+    for (const model of modelsToTry) {
+      try {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://www.quickmovesolution.ca',
+            'X-Title': 'QuickMove Solutions',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: enhancedPrompt }],
+          }),
+        });
+
+        const data = await res.json();
+        const base64Url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        if (base64Url && typeof base64Url === 'string' && base64Url.startsWith('data:image/')) {
+          aiRuntimeSettings.totalImagesGenerated += 1;
+          aiRuntimeSettings.lastUsedAt = new Date().toISOString();
+
+          // Convert base64 data to buffer
+          const matches = base64Url.match(/^data:image\/(\w+);base64,(.+)$/);
+          const ext = matches ? matches[1] : 'png';
+          const base64Data = matches ? matches[2] : base64Url;
+          const buffer = Buffer.from(base64Data, 'base64');
+          const filename = `ai-marketing-${Date.now()}-${Math.floor(Math.random() * 10000)}.${ext}`;
+
+          // 1. Try to save locally in public/uploads for instant zero-latency serving
+          try {
+            const fs = await import('fs');
+            const path = await import('path');
+            const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+            if (!fs.existsSync(uploadsDir)) {
+              fs.mkdirSync(uploadsDir, { recursive: true });
+            }
+            fs.writeFileSync(path.join(uploadsDir, filename), buffer);
+          } catch {
+            // Serverless disk may be ephemeral, continue to storage
+          }
+
+          // 2. Upload to InsForge Storage for permanent CDN URL
+          try {
+            const insforgeRes = await uploadToInsForgeStorage(
+              'marketing-creatives',
+              `media/${filename}`,
+              buffer,
+              `image/${ext}`
+            );
+            if (insforgeRes.success && insforgeRes.publicUrl && insforgeRes.publicUrl.startsWith('http')) {
+              return insforgeRes.publicUrl;
+            }
+          } catch {
+            // Continue with relative/site URL
+          }
+
+          const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.quickmovesolution.ca').replace(/\/+$/, '');
+          return `${siteUrl}/uploads/${filename}`;
+        }
+      } catch (err) {
+        console.warn(`OpenRouter image generation error with model ${model}:`, err);
+      }
+    }
+  }
+
   aiRuntimeSettings.totalImagesGenerated += 1;
-  return generateResonantMovingImageUrl('Residential Moving', prompt, 'Calgary');
+  return generateResonantMovingImageUrl(serviceFocus, prompt, targetCity);
 }
 

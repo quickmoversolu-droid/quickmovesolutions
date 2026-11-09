@@ -24,7 +24,12 @@ import {
 } from '@/lib/db/platform-store';
 import { BUSINESS_INFO } from '@/lib/constants/business';
 import { publishPostToMeta } from '@/lib/marketing/meta-publisher';
-import { generateResonantMovingImageUrl, MOVING_SCENE_PRESETS } from '@/lib/marketing/image-prompt-builder';
+import {
+  generateResonantMovingImageUrl,
+  buildResonantMovingPrompt,
+  MOVING_SCENE_PRESETS,
+} from '@/lib/marketing/image-prompt-builder';
+import { generateAiImage } from '@/lib/ai/openrouter-service';
 
 export async function GET() {
   const session = getServerSession();
@@ -826,10 +831,14 @@ export async function POST(request: NextRequest) {
           hashtags: ['#QuickMoveSolutions', `#${item.city.replace(/[^a-zA-Z]/g, '')}`, '#CalgaryMovers', '#CalgaryJunkRemoval', '#AlbertaBusiness', '#YYCLocal'],
           ctaText: `Get a quote at ${BUSINESS_INFO.domain} or call ${BUSINESS_INFO.phoneDisplay}`,
           visualConcept: item.concept,
-          imagePrompt: `Professional editorial photography for QuickMove Solutions: ${item.concept} High dynamic range, natural lighting, brand colors navy and orange.`,
+          imagePrompt: buildResonantMovingPrompt(item.service, item.concept, item.city),
           overlayText: `${item.service.toUpperCase()} • ${item.city.toUpperCase()}`,
           aspectRatio: item.platform === 'INSTAGRAM' ? '4:5' : '1:1',
-          imageUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(`Photorealistic commercial photography for QuickMove Solutions: ${item.concept} in Alberta, clean daylight, modern moving truck, high-end 8k`)}?width=1080&height=1080&nologo=true&seed=${Math.floor(Math.random() * 899999) + 100000}`,
+          // 1 Image Per Day Rule: Only 1 daily hero image post for Instagram/Both. Facebook tips/checklists remain clean high-engagement text.
+          imageUrl:
+            item.platform === 'INSTAGRAM' || item.platform === 'BOTH'
+              ? `/images/quickmove-quote-concept.jpg`
+              : undefined,
           status: 'PENDING_APPROVAL',
           scheduledFor: schedDate,
           createdAt: now,
@@ -900,20 +909,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, post });
     }
 
-    // 11B. REGENERATE POST AUTHENTIC MOVING IMAGE
+    // 11B. REGENERATE POST AUTHENTIC MOVING IMAGE VIA OPENROUTER AI
     if (action === 'REGENERATE_POST_IMAGE') {
       const { postId, customPrompt } = body;
       const post = db.marketingPosts.find((p) => p.id === postId);
       if (!post) {
         return NextResponse.json({ ok: false, error: 'Marketing post not found' }, { status: 404 });
       }
-      post.imageUrl = generateResonantMovingImageUrl(
+      post.imageUrl = await generateAiImage(
+        customPrompt || post.imagePrompt || post.visualConcept || post.title,
+        post.aspectRatio || '4:5',
         post.serviceFocus || 'Residential Moving',
-        customPrompt || post.visualConcept || post.title,
         post.targetCity || 'Calgary'
       );
       post.updatedAt = now;
-      logActivity('MARKETING_POST', post.id, 'IMAGE_REGENERATED', `Regenerated authentic moving image for "${post.title}".`);
+      logActivity('MARKETING_POST', post.id, 'IMAGE_REGENERATED', `Regenerated authentic moving image via OpenRouter AI for "${post.title}".`);
       writePlatformStore(db);
       return NextResponse.json({ ok: true, post });
     }
@@ -929,9 +939,13 @@ export async function POST(request: NextRequest) {
       if (!preset) {
         return NextResponse.json({ ok: false, error: 'Preset not found' }, { status: 404 });
       }
-      const encoded = encodeURIComponent(preset.prompt);
-      const seed = Math.floor(Math.random() * 899999) + 100000;
-      post.imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&nologo=true&seed=${seed}`;
+      post.imagePrompt = preset.prompt;
+      post.imageUrl = await generateAiImage(
+        preset.prompt,
+        post.aspectRatio || '4:5',
+        post.serviceFocus || 'Residential Moving',
+        post.targetCity || 'Calgary'
+      );
       post.updatedAt = now;
       logActivity('MARKETING_POST', post.id, 'PRESET_APPLIED', `Applied moving preset "${preset.name}" to "${post.title}".`);
       writePlatformStore(db);
