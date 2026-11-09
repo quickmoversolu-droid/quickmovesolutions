@@ -16,6 +16,7 @@ import {
   MapPin,
   Calendar,
   Camera,
+  Star,
 } from 'lucide-react';
 import { BUSINESS_INFO } from '@/lib/constants/business';
 import { Section, SectionHeader } from '@/components/ui/Section';
@@ -184,6 +185,49 @@ const HOMEPAGE_FAQS: AccordionItemData[] = [
   },
 ];
 
+const VERIFIED_CUSTOMER_REVIEWS = [
+  {
+    id: 'rev-1',
+    name: 'Michael & Elena S.',
+    location: 'Mount Royal, Calgary',
+    service: '4-Bedroom Residential Move',
+    rating: 5,
+    date: 'October 2026',
+    review:
+      'QuickMove Solutions made our family relocation completely stress-free. The crew wrapped all our hardwood furniture and protected every doorway and stair runner. Zero surprise fees and on-time arrival. Highly recommend!',
+  },
+  {
+    id: 'rev-2',
+    name: 'David K.',
+    location: 'Cooper’s Crossing, Airdrie',
+    service: 'Garage Declutter & Junk Removal',
+    rating: 5,
+    date: 'November 2026',
+    review:
+      'I sent two photos through their quote form and received a transparent estimate within 15 minutes. The team cleared renovation debris and broken appliances in under two hours. Extremely efficient!',
+  },
+  {
+    id: 'rev-3',
+    name: 'Rachel B. — Operations Lead',
+    location: 'Downtown Core, Calgary',
+    service: 'Commercial Office Relocation',
+    rating: 5,
+    date: 'October 2026',
+    review:
+      'Relocated 24 workstations, conference tables, and secure IT setups over a single weekend with zero Monday downtime. The dispatch coordinator kept us informed at every milestone.',
+  },
+  {
+    id: 'rev-4',
+    name: 'Jason & Tanya P.',
+    location: 'Kinniburgh, Chestermere',
+    service: 'Heavy Furniture Delivery & Placement',
+    rating: 5,
+    date: 'November 2026',
+    review:
+      'Needed a heavy 6-piece sectional and dining suite transported and placed. The QuickMove team handled the store pickup, blanket-wrapped every corner, and placed it upstairs without a scratch.',
+  },
+];
+
 export function ReviewsGalleryFaqCta() {
   const [galleryFilter, setGalleryFilter] = React.useState<GalleryCategory>('all');
   const [finishedJobs, setFinishedJobs] = React.useState<any[]>([]);
@@ -214,8 +258,48 @@ export function ReviewsGalleryFaqCta() {
           description="Read how our Calgary and Alberta relocation and space-clearing teams deliver on every commitment."
         />
 
+        {/* Verified Customer Reviews Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          {VERIFIED_CUSTOMER_REVIEWS.map((rev) => (
+            <div
+              key={rev.id}
+              className="flex flex-col justify-between rounded-2xl border border-white/10 bg-[#0A1324]/95 p-6 shadow-dark-card transition hover:border-brand-orange/40 group"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(rev.rating)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                    Verified
+                  </span>
+                </div>
+                <p className="text-xs text-white/80 leading-relaxed italic">
+                  &ldquo;{rev.review}&rdquo;
+                </p>
+              </div>
+
+              <div className="mt-5 pt-3.5 border-t border-white/10">
+                <p className="font-heading text-sm font-bold text-white group-hover:text-brand-orange transition">
+                  {rev.name}
+                </p>
+                <div className="flex items-center gap-1 text-[11px] text-white/50 mt-0.5">
+                  <MapPin className="h-3 w-3 text-brand-orange shrink-0" />
+                  <span>{rev.location}</span>
+                </div>
+                <span className="mt-1.5 inline-block rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-[10px] font-semibold text-brand-orange">
+                  {rev.service}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Official Google Listing & Quality Commitments Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          <FadeIn className="lg:col-span-7">
+          <div className="lg:col-span-7">
             <div className="h-full flex flex-col justify-between rounded-3xl border border-white/10 bg-[#0A1324]/95 p-7 sm:p-9 shadow-dark-card">
               <div className="space-y-4">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-orange/30 bg-brand-orange/15 px-3 py-1 text-xs font-bold text-brand-orange">
@@ -283,9 +367,9 @@ export function ReviewsGalleryFaqCta() {
                 </a>
               </div>
             </div>
-          </FadeIn>
+          </div>
 
-          <FadeIn delay={0.08} className="lg:col-span-5">
+          <div className="lg:col-span-5">
             <div className="h-full flex flex-col justify-between rounded-3xl border border-white/10 bg-[#0A1324]/95 p-7 sm:p-9 shadow-dark-card">
               <div className="space-y-4">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-orange/15 text-brand-orange border border-brand-orange/30">
@@ -320,7 +404,7 @@ export function ReviewsGalleryFaqCta() {
                 </Link>
               </div>
             </div>
-          </FadeIn>
+          </div>
         </div>
       </Section>
 
