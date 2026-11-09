@@ -46,3 +46,4 @@ export async function GET(
     return new NextResponse(message, { status: 500 });
   }
 }
+

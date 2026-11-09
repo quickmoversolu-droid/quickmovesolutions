@@ -39,23 +39,42 @@ export async function publishPostToMeta(post: {
     return result;
   }
 
-  // 1. Publish to Facebook Page
+  // 1. Publish to Facebook Page (Photo post if image present, text post if clean text)
   if ((post.platform === 'FACEBOOK' || post.platform === 'BOTH') && pageId) {
     try {
-      const fbPayload: Record<string, string> = {
-        message: post.primaryCaption,
-        access_token: pageAccessToken,
-      };
+      let fbRes: Response;
 
-      const fbRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(fbPayload),
-      });
+      if (post.imageUrl) {
+        let finalFbImageUrl = (post.imageUrl || '').trim();
+        if (finalFbImageUrl.startsWith('data:image/')) {
+          finalFbImageUrl = `${siteUrl}/api/marketing/image/${post.id || 'hero'}.png`;
+        } else if (finalFbImageUrl.startsWith('/')) {
+          finalFbImageUrl = `${siteUrl}${finalFbImageUrl}`;
+        }
+
+        fbRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: finalFbImageUrl,
+            caption: post.primaryCaption,
+            access_token: pageAccessToken,
+          }),
+        });
+      } else {
+        fbRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: post.primaryCaption,
+            access_token: pageAccessToken,
+          }),
+        });
+      }
 
       const fbData = await fbRes.json();
-      if (fbData?.id) {
-        result.facebookPostId = fbData.id;
+      if (fbData?.id || fbData?.post_id) {
+        result.facebookPostId = fbData.post_id || fbData.id;
         result.success = true;
       } else if (fbData?.error) {
         result.errors.push(`Facebook Error: ${fbData.error.message} (code ${fbData.error.code})`);

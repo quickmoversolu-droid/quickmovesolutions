@@ -51,6 +51,14 @@ export async function GET() {
     };
   });
 
+  // Sanitize defunct pollinations.ai URLs from older posts to prevent 402 errors in browser
+  const sanitizedMarketingPosts = db.marketingPosts.map((p) => {
+    if (p.imageUrl && p.imageUrl.includes('pollinations.ai')) {
+      return { ...p, imageUrl: undefined };
+    }
+    return p;
+  });
+
   return NextResponse.json({
     ok: true,
     session:
@@ -66,6 +74,7 @@ export async function GET() {
     data: {
       ...db,
       users: sanitizedUsers,
+      marketingPosts: sanitizedMarketingPosts,
     },
   });
 }
@@ -587,7 +596,7 @@ export async function POST(request: NextRequest) {
           ? `${targetCity} Photo Junk Removal • ${BUSINESS_INFO.phoneDisplay}`
           : `${targetCity} ${serviceFocus} • ${BUSINESS_INFO.phoneDisplay}`,
         aspectRatio,
-        imageUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(`Photorealistic commercial photography for QuickMove Solutions in ${targetCity} Alberta. Professional movers in navy blue uniforms with orange accents handling ${serviceFocus.toLowerCase()}, modern truck, clean daylight 8k`)}?width=1080&height=1080&nologo=true&seed=${Math.floor(Math.random() * 899999) + 100000}`,
+        imageUrl: undefined,
         status: 'PENDING_APPROVAL',
         scheduledFor: new Date(Date.now() + 2 * 86400000).toISOString(),
         createdAt: now,
@@ -672,7 +681,7 @@ export async function POST(request: NextRequest) {
           imagePrompt: `Professional photography of QuickMove Solutions crew performing ${item.service} in ${item.city} Alberta.`,
           overlayText: `${item.service} • ${item.city}`,
           aspectRatio: '1:1',
-          imageUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(`Photorealistic commercial photography of QuickMove Solutions crew performing ${item.service} in ${item.city} Alberta, clean daylight, modern moving truck, high-end 8k`)}?width=1080&height=1080&nologo=true&seed=${Math.floor(Math.random() * 899999) + 100000}`,
+          imageUrl: undefined,
           status: 'PENDING_APPROVAL',
           scheduledFor: schedDate,
           createdAt: now,
