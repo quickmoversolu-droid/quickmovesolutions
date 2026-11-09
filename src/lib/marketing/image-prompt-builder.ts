@@ -109,3 +109,4 @@ export function generateResonantMovingImageUrl(
   const randomSeed = seed ?? Math.floor(Math.random() * 899999) + 100000;
   return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1080&nologo=true&seed=${randomSeed}`;
 }
+

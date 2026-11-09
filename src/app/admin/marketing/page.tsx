@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
@@ -54,6 +54,7 @@ type ActiveDrawerTab =
 interface CalendarDayCell {
   dayNumber: number;
   isCurrentMonth: boolean;
+  isToday?: boolean;
   dateKey: string;
   posts: {
     id: string;
@@ -68,7 +69,7 @@ interface CalendarDayCell {
 export default function AdminAiMarketingManagerPage() {
   const [db, setDb] = useState<PlatformDatabaseState | null>(null);
   const [calendarView, setCalendarView] = useState<CalendarViewMode>('Month');
-  const [calendarMonthLabel, setCalendarMonthLabel] = useState('Apr 2025');
+  const [calendarDate, setCalendarDate] = useState<Date>(() => new Date());
   const [activeDrawer, setActiveDrawer] = useState<ActiveDrawerTab>('none');
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -400,208 +401,111 @@ export default function AdminAiMarketingManagerPage() {
     }
   };
 
-  // Build the two-week calendar grid matching the visual design reference + any newly generated posts
-  const findPostByTitle = (titleSubstring: string): MarketingPostRecord | undefined =>
-    db.marketingPosts.find((p) =>
-      p.title.toLowerCase().includes(titleSubstring.toLowerCase())
-    );
+  // Dynamic Real-Time Calendar Engine
+  const calendarYear = calendarDate.getFullYear();
+  const calendarMonth = calendarDate.getMonth(); // 0-indexed
 
-  const extraPosts = db.marketingPosts.slice(7);
+  const calendarMonthLabel = calendarDate.toLocaleDateString('en-US', {
+    month: 'short',
+    year: 'numeric',
+  });
 
-  const calendarCells: CalendarDayCell[] = [
-    { dayNumber: 30, isCurrentMonth: false, dateKey: 'prev-30', posts: [] },
-    {
-      dayNumber: 31,
-      isCurrentMonth: false,
-      dateKey: 'prev-31',
-      posts: [
-        {
-          id: findPostByTitle('Moving Tips')?.id || 'mkt_1',
-          title: 'Moving Tips',
-          timeLabel: '10:00 AM',
-          badgeType: 'facebook',
-          status: findPostByTitle('Moving Tips')?.status || 'PUBLISHED',
-          record: findPostByTitle('Moving Tips'),
-        },
-      ],
-    },
-    {
-      dayNumber: 1,
-      isCurrentMonth: true,
-      dateKey: 'cur-1',
-      posts: [
-        {
-          id: findPostByTitle('Junk Removal')?.id || 'mkt_2',
-          title: 'Junk Removal',
-          timeLabel: '11:00 AM',
-          badgeType: 'instagram',
-          status: findPostByTitle('Junk Removal')?.status || 'SCHEDULED',
-          record: findPostByTitle('Junk Removal'),
-        },
-      ],
-    },
-    {
-      dayNumber: 2,
-      isCurrentMonth: true,
-      dateKey: 'cur-2',
-      posts: extraPosts[0]
-        ? [
-          {
-            id: extraPosts[0].id,
-            title: extraPosts[0].title,
-            timeLabel: '12:00 PM',
-            badgeType: extraPosts[0].platform === 'INSTAGRAM' ? 'instagram' : 'facebook',
-            status: extraPosts[0].status,
-            record: extraPosts[0],
-          },
-        ]
-        : [],
-    },
-    {
-      dayNumber: 3,
-      isCurrentMonth: true,
-      dateKey: 'cur-3',
-      posts: [
-        {
-          id: findPostByTitle('Residential Moving')?.id || 'mkt_3',
-          title: 'Residential Moving',
-          timeLabel: '10:00 AM',
-          badgeType: 'facebook',
-          status: findPostByTitle('Residential Moving')?.status || 'SCHEDULED',
-          record: findPostByTitle('Residential Moving'),
-        },
-      ],
-    },
-    {
-      dayNumber: 4,
-      isCurrentMonth: true,
-      dateKey: 'cur-4',
-      posts: extraPosts[1]
-        ? [
-          {
-            id: extraPosts[1].id,
-            title: extraPosts[1].title,
-            timeLabel: '02:00 PM',
-            badgeType: 'quickmove',
-            status: extraPosts[1].status,
-            record: extraPosts[1],
-          },
-        ]
-        : [],
-    },
-    {
-      dayNumber: 5,
-      isCurrentMonth: true,
-      dateKey: 'cur-5',
-      posts: [
-        {
-          id: findPostByTitle('Local Service Calgary')?.id || 'mkt_4',
-          title: 'Local Service Calgary',
-          timeLabel: '11:00 AM',
-          badgeType: 'quickmove',
-          status: findPostByTitle('Local Service Calgary')?.status || 'APPROVED',
-          record: findPostByTitle('Local Service Calgary'),
-        },
-      ],
-    },
-    {
-      dayNumber: 6,
-      isCurrentMonth: true,
-      dateKey: 'cur-6',
-      posts: extraPosts[2]
-        ? [
-          {
-            id: extraPosts[2].id,
-            title: extraPosts[2].title,
-            timeLabel: '09:30 AM',
-            badgeType: 'instagram',
-            status: extraPosts[2].status,
-            record: extraPosts[2],
-          },
-        ]
-        : [],
-    },
-    {
-      dayNumber: 7,
-      isCurrentMonth: true,
-      dateKey: 'cur-7',
-      posts: [
-        {
-          id: findPostByTitle('Packing Tips')?.id || 'mkt_5',
-          title: 'Packing Tips',
-          timeLabel: '10:00 AM',
-          badgeType: 'quickmove',
-          status: findPostByTitle('Packing Tips')?.status || 'PENDING_APPROVAL',
-          record: findPostByTitle('Packing Tips'),
-        },
-      ],
-    },
-    {
-      dayNumber: 8,
-      isCurrentMonth: true,
-      dateKey: 'cur-8',
-      posts: extraPosts[3]
-        ? [
-          {
-            id: extraPosts[3].id,
-            title: extraPosts[3].title,
-            timeLabel: '01:00 PM',
-            badgeType: 'facebook',
-            status: extraPosts[3].status,
-            record: extraPosts[3],
-          },
-        ]
-        : [],
-    },
-    {
-      dayNumber: 9,
-      isCurrentMonth: true,
-      dateKey: 'cur-9',
-      posts: [
-        {
-          id: findPostByTitle('Commercial Moving')?.id || 'mkt_6',
-          title: 'Commercial Moving',
-          timeLabel: '10:00 AM',
-          badgeType: 'facebook',
-          status: findPostByTitle('Commercial Moving')?.status || 'SCHEDULED',
-          record: findPostByTitle('Commercial Moving'),
-        },
-      ],
-    },
-    {
-      dayNumber: 10,
-      isCurrentMonth: true,
-      dateKey: 'cur-10',
-      posts: extraPosts[4]
-        ? [
-          {
-            id: extraPosts[4].id,
-            title: extraPosts[4].title,
-            timeLabel: '03:00 PM',
-            badgeType: 'instagram',
-            status: extraPosts[4].status,
-            record: extraPosts[4],
-          },
-        ]
-        : [],
-    },
-    {
-      dayNumber: 11,
-      isCurrentMonth: true,
-      dateKey: 'cur-11',
-      posts: [
-        {
-          id: findPostByTitle('Delivery Services')?.id || 'mkt_7',
-          title: 'Delivery Services',
-          timeLabel: '11:00 AM',
-          badgeType: 'instagram',
-          status: findPostByTitle('Delivery Services')?.status || 'PENDING_APPROVAL',
-          record: findPostByTitle('Delivery Services'),
-        },
-      ],
-    },
-    { dayNumber: 12, isCurrentMonth: true, dateKey: 'cur-12', posts: [] },
-  ];
+  const handlePrevMonth = () => {
+    setCalendarDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCalendarDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const handleToday = () => {
+    setCalendarDate(new Date());
+  };
+
+  // Generate dynamic full-month calendar grid (35 or 42 cells) mapped to db.marketingPosts
+  const calendarCells = useMemo(() => {
+    const firstDayOfWeek = new Date(calendarYear, calendarMonth, 1).getDay(); // 0 = Sun
+    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(calendarYear, calendarMonth, 0).getDate();
+
+    const today = new Date();
+    const isCurrentYearMonth = today.getFullYear() === calendarYear && today.getMonth() === calendarMonth;
+    const todayDate = today.getDate();
+
+    const cells: CalendarDayCell[] = [];
+
+    // 1. Trailing days from previous month
+    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+      const dayNum = daysInPrevMonth - i;
+      cells.push({
+        dayNumber: dayNum,
+        isCurrentMonth: false,
+        dateKey: `prev-${calendarYear}-${calendarMonth}-${dayNum}`,
+        posts: [],
+      });
+    }
+
+    // 2. Days of the current active month
+    for (let day = 1; day <= daysInMonth; day++) {
+      // Find all posts scheduled or created for this specific date
+      const dayPosts = db.marketingPosts.filter((post) => {
+        const rawDate = post.scheduledFor || post.publishedAt || post.createdAt;
+        if (!rawDate) return false;
+        const d = new Date(rawDate);
+        return (
+          d.getFullYear() === calendarYear &&
+          d.getMonth() === calendarMonth &&
+          d.getDate() === day
+        );
+      });
+
+      const isToday = isCurrentYearMonth && day === todayDate;
+
+      cells.push({
+        dayNumber: day,
+        isCurrentMonth: true,
+        isToday,
+        dateKey: `cur-${calendarYear}-${calendarMonth + 1}-${day}`,
+        posts: dayPosts.map((post) => {
+          const rawDate = post.scheduledFor || post.publishedAt || post.createdAt;
+          const timeLabel = rawDate
+            ? new Date(rawDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '10:00 AM';
+
+          const badgeType =
+            post.platform === 'INSTAGRAM'
+              ? 'instagram'
+              : post.platform === 'FACEBOOK'
+                ? 'facebook'
+                : 'quickmove';
+
+          return {
+            id: post.id,
+            title: post.title,
+            timeLabel,
+            badgeType,
+            status: post.status,
+            record: post,
+          };
+        }),
+      });
+    }
+
+    // 3. Leading days of next month to complete the row
+    const remaining = 7 - (cells.length % 7);
+    if (remaining < 7) {
+      for (let nextDay = 1; nextDay <= remaining; nextDay++) {
+        cells.push({
+          dayNumber: nextDay,
+          isCurrentMonth: false,
+          dateKey: `next-${calendarYear}-${calendarMonth + 2}-${nextDay}`,
+          posts: [],
+        });
+      }
+    }
+
+    return cells;
+  }, [calendarYear, calendarMonth, db.marketingPosts]);
 
   const pendingCount = db.marketingPosts.filter((p) => p.status === 'PENDING_APPROVAL').length;
   const fbAccount = db.socialAccounts.find((a) => a.platform === 'FACEBOOK');
@@ -802,34 +706,35 @@ export default function AdminAiMarketingManagerPage() {
                   ))}
     </div>
 
-                {/* Month Navigation Pill */}
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[#060B16] px-3 py-1 text-xs font-semibold text-white/85">
+                {/* Month Navigation Pill + Today button */}
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() =>
-                      setCalendarMonthLabel((prev) =>
-                        prev === 'Apr 2025' ? 'Mar 2025' : 'Apr 2025'
-                      )
-                    }
-                    className="text-white/50 hover:text-white"
-                    aria-label="Previous month"
+                    onClick={handleToday}
+                    className="rounded-full border border-white/10 bg-[#060B16] px-3 py-1 text-xs font-semibold text-white/70 hover:border-brand-orange hover:text-white"
                   >
-                    <ChevronLeft className="h-3.5 w-3.5" />
+                    Today
                   </button>
-                  <span className="min-w-[64px] text-center">{calendarMonthLabel}</span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCalendarMonthLabel((prev) =>
-                        prev === 'Apr 2025' ? 'May 2025' : 'Apr 2025'
-                      )
-                    }
-                    className="text-white/50 hover:text-white"
-                    aria-label="Next month"
-                  >
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-    </div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[#060B16] px-3 py-1 text-xs font-semibold text-white/85">
+                    <button
+                      type="button"
+                      onClick={handlePrevMonth}
+                      className="text-white/50 hover:text-white"
+                      aria-label="Previous month"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="min-w-[70px] text-center font-bold text-white">{calendarMonthLabel}</span>
+                    <button
+                      type="button"
+                      onClick={handleNextMonth}
+                      className="text-white/50 hover:text-white"
+                      aria-label="Next month"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
   </div>
 </div>
 
@@ -848,19 +753,33 @@ export default function AdminAiMarketingManagerPage() {
                     <div>Sat</div>
       </div>
 
-                  {/* 2-Week Calendar Grid matching visual reference */}
+                  {/* Dynamic Full-Month Calendar Grid */}
                   <div className="grid grid-cols-7 divide-x divide-y divide-white/10 border-x border-b border-white/10 bg-[#081020]/60">
                     {calendarCells.map((cell) => (
                       <div
                         key={cell.dateKey}
-                        className="min-h-[102px] p-2 transition-colors hover:bg-white/[0.02]"
+                        className={`min-h-[108px] p-2 transition-colors hover:bg-white/[0.03] ${
+                          cell.isToday ? 'bg-brand-orange/[0.07] ring-1 ring-inset ring-brand-orange/50' : ''
+                        }`}
                       >
-                        <div
-                          className={`text-xs font-semibold ${cell.isCurrentMonth ? 'text-white/80' : 'text-white/30'
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-xs font-semibold ${
+                              cell.isToday
+                                ? 'flex h-5 w-5 items-center justify-center rounded-full bg-brand-orange font-bold text-white shadow-orange-glow'
+                                : cell.isCurrentMonth
+                                  ? 'text-white/80'
+                                  : 'text-white/30'
                             }`}
-                        >
-                          {cell.dayNumber}
-            </div>
+                          >
+                            {cell.dayNumber}
+                          </span>
+                          {cell.isToday && (
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-brand-orange">
+                              Today
+                            </span>
+                          )}
+                        </div>
 
                         <div className="mt-1.5 space-y-1.5">
                           {cell.posts.map((postChip) => (
