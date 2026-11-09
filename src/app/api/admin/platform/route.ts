@@ -23,6 +23,7 @@ import {
   UserPermissionMatrix,
 } from '@/lib/db/platform-store';
 import { BUSINESS_INFO } from '@/lib/constants/business';
+import { publishPostToMeta } from '@/lib/marketing/meta-publisher';
 
 export async function GET() {
   const session = getServerSession();
@@ -853,37 +854,25 @@ export async function POST(request: NextRequest) {
         post.publishedAt = now;
         post.externalPostId = `meta_post_${Date.now()}`;
 
-        // Live Meta Graph API Execution
-        const pageAccessToken = process.env.META_PAGE_ACCESS_TOKEN;
-        const pageId = process.env.META_PAGE_ID;
+        // Live Meta Graph API Execution (Facebook + Instagram)
+        const metaResult = await publishPostToMeta({
+          title: post.title,
+          platform: post.platform,
+          primaryCaption: post.primaryCaption,
+          imageUrl: post.imagePrompt || undefined,
+        });
 
-        if (pageAccessToken && pageId) {
-          try {
-            const metaRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                message: post.primaryCaption,
-                access_token: pageAccessToken,
-              }),
-            });
-            const metaData = await metaRes.json();
-            if (metaData?.id) {
-              post.externalPostId = metaData.id;
-            } else if (metaData?.error) {
-              console.error('Meta publishing error:', metaData.error);
-              return NextResponse.json(
-                { ok: false, error: `Meta API: ${metaData.error.message || 'Failed to publish to Facebook'}` },
-                { status: 400 }
-              );
-            }
-          } catch (err: any) {
-            console.error('Meta fetch error:', err);
-            return NextResponse.json(
-              { ok: false, error: `Meta network error: ${err.message || 'Failed to reach Meta servers'}` },
-              { status: 500 }
-            );
-          }
+        if (metaResult.facebookPostId || metaResult.instagramPostId) {
+          const ids = [
+            metaResult.facebookPostId ? `fb:${metaResult.facebookPostId}` : null,
+            metaResult.instagramPostId ? `ig:${metaResult.instagramPostId}` : null,
+          ].filter(Boolean).join(' | ');
+          post.externalPostId = ids;
+        } else if (metaResult.errors.length > 0) {
+          return NextResponse.json(
+            { ok: false, error: `Meta Publishing Error: ${metaResult.errors.join('; ')}` },
+            { status: 400 }
+          );
         }
       }
       post.updatedAt = now;
