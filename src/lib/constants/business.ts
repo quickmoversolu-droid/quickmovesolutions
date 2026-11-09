@@ -7,7 +7,7 @@
 const RAW_SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
-  'https://quickmovesolution.com';
+  'https://www.quickmovesolution.ca';
 
 const NORMALIZED_SITE_URL = RAW_SITE_URL.endsWith('/')
   ? RAW_SITE_URL
@@ -17,7 +17,7 @@ export const BUSINESS_INFO = {
   name: 'QuickMove Solutions',
   tagline: 'Moving Made Easy. Space Made Clear.',
   website: NORMALIZED_SITE_URL,
-  domain: 'quickmovesolution.com',
+  domain: 'quickmovesolution.ca',
   phoneDisplay: '(587) 999-9565',
   phoneE164: '+15879999565',
   phoneHref: 'tel:+15879999565',
