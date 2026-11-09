@@ -2,9 +2,14 @@ import type { MetadataRoute } from 'next';
 import { BUSINESS_INFO, OFFICIAL_SERVICES, SERVICE_AREAS } from '@/lib/constants/business';
 import { BLOG_POSTS } from '@/lib/data/blog-posts-data';
 
+export const dynamic = 'force-dynamic';
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = BUSINESS_INFO.website.replace(/\/$/, '');
-  const lastModified = new Date('2026-11-01T00:00:00.000Z');
+  const rawBase = BUSINESS_INFO.website.replace(/\/$/, '');
+  const baseUrl = rawBase.includes('quickmovesolution.com')
+    ? 'https://www.quickmovesolution.ca'
+    : rawBase;
+  const lastModified = new Date();
 
   const corePages: MetadataRoute.Sitemap = [
     { url: `${baseUrl}/`, lastModified, changeFrequency: 'weekly', priority: 1.0 },

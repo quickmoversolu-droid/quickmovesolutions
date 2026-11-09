@@ -4,10 +4,12 @@
  * Never invent contact details, physical branch addresses, prices, or ratings.
  */
 
+const envUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || '').trim();
+// Strictly enforce canonical .ca domain (guard against old .com set in legacy Vercel env variables)
 const RAW_SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.NEXT_PUBLIC_APP_URL ||
-  'https://www.quickmovesolution.ca';
+  envUrl && !envUrl.includes('quickmovesolution.com')
+    ? envUrl
+    : 'https://www.quickmovesolution.ca';
 
 const NORMALIZED_SITE_URL = RAW_SITE_URL.endsWith('/')
   ? RAW_SITE_URL
