@@ -844,13 +844,21 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: false, error: 'Marketing post not found' }, { status: 404 });
       }
       if (status === 'APPROVED' || status === 'PUBLISHED') {
-        if (!permissions.canApproveMarketing && actorRole !== 'OWNER') {
+        const canApprove =
+          actorRole === 'OWNER' ||
+          actorRole === 'ADMIN' ||
+          actorRole === 'MARKETING_MANAGER' ||
+          permissions?.canApproveMarketing ||
+          permissions?.canAccessMarketing ||
+          permissions?.canAccessAdmin;
+
+        if (!canApprove) {
           return NextResponse.json(
-            { ok: false, error: 'Only the Owner can approve or publish marketing posts.' },
+            { ok: false, error: 'You do not have permission to approve or publish marketing posts.' },
             { status: 403 }
           );
         }
-        post.approvedBy = actorName;
+        post.approvedBy = actorName || 'QuickMove Owner';
         post.approvedAt = now;
       }
       post.status = status as MarketingPostStatus;
