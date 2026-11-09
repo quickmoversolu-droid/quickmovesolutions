@@ -315,6 +315,7 @@ export default function AdminAiMarketingManagerPage() {
       const res = await fetch('/api/admin/platform', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'UPDATE_POST_STATUS',
           postId,
