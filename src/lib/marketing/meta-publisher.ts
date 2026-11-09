@@ -13,14 +13,17 @@ export interface MetaPublishResult {
 
 export async function publishPostToMeta(post: {
   title: string;
-  platform: 'FACEBOOK' | 'INSTAGRAM' | 'BOTH';
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'BOTH' | 'GOOGLE_BUSINESS' | string;
   primaryCaption: string;
   imageUrl?: string;
 }): Promise<MetaPublishResult> {
-  const pageAccessToken = process.env.META_PAGE_ACCESS_TOKEN;
-  const pageId = process.env.META_PAGE_ID;
-  const igAccountId = process.env.META_INSTAGRAM_ACCOUNT_ID;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.quickmovesolution.ca';
+  let pageAccessToken = (process.env.META_PAGE_ACCESS_TOKEN || '').trim();
+  if (pageAccessToken.startsWith('"') && pageAccessToken.endsWith('"')) {
+    pageAccessToken = pageAccessToken.slice(1, -1);
+  }
+  const pageId = (process.env.META_PAGE_ID || '').trim();
+  const igAccountId = (process.env.META_INSTAGRAM_ACCOUNT_ID || '').trim();
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.quickmovesolution.ca').replace(/\/+$/, '');
 
   const result: MetaPublishResult = {
     success: false,
@@ -61,10 +64,10 @@ export async function publishPostToMeta(post: {
   // 2. Publish to Instagram Business Account
   if ((post.platform === 'INSTAGRAM' || post.platform === 'BOTH') && igAccountId) {
     try {
-      // Instagram requires an absolute HTTPS image URL
+      // Instagram requires an absolute HTTPS image URL with 4:5 to 1.91:1 aspect ratio
       let finalImageUrl = post.imageUrl;
       if (!finalImageUrl || finalImageUrl.startsWith('/')) {
-        finalImageUrl = `${siteUrl}${finalImageUrl || '/images/quickmove-truck-hero.jpg'}`;
+        finalImageUrl = `${siteUrl}${finalImageUrl || '/images/quickmove-marketing-concept.jpg'}`;
       }
 
       // Step 2A: Create Instagram Media Container
@@ -85,25 +88,51 @@ export async function publishPostToMeta(post: {
       if (containerData?.id) {
         const creationId = containerData.id;
 
-        // Step 2B: Publish Media Container
-        const pubRes = await fetch(
-          `https://graph.facebook.com/v20.0/${igAccountId}/media_publish`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              creation_id: creationId,
-              access_token: pageAccessToken,
-            }),
-          }
-        );
+        // Step 2B: Wait for Instagram Media Container to be ready (asynchronous processing)
+        let isReady = false;
+        for (let attempt = 0; attempt < 8; attempt++) {
+          await new Promise((resolve) => setTimeout(resolve, 2500));
+          const checkRes = await fetch(
+            `https://graph.facebook.com/v20.0/${creationId}?fields=status_code,status&access_token=${encodeURIComponent(pageAccessToken)}`
+          );
+          const checkData = await checkRes.json();
 
-        const pubData = await pubRes.json();
-        if (pubData?.id) {
-          result.instagramPostId = pubData.id;
-          result.success = true;
-        } else if (pubData?.error) {
-          result.errors.push(`Instagram Publish Error: ${pubData.error.message}`);
+          if (checkData?.status_code === 'FINISHED') {
+            isReady = true;
+            break;
+          }
+          if (checkData?.status_code === 'ERROR' || checkData?.status_code === 'EXPIRED') {
+            result.errors.push(`Instagram Media Processing Error: ${checkData.status || checkData.status_code}`);
+            break;
+          }
+        }
+
+        if (!isReady && !result.errors.some((e) => e.includes('Instagram Media Processing Error'))) {
+          // Attempt publish anyway if polling timed out
+          isReady = true;
+        }
+
+        if (isReady) {
+          // Step 2C: Publish Media Container
+          const pubRes = await fetch(
+            `https://graph.facebook.com/v20.0/${igAccountId}/media_publish`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                creation_id: creationId,
+                access_token: pageAccessToken,
+              }),
+            }
+          );
+
+          const pubData = await pubRes.json();
+          if (pubData?.id) {
+            result.instagramPostId = pubData.id;
+            result.success = true;
+          } else if (pubData?.error) {
+            result.errors.push(`Instagram Publish Error: ${pubData.error.message}`);
+          }
         }
       } else if (containerData?.error) {
         result.errors.push(`Instagram Container Error: ${containerData.error.message}`);
@@ -115,3 +144,4 @@ export async function publishPostToMeta(post: {
 
   return result;
 }
+
