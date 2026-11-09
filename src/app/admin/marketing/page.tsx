@@ -88,6 +88,8 @@ export default function AdminAiMarketingManagerPage() {
   const [aspectRatio, setAspectRatio] = useState<'1:1' | '4:5' | '9:16' | '16:9'>('4:5');
   const [customTopic, setCustomTopic] = useState('');
   const [heroArtworkUrl, setHeroArtworkUrl] = useState<string>('/images/quickmove-marketing-hero.jpg');
+  const [isRegeneratingImage, setIsRegeneratingImage] = useState(false);
+  const [customImageUrlInput, setCustomImageUrlInput] = useState('');
 
   const loadData = async () => {
     try {
@@ -244,6 +246,55 @@ export default function AdminAiMarketingManagerPage() {
       setDrawerFeedback({ message: errMsg, isError: true });
     } finally {
       setUpdatingStatus(null);
+    }
+  };
+
+  const handleRegenerateImage = async (postId: string) => {
+    setIsRegeneratingImage(true);
+    setDrawerFeedback(null);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REGENERATE_POST_IMAGE',
+          postId,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setDrawerFeedback({ message: '🎨 New AI photorealistic moving visual generated!' });
+        await loadData();
+      } else {
+        setDrawerFeedback({ message: data.error || 'Failed to generate image', isError: true });
+      }
+    } catch (e: any) {
+      setDrawerFeedback({ message: e.message || 'Network error generating image', isError: true });
+    } finally {
+      setIsRegeneratingImage(false);
+    }
+  };
+
+  const handleSaveCustomImageUrl = async (postId: string) => {
+    if (!customImageUrlInput.trim()) return;
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SET_POST_IMAGE_URL',
+          postId,
+          imageUrl: customImageUrlInput.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setDrawerFeedback({ message: 'Custom photo URL saved to post!' });
+        setCustomImageUrlInput('');
+        await loadData();
+      }
+    } catch (e: any) {
+      setDrawerFeedback({ message: e.message, isError: true });
     }
   };
 
@@ -1408,20 +1459,83 @@ export default function AdminAiMarketingManagerPage() {
               </div>
 
               <div className="space-y-4 lg:col-span-5">
-                <div className="rounded-2xl border border-white/10 bg-[#060C18] p-4">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-brand-orange">
-                    AI Image Prompt ({activePost.aspectRatio})
-      </div>
-                  <p className="mt-2 text-xs leading-relaxed text-white/75">
-                    {activePost.imagePrompt}
-                  </p>
-                  <div className="mt-3 rounded-xl border border-white/10 bg-[#0A1324] p-3 text-xs text-white/70">
-                    <strong className="text-white">Overlay Text:</strong> {activePost.overlayText}
-      </div>
-    </div>
+                {/* Visual Image Preview Card */}
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#060C18] shadow-dark-card">
+                  <div className="relative aspect-square w-full bg-[#030712]">
+                    {activePost.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={activePost.imageUrl}
+                        alt={activePost.title}
+                        className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
+                        <ImageIcon className="h-10 w-10 text-white/30" />
+                        <span className="mt-2 text-xs text-white/50">No image assigned</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 text-white">
+                      <span className="inline-block rounded-md bg-brand-orange px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+                        {activePost.overlayText || 'QuickMove Solutions'}
+                      </span>
+                    </div>
+                  </div>
 
-                
-  </div>
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-brand-orange">
+                        Photorealistic AI Creative ({activePost.aspectRatio})
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isRegeneratingImage}
+                        onClick={() => handleRegenerateImage(activePost.id)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-brand-orange/40 bg-brand-orange/15 px-2.5 py-1 text-[11px] font-bold text-brand-orange hover:bg-brand-orange hover:text-white disabled:opacity-50"
+                      >
+                        {isRegeneratingImage ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3 w-3" />
+                            Regenerate Image
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <p className="text-xs leading-relaxed text-white/75">
+                      {activePost.imagePrompt}
+                    </p>
+
+                    {/* Custom Image URL fallback */}
+                    <div className="pt-2 border-t border-white/5">
+                      <label className="text-[10px] uppercase tracking-wider font-semibold text-white/50 block mb-1">
+                        Or Use Custom Photo URL (e.g. Real Job Photo)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          placeholder="https://.../my-moving-job.jpg"
+                          value={customImageUrlInput}
+                          onChange={(e) => setCustomImageUrlInput(e.target.value)}
+                          className="flex-1 rounded-lg border border-white/10 bg-[#0A1324] px-2.5 py-1 text-xs text-white placeholder-white/30 focus:border-brand-orange focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSaveCustomImageUrl(activePost.id)}
+                          className="rounded-lg bg-white/10 px-3 py-1 text-xs font-bold text-white hover:bg-white/20"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 </div>
           )}
 
@@ -1469,12 +1583,24 @@ export default function AdminAiMarketingManagerPage() {
                         >
                           {post.status}
                         </span>
-          </div>
-                      <h4 className="mt-1.5 font-heading text-sm font-bold text-white">
-                        {post.title}
-                      </h4>
-                      <p className="mt-1 line-clamp-2 text-xs text-white/65">{post.primaryCaption}</p>
-        </div>
+                      </div>
+                      <div className="mt-2.5 flex items-start gap-3">
+                        {post.imageUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={post.imageUrl}
+                            alt={post.title}
+                            className="h-14 w-14 shrink-0 rounded-xl object-cover border border-white/10"
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-heading text-sm font-bold text-white line-clamp-1">
+                            {post.title}
+                          </h4>
+                          <p className="mt-1 line-clamp-2 text-xs text-white/65">{post.primaryCaption}</p>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
                       <button

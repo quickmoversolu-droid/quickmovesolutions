@@ -568,6 +568,7 @@ export async function POST(request: NextRequest) {
           ? `${targetCity} Photo Junk Removal • ${BUSINESS_INFO.phoneDisplay}`
           : `${targetCity} ${serviceFocus} • ${BUSINESS_INFO.phoneDisplay}`,
         aspectRatio,
+        imageUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(`Photorealistic commercial photography for QuickMove Solutions in ${targetCity} Alberta. Professional movers in navy blue uniforms with orange accents handling ${serviceFocus.toLowerCase()}, modern truck, clean daylight 8k`)}?width=1080&height=1080&nologo=true&seed=${Math.floor(Math.random() * 899999) + 100000}`,
         status: 'PENDING_APPROVAL',
         scheduledFor: new Date(Date.now() + 2 * 86400000).toISOString(),
         createdAt: now,
@@ -652,6 +653,7 @@ export async function POST(request: NextRequest) {
           imagePrompt: `Professional photography of QuickMove Solutions crew performing ${item.service} in ${item.city} Alberta.`,
           overlayText: `${item.service} • ${item.city}`,
           aspectRatio: '1:1',
+          imageUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(`Photorealistic commercial photography of QuickMove Solutions crew performing ${item.service} in ${item.city} Alberta, clean daylight, modern moving truck, high-end 8k`)}?width=1080&height=1080&nologo=true&seed=${Math.floor(Math.random() * 899999) + 100000}`,
           status: 'PENDING_APPROVAL',
           scheduledFor: schedDate,
           createdAt: now,
@@ -813,6 +815,7 @@ export async function POST(request: NextRequest) {
           imagePrompt: `Professional editorial photography for QuickMove Solutions: ${item.concept} High dynamic range, natural lighting, brand colors navy and orange.`,
           overlayText: `${item.service.toUpperCase()} • ${item.city.toUpperCase()}`,
           aspectRatio: item.platform === 'INSTAGRAM' ? '4:5' : '1:1',
+          imageUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(`Photorealistic commercial photography for QuickMove Solutions: ${item.concept} in Alberta, clean daylight, modern moving truck, high-end 8k`)}?width=1080&height=1080&nologo=true&seed=${Math.floor(Math.random() * 899999) + 100000}`,
           status: 'PENDING_APPROVAL',
           scheduledFor: schedDate,
           createdAt: now,
@@ -859,7 +862,8 @@ export async function POST(request: NextRequest) {
           title: post.title,
           platform: post.platform,
           primaryCaption: post.primaryCaption,
-          imageUrl: post.imagePrompt || undefined,
+          imageUrl: post.imageUrl || undefined,
+          imagePrompt: post.imagePrompt || post.visualConcept,
         });
 
         if (metaResult.facebookPostId || metaResult.instagramPostId) {
@@ -882,6 +886,40 @@ export async function POST(request: NextRequest) {
         `POST_${status}`,
         `Marketing post "${post.title}" transitioned to ${status} by ${actorName}.`
       );
+      writePlatformStore(db);
+      return NextResponse.json({ ok: true, post });
+    }
+
+    // 11B. REGENERATE POST AI IMAGE
+    if (action === 'REGENERATE_POST_IMAGE') {
+      const { postId, customPrompt } = body;
+      const post = db.marketingPosts.find((p) => p.id === postId);
+      if (!post) {
+        return NextResponse.json({ ok: false, error: 'Marketing post not found' }, { status: 404 });
+      }
+      const promptToUse = customPrompt || post.imagePrompt || post.visualConcept || post.title;
+      const cleanPrompt = promptToUse.replace(/[^\w\s,.-]/g, ' ').substring(0, 180);
+      const encodedPrompt = encodeURIComponent(
+        `Photorealistic commercial photography for QuickMove Solutions moving and junk removal in Alberta: ${cleanPrompt}. Pristine moving truck, navy blue crew uniforms with orange accents, clean natural daylight, cinematic 8k, photorealistic`
+      );
+      const seed = Math.floor(Math.random() * 899999) + 100000;
+      post.imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1080&nologo=true&seed=${seed}`;
+      post.updatedAt = now;
+      logActivity('MARKETING_POST', post.id, 'IMAGE_REGENERATED', `Regenerated AI image for "${post.title}".`);
+      writePlatformStore(db);
+      return NextResponse.json({ ok: true, post });
+    }
+
+    // 11C. SET CUSTOM POST IMAGE URL
+    if (action === 'SET_POST_IMAGE_URL') {
+      const { postId, imageUrl } = body;
+      const post = db.marketingPosts.find((p) => p.id === postId);
+      if (!post) {
+        return NextResponse.json({ ok: false, error: 'Marketing post not found' }, { status: 404 });
+      }
+      post.imageUrl = (imageUrl || '').trim();
+      post.updatedAt = now;
+      logActivity('MARKETING_POST', post.id, 'IMAGE_URL_UPDATED', `Set custom image URL for "${post.title}".`);
       writePlatformStore(db);
       return NextResponse.json({ ok: true, post });
     }

@@ -16,6 +16,7 @@ export async function publishPostToMeta(post: {
   platform: 'FACEBOOK' | 'INSTAGRAM' | 'BOTH' | 'GOOGLE_BUSINESS' | string;
   primaryCaption: string;
   imageUrl?: string;
+  imagePrompt?: string;
 }): Promise<MetaPublishResult> {
   let pageAccessToken = (process.env.META_PAGE_ACCESS_TOKEN || '').trim();
   if (pageAccessToken.startsWith('"') && pageAccessToken.endsWith('"')) {
@@ -65,9 +66,22 @@ export async function publishPostToMeta(post: {
   if ((post.platform === 'INSTAGRAM' || post.platform === 'BOTH') && igAccountId) {
     try {
       // Instagram requires an absolute HTTPS image URL with 4:5 to 1.91:1 aspect ratio
-      let finalImageUrl = post.imageUrl;
-      if (!finalImageUrl || finalImageUrl.startsWith('/')) {
-        finalImageUrl = `${siteUrl}${finalImageUrl || '/images/quickmove-marketing-concept.jpg'}`;
+      let finalImageUrl = (post.imageUrl || '').trim();
+
+      // If it's a relative path on the site, prefix with siteUrl
+      if (finalImageUrl.startsWith('/')) {
+        finalImageUrl = `${siteUrl}${finalImageUrl}`;
+      }
+
+      // If missing or not an absolute URL, generate high-res photorealistic commercial moving brand visual
+      if (!finalImageUrl.startsWith('http://') && !finalImageUrl.startsWith('https://')) {
+        const rawPrompt = post.imagePrompt || post.title || 'Professional moving crew QuickMove Solutions Calgary';
+        const cleanPrompt = rawPrompt.replace(/[^\w\s,.-]/g, ' ').substring(0, 180);
+        const encodedPrompt = encodeURIComponent(
+          `Photorealistic commercial photography for QuickMove Solutions moving and junk removal: ${cleanPrompt}. Pristine moving truck, navy blue uniforms with orange accents, bright natural daylight, cinematic 8k, photorealistic`
+        );
+        const seed = Math.floor(Math.random() * 899999) + 100000;
+        finalImageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1080&nologo=true&seed=${seed}`;
       }
 
       // Step 2A: Create Instagram Media Container
