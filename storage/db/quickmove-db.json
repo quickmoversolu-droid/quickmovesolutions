@@ -2589,39 +2589,5 @@
     "requireOwnerMarketingApproval": true,
     "updatedAt": "2026-11-01T08:00:00.000Z"
   },
-  "finishedJobs": [
-    {
-      "id": "job_fin_1",
-      "title": "Luxury 4-Bedroom Home Relocation",
-      "serviceType": "RESIDENTIAL_MOVING",
-      "location": "Mount Royal, Calgary",
-      "completionDate": "2026-10-28",
-      "description": "Complete packing, protective furniture wrapping, transport, and room-by-room placement for a 4,200 sq.ft home with zero scratches.",
-      "afterPhotoUrl": "/images/quickmove-truck-hero.jpg",
-      "featuredOnHome": true,
-      "createdAt": "2026-11-01T08:00:00.000Z"
-    },
-    {
-      "id": "job_fin_2",
-      "title": "Full 2-Car Garage Declutter & Cleanout",
-      "serviceType": "JUNK_REMOVAL",
-      "location": "Cooper’s Crossing, Airdrie",
-      "completionDate": "2026-11-02",
-      "description": "Photo-first estimate approved in 15 minutes. Hauled 8 cubic yards of old renovation debris, scrap lumber, and broken appliances for eco-friendly recycling.",
-      "afterPhotoUrl": "/images/quickmove-marketing-hero.jpg",
-      "featuredOnHome": true,
-      "createdAt": "2026-11-01T08:00:00.000Z"
-    },
-    {
-      "id": "job_fin_3",
-      "title": "Corporate Office Expansion Setup",
-      "serviceType": "COMMERCIAL_MOVING",
-      "location": "Downtown Core, Calgary",
-      "completionDate": "2026-10-15",
-      "description": "Overnight relocation of 28 workstations, executive conference suites, and secure IT equipment with zero downtime for monday morning operations.",
-      "afterPhotoUrl": "/images/quickmove-truck-hero.jpg",
-      "featuredOnHome": true,
-      "createdAt": "2026-11-01T08:00:00.000Z"
-    }
-  ]
+  "finishedJobs": []
 }

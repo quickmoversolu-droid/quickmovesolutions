@@ -1738,41 +1738,7 @@ function createInitialSeedState(): PlatformDatabaseState {
     updatedAt: now,
   };
 
-  const finishedJobs: FinishedJobRecord[] = [
-    {
-      id: 'job_fin_1',
-      title: 'Luxury 4-Bedroom Home Relocation',
-      serviceType: 'RESIDENTIAL_MOVING',
-      location: 'Mount Royal, Calgary',
-      completionDate: '2026-10-28',
-      description: 'Complete packing, protective furniture wrapping, transport, and room-by-room placement for a 4,200 sq.ft home with zero scratches.',
-      afterPhotoUrl: '/images/quickmove-truck-hero.jpg',
-      featuredOnHome: true,
-      createdAt: now,
-    },
-    {
-      id: 'job_fin_2',
-      title: 'Full 2-Car Garage Declutter & Cleanout',
-      serviceType: 'JUNK_REMOVAL',
-      location: 'Cooper’s Crossing, Airdrie',
-      completionDate: '2026-11-02',
-      description: 'Photo-first estimate approved in 15 minutes. Hauled 8 cubic yards of old renovation debris, scrap lumber, and broken appliances for eco-friendly recycling.',
-      afterPhotoUrl: '/images/quickmove-marketing-hero.jpg',
-      featuredOnHome: true,
-      createdAt: now,
-    },
-    {
-      id: 'job_fin_3',
-      title: 'Corporate Office Expansion Setup',
-      serviceType: 'COMMERCIAL_MOVING',
-      location: 'Downtown Core, Calgary',
-      completionDate: '2026-10-15',
-      description: 'Overnight relocation of 28 workstations, executive conference suites, and secure IT equipment with zero downtime for monday morning operations.',
-      afterPhotoUrl: '/images/quickmove-truck-hero.jpg',
-      featuredOnHome: true,
-      createdAt: now,
-    },
-  ];
+  const finishedJobs: FinishedJobRecord[] = [];
 
   return {
     users,
@@ -1838,31 +1804,31 @@ export function readPlatformStore(): PlatformDatabaseState {
     const parsed = JSON.parse(raw) as Partial<PlatformDatabaseState>;
     const seed = createInitialSeedState();
 
-    // Ensure any newly introduced collections exist if upgrading from Phase 4 db file
+    // Ensure collections exist with robust array checks so empty arrays are not overwritten by seed
     const merged: PlatformDatabaseState = {
-      users: parsed.users?.length ? parsed.users : seed.users,
-      customRoles: parsed.customRoles?.length ? parsed.customRoles : seed.customRoles,
-      customers: parsed.customers?.length ? parsed.customers : seed.customers,
-      leads: parsed.leads?.length ? parsed.leads : seed.leads,
-      jobRequests: parsed.jobRequests?.length ? parsed.jobRequests : seed.jobRequests,
-      jobPhotos: parsed.jobPhotos || [],
-      jobChecklists: parsed.jobChecklists?.length ? parsed.jobChecklists : seed.jobChecklists,
-      quotes: parsed.quotes?.length ? parsed.quotes : seed.quotes,
-      bookings: parsed.bookings?.length ? parsed.bookings : seed.bookings,
-      employees: parsed.employees?.length ? parsed.employees : seed.employees,
-      teams: parsed.teams?.length ? parsed.teams : seed.teams,
-      vehicles: parsed.vehicles?.length ? parsed.vehicles : seed.vehicles,
-      reviewRequests: parsed.reviewRequests?.length ? parsed.reviewRequests : seed.reviewRequests,
-      testimonials: parsed.testimonials?.length ? parsed.testimonials : seed.testimonials,
-      marketingCampaigns: parsed.marketingCampaigns?.length
+      users: Array.isArray(parsed.users) ? parsed.users : seed.users,
+      customRoles: Array.isArray(parsed.customRoles) ? parsed.customRoles : seed.customRoles,
+      customers: Array.isArray(parsed.customers) ? parsed.customers : seed.customers,
+      leads: Array.isArray(parsed.leads) ? parsed.leads : seed.leads,
+      jobRequests: Array.isArray(parsed.jobRequests) ? parsed.jobRequests : seed.jobRequests,
+      jobPhotos: Array.isArray(parsed.jobPhotos) ? parsed.jobPhotos : [],
+      jobChecklists: Array.isArray(parsed.jobChecklists) ? parsed.jobChecklists : seed.jobChecklists,
+      quotes: Array.isArray(parsed.quotes) ? parsed.quotes : seed.quotes,
+      bookings: Array.isArray(parsed.bookings) ? parsed.bookings : seed.bookings,
+      employees: Array.isArray(parsed.employees) ? parsed.employees : seed.employees,
+      teams: Array.isArray(parsed.teams) ? parsed.teams : seed.teams,
+      vehicles: Array.isArray(parsed.vehicles) ? parsed.vehicles : seed.vehicles,
+      reviewRequests: Array.isArray(parsed.reviewRequests) ? parsed.reviewRequests : seed.reviewRequests,
+      testimonials: Array.isArray(parsed.testimonials) ? parsed.testimonials : seed.testimonials,
+      marketingCampaigns: Array.isArray(parsed.marketingCampaigns)
         ? parsed.marketingCampaigns
         : seed.marketingCampaigns,
-      marketingPosts: parsed.marketingPosts?.length ? parsed.marketingPosts : seed.marketingPosts,
-      socialAccounts: parsed.socialAccounts?.length ? parsed.socialAccounts : seed.socialAccounts,
-      notifications: parsed.notifications?.length ? parsed.notifications : seed.notifications,
-      activityLogs: parsed.activityLogs?.length ? parsed.activityLogs : seed.activityLogs,
+      marketingPosts: Array.isArray(parsed.marketingPosts) ? parsed.marketingPosts : seed.marketingPosts,
+      socialAccounts: Array.isArray(parsed.socialAccounts) ? parsed.socialAccounts : seed.socialAccounts,
+      notifications: Array.isArray(parsed.notifications) ? parsed.notifications : seed.notifications,
+      activityLogs: Array.isArray(parsed.activityLogs) ? parsed.activityLogs : seed.activityLogs,
       settings: parsed.settings || seed.settings,
-      finishedJobs: parsed.finishedJobs?.length ? parsed.finishedJobs : seed.finishedJobs,
+      finishedJobs: Array.isArray(parsed.finishedJobs) ? parsed.finishedJobs : [],
     };
 
     inMemoryFallback = merged;
