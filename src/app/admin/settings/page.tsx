@@ -295,8 +295,8 @@ export default function AdminSettingsAndRbacPage() {
               </div>
               <p className="mt-2 font-heading text-sm font-extrabold text-brand-navy">{u.name}</p>
               <p className="text-brand-muted">{u.email}</p>
-              <p className="mt-1 font-mono text-[11px] text-brand-orange">
-                Access Code: {u.accessCode}
+              <p className="mt-1 font-mono text-[11px] text-emerald-400">
+                Password: •••••••• (Protected)
               </p>
             </div>
           ))}
