@@ -398,12 +398,32 @@ export function ReviewsGalleryFaqCta() {
 
         {/* Auto-Scrolling Infinite Marquee Carousel */}
         <div className="relative mb-12 overflow-hidden py-3 group">
+          {/* Fallback inline keyframes guarantee animation runs across all environments */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            @keyframes qm-marquee-scroll {
+              0% { transform: translate3d(0, 0, 0); }
+              100% { transform: translate3d(-50%, 0, 0); }
+            }
+            .qm-marquee-track {
+              display: flex !important;
+              width: max-content !important;
+              animation: qm-marquee-scroll 38s linear infinite !important;
+              will-change: transform;
+            }
+            .qm-marquee-track:hover {
+              animation-play-state: paused !important;
+            }
+          `}} />
+
           {/* Subtle gradient side fades */}
           <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-12 sm:w-24 bg-gradient-to-r from-[#05080D] to-transparent" />
           <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 sm:w-24 bg-gradient-to-l from-[#05080D] to-transparent" />
 
           {/* Continuous scrolling track */}
-          <div className="flex gap-5 w-max animate-marquee group-hover:[animation-play-state:paused]">
+          <div 
+            className="qm-marquee-track flex gap-5"
+            style={{ animation: 'qm-marquee-scroll 38s linear infinite' }}
+          >
             {[...AUTHENTIC_GOOGLE_REVIEWS, ...AUTHENTIC_GOOGLE_REVIEWS].map((rev, idx) => (
               <div
                 key={`${rev.id}-${idx}`}

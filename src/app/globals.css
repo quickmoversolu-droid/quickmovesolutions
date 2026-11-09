@@ -39,6 +39,27 @@
   }
 }
 
+/* Continuous Google Reviews Auto-Scroll Marquee */
+@keyframes qm-marquee-scroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.qm-marquee-track {
+  display: flex !important;
+  width: max-content !important;
+  animation: qm-marquee-scroll 38s linear infinite !important;
+  will-change: transform;
+}
+
+.qm-marquee-track:hover {
+  animation-play-state: paused !important;
+}
+
 /* Unified Dark SaaS Styling for Admin Platform Modules */
 .qm-admin-dark-workspace .bg-white {
   background: linear-gradient(180deg, rgba(15, 25, 45, 0.92) 0%, rgba(10, 17, 31, 0.96) 100%) !important;
