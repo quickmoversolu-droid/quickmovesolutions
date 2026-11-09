@@ -1626,10 +1626,14 @@
       "imagePrompt": "Professional editorial photography for QuickMove Solutions: QuickMove truck driving down Alberta Highway 2 under blue prairie skies. High dynamic range, natural lighting, brand colors navy and orange.",
       "overlayText": "HIGHWAY 2 LONG DISTANCE • RED DEER & EDMONTON",
       "aspectRatio": "1:1",
-      "status": "PENDING_APPROVAL",
+      "status": "PUBLISHED",
       "scheduledFor": "2026-11-28T21:15:22.833Z",
       "createdAt": "2026-11-05T21:15:22.832Z",
-      "updatedAt": "2026-11-05T21:15:22.832Z"
+      "updatedAt": "2026-11-05T21:15:22.832Z",
+      "approvedBy": "QuickMove Owner",
+      "approvedAt": "2026-11-09T08:18:57.658Z",
+      "publishedAt": "2026-11-09T08:18:57.660Z",
+      "externalPostId": "fb:438026819386820_122233675562503401 | ig:17928617937438449"
     },
     {
       "id": "mp_m_05a126105b",
