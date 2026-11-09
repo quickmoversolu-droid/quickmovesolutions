@@ -142,7 +142,7 @@ export async function sendNotification(options: SendNotificationOptions): Promis
 
   if (isResendEnabled && resendApiKey && record.channel === 'EMAIL') {
     try {
-      const fromEmail = process.env.EMAIL_FROM || 'QuickMove Solutions <onboarding@resend.dev>';
+      const fromEmail = process.env.EMAIL_FROM || 'QuickMove Solutions <info@quickmovesolution.ca>';
       const emailPayload = {
         from: fromEmail,
         to: [record.recipientAddress],
