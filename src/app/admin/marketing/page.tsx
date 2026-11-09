@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
@@ -64,6 +64,98 @@ interface CalendarDayCell {
     status: MarketingPostStatus;
     record?: MarketingPostRecord;
   }[];
+}
+
+/**
+ * Pure helper function to generate the 35 or 42 calendar cells
+ * (Defined outside React component to strictly guarantee zero hook violations)
+ */
+function buildCalendarCells(
+  calendarYear: number,
+  calendarMonth: number,
+  posts: MarketingPostRecord[]
+): CalendarDayCell[] {
+  const firstDayOfWeek = new Date(calendarYear, calendarMonth, 1).getDay(); // 0 = Sun
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const daysInPrevMonth = new Date(calendarYear, calendarMonth, 0).getDate();
+
+  const today = new Date();
+  const isCurrentYearMonth = today.getFullYear() === calendarYear && today.getMonth() === calendarMonth;
+  const todayDate = today.getDate();
+
+  const cells: CalendarDayCell[] = [];
+
+  // 1. Trailing days from previous month
+  for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+    const dayNum = daysInPrevMonth - i;
+    cells.push({
+      dayNumber: dayNum,
+      isCurrentMonth: false,
+      dateKey: `prev-${calendarYear}-${calendarMonth}-${dayNum}`,
+      posts: [],
+    });
+  }
+
+  // 2. Days of the current active month
+  for (let day = 1; day <= daysInMonth; day++) {
+    // Find all posts scheduled or created for this specific date
+    const dayPosts = posts.filter((post) => {
+      const rawDate = post.scheduledFor || post.publishedAt || post.createdAt;
+      if (!rawDate) return false;
+      const d = new Date(rawDate);
+      return (
+        d.getFullYear() === calendarYear &&
+        d.getMonth() === calendarMonth &&
+        d.getDate() === day
+      );
+    });
+
+    const isToday = isCurrentYearMonth && day === todayDate;
+
+    cells.push({
+      dayNumber: day,
+      isCurrentMonth: true,
+      isToday,
+      dateKey: `cur-${calendarYear}-${calendarMonth + 1}-${day}`,
+      posts: dayPosts.map((post) => {
+        const rawDate = post.scheduledFor || post.publishedAt || post.createdAt;
+        const timeLabel = rawDate
+          ? new Date(rawDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : '10:00 AM';
+
+        const badgeType =
+          post.platform === 'INSTAGRAM'
+            ? 'instagram'
+            : post.platform === 'FACEBOOK'
+              ? 'facebook'
+              : 'quickmove';
+
+        return {
+          id: post.id,
+          title: post.title,
+          timeLabel,
+          badgeType,
+          status: post.status,
+          record: post,
+        };
+      }),
+    });
+  }
+
+  // 3. Leading days of next month to complete the row
+  const remaining = 7 - (cells.length % 7);
+  if (remaining < 7) {
+    for (let nextDay = 1; nextDay <= remaining; nextDay++) {
+      cells.push({
+        dayNumber: nextDay,
+        isCurrentMonth: false,
+        dateKey: `next-${calendarYear}-${calendarMonth + 2}-${nextDay}`,
+        posts: [],
+      });
+    }
+  }
+
+  return cells;
 }
 
 export default function AdminAiMarketingManagerPage() {
@@ -423,89 +515,7 @@ export default function AdminAiMarketingManagerPage() {
   };
 
   // Generate dynamic full-month calendar grid (35 or 42 cells) mapped to db.marketingPosts
-  const calendarCells = useMemo(() => {
-    const firstDayOfWeek = new Date(calendarYear, calendarMonth, 1).getDay(); // 0 = Sun
-    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-    const daysInPrevMonth = new Date(calendarYear, calendarMonth, 0).getDate();
-
-    const today = new Date();
-    const isCurrentYearMonth = today.getFullYear() === calendarYear && today.getMonth() === calendarMonth;
-    const todayDate = today.getDate();
-
-    const cells: CalendarDayCell[] = [];
-
-    // 1. Trailing days from previous month
-    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-      const dayNum = daysInPrevMonth - i;
-      cells.push({
-        dayNumber: dayNum,
-        isCurrentMonth: false,
-        dateKey: `prev-${calendarYear}-${calendarMonth}-${dayNum}`,
-        posts: [],
-      });
-    }
-
-    // 2. Days of the current active month
-    for (let day = 1; day <= daysInMonth; day++) {
-      // Find all posts scheduled or created for this specific date
-      const dayPosts = db.marketingPosts.filter((post) => {
-        const rawDate = post.scheduledFor || post.publishedAt || post.createdAt;
-        if (!rawDate) return false;
-        const d = new Date(rawDate);
-        return (
-          d.getFullYear() === calendarYear &&
-          d.getMonth() === calendarMonth &&
-          d.getDate() === day
-        );
-      });
-
-      const isToday = isCurrentYearMonth && day === todayDate;
-
-      cells.push({
-        dayNumber: day,
-        isCurrentMonth: true,
-        isToday,
-        dateKey: `cur-${calendarYear}-${calendarMonth + 1}-${day}`,
-        posts: dayPosts.map((post) => {
-          const rawDate = post.scheduledFor || post.publishedAt || post.createdAt;
-          const timeLabel = rawDate
-            ? new Date(rawDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : '10:00 AM';
-
-          const badgeType =
-            post.platform === 'INSTAGRAM'
-              ? 'instagram'
-              : post.platform === 'FACEBOOK'
-                ? 'facebook'
-                : 'quickmove';
-
-          return {
-            id: post.id,
-            title: post.title,
-            timeLabel,
-            badgeType,
-            status: post.status,
-            record: post,
-          };
-        }),
-      });
-    }
-
-    // 3. Leading days of next month to complete the row
-    const remaining = 7 - (cells.length % 7);
-    if (remaining < 7) {
-      for (let nextDay = 1; nextDay <= remaining; nextDay++) {
-        cells.push({
-          dayNumber: nextDay,
-          isCurrentMonth: false,
-          dateKey: `next-${calendarYear}-${calendarMonth + 2}-${nextDay}`,
-          posts: [],
-        });
-      }
-    }
-
-    return cells;
-  }, [calendarYear, calendarMonth, db.marketingPosts]);
+  const calendarCells = buildCalendarCells(calendarYear, calendarMonth, db.marketingPosts);
 
   const pendingCount = db.marketingPosts.filter((p) => p.status === 'PENDING_APPROVAL').length;
   const fbAccount = db.socialAccounts.find((a) => a.platform === 'FACEBOOK');
