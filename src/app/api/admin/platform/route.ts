@@ -878,6 +878,7 @@ export async function POST(request: NextRequest) {
 
         // Live Meta Graph API Execution (Facebook + Instagram)
         const metaResult = await publishPostToMeta({
+          id: post.id,
           title: post.title,
           platform: post.platform,
           primaryCaption: post.primaryCaption,

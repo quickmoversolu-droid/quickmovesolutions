@@ -416,28 +416,14 @@ export async function generateAiImage(
           aiRuntimeSettings.totalImagesGenerated += 1;
           aiRuntimeSettings.lastUsedAt = new Date().toISOString();
 
-          // Convert base64 data to buffer
-          const matches = base64Url.match(/^data:image\/(\w+);base64,(.+)$/);
-          const ext = matches ? matches[1] : 'png';
-          const base64Data = matches ? matches[2] : base64Url;
-          const buffer = Buffer.from(base64Data, 'base64');
-          const filename = `ai-marketing-${Date.now()}-${Math.floor(Math.random() * 10000)}.${ext}`;
-
-          // 1. Try to save locally in public/uploads for instant zero-latency serving
+          // Try uploading to InsForge Storage for permanent public CDN URL
           try {
-            const fs = await import('fs');
-            const path = await import('path');
-            const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-            if (!fs.existsSync(uploadsDir)) {
-              fs.mkdirSync(uploadsDir, { recursive: true });
-            }
-            fs.writeFileSync(path.join(uploadsDir, filename), buffer);
-          } catch {
-            // Serverless disk may be ephemeral, continue to storage
-          }
+            const matches = base64Url.match(/^data:image\/(\w+);base64,(.+)$/);
+            const ext = matches ? matches[1] : 'png';
+            const base64Data = matches ? matches[2] : base64Url;
+            const buffer = Buffer.from(base64Data, 'base64');
+            const filename = `ai-marketing-${Date.now()}-${Math.floor(Math.random() * 10000)}.${ext}`;
 
-          // 2. Upload to InsForge Storage for permanent CDN URL
-          try {
             const insforgeRes = await uploadToInsForgeStorage(
               'marketing-creatives',
               `media/${filename}`,
@@ -448,11 +434,12 @@ export async function generateAiImage(
               return insforgeRes.publicUrl;
             }
           } catch {
-            // Continue with relative/site URL
+            // Storage upload fallback
           }
 
-          const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.quickmovesolution.ca').replace(/\/+$/, '');
-          return `${siteUrl}/uploads/${filename}`;
+          // Return self-contained base64 data URI directly:
+          // Renders with 100% certainty across all browsers with zero 404 risk!
+          return base64Url;
         }
       } catch (err) {
         console.warn(`OpenRouter image generation error with model ${model}:`, err);

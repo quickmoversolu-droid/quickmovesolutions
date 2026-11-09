@@ -359,6 +359,17 @@ export default function AdminAiMarketingManagerPage() {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
+        if (data.post) {
+          setDb((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              marketingPosts: prev.marketingPosts.map((p) =>
+                p.id === postId ? { ...p, ...data.post } : p
+              ),
+            };
+          });
+        }
         setDrawerFeedback({ message: '🎨 New photorealistic moving image generated via Google AI / OpenRouter!' });
         await loadData();
       } else {
@@ -386,6 +397,17 @@ export default function AdminAiMarketingManagerPage() {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
+        if (data.post) {
+          setDb((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              marketingPosts: prev.marketingPosts.map((p) =>
+                p.id === postId ? { ...p, ...data.post } : p
+              ),
+            };
+          });
+        }
         setDrawerFeedback({ message: 'Custom photo URL saved to post!' });
         setCustomImageUrlInput('');
         await loadData();
@@ -408,6 +430,15 @@ export default function AdminAiMarketingManagerPage() {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
+        setDb((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            marketingPosts: prev.marketingPosts.map((p) =>
+              p.id === postId ? { ...p, imageUrl: undefined } : p
+            ),
+          };
+        });
         setDrawerFeedback({ message: 'Image removed — Post is now Text-Only (Ready for Facebook).' });
         await loadData();
       }
@@ -432,6 +463,17 @@ export default function AdminAiMarketingManagerPage() {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
+        if (data.post) {
+          setDb((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              marketingPosts: prev.marketingPosts.map((p) =>
+                p.id === postId ? { ...p, ...data.post } : p
+              ),
+            };
+          });
+        }
         setDrawerFeedback({ message: '🎯 Applied authentic moving scene preset!' });
         await loadData();
       }

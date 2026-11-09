@@ -14,6 +14,7 @@ export interface MetaPublishResult {
 }
 
 export async function publishPostToMeta(post: {
+  id?: string;
   title: string;
   platform: 'FACEBOOK' | 'INSTAGRAM' | 'BOTH' | 'GOOGLE_BUSINESS' | string;
   primaryCaption: string;
@@ -70,8 +71,11 @@ export async function publishPostToMeta(post: {
       // Instagram requires an absolute HTTPS image URL with 4:5 to 1.91:1 aspect ratio
       let finalImageUrl = (post.imageUrl || '').trim();
 
-      // If it's a relative path on the site, prefix with siteUrl
-      if (finalImageUrl.startsWith('/')) {
+      // If stored as base64 data URI, route through public stream endpoint for Meta
+      if (finalImageUrl.startsWith('data:image/')) {
+        finalImageUrl = `${siteUrl}/api/marketing/image/${post.id || 'hero'}.png`;
+      } else if (finalImageUrl.startsWith('/')) {
+        // If it's a relative path on the site, prefix with siteUrl
         finalImageUrl = `${siteUrl}${finalImageUrl}`;
       }
 
