@@ -4,6 +4,8 @@
  * using the official Meta Graph API v20.0.
  */
 
+import fs from 'fs';
+import path from 'path';
 import { generateResonantMovingImageUrl } from '@/lib/marketing/image-prompt-builder';
 
 export interface MetaPublishResult {
@@ -39,29 +41,95 @@ export async function publishPostToMeta(post: {
     return result;
   }
 
-  // 1. Publish to Facebook Page (Photo post if image present, text post if clean text)
+  // Pre-cache base64 image in global memory and /tmp for Instagram URL fetch
+  const postId = post.id || 'hero';
+  if (post.imageUrl && post.imageUrl.startsWith('data:image/')) {
+    try {
+      const globalCache = (globalThis as any).__marketingImageCache || ((globalThis as any).__marketingImageCache = new Map<string, string>());
+      globalCache.set(postId, post.imageUrl);
+
+      const tmpDir = path.join('/tmp', 'marketing-cache');
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+      const match = post.imageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+      const b64Data = match ? match[2] : post.imageUrl.replace(/^data:image\/\w+;base64,/, '');
+      fs.writeFileSync(path.join(tmpDir, `${postId}.png`), Buffer.from(b64Data, 'base64'));
+    } catch {
+      // Best-effort caching
+    }
+  }
+
+  // 1. Publish to Facebook Page (Direct binary photo upload if image present, feed post if clean text)
   if ((post.platform === 'FACEBOOK' || post.platform === 'BOTH') && pageId) {
     try {
-      let fbRes: Response;
+      let fbRes: Response | null = null;
 
       if (post.imageUrl) {
-        let finalFbImageUrl = (post.imageUrl || '').trim();
-        if (finalFbImageUrl.startsWith('data:image/')) {
-          finalFbImageUrl = `${siteUrl}/api/marketing/image/${post.id || 'hero'}.png`;
-        } else if (finalFbImageUrl.startsWith('/')) {
-          finalFbImageUrl = `${siteUrl}${finalFbImageUrl}`;
+        const rawImage = (post.imageUrl || '').trim();
+        let imageBlob: Blob | null = null;
+        let filename = 'quickmove-marketing.png';
+
+        // Method A: Extract base64 binary buffer directly into a Blob
+        if (rawImage.startsWith('data:image/')) {
+          const match = rawImage.match(/^data:image\/(\w+);base64,(.+)$/);
+          const ext = match ? match[1] : 'png';
+          filename = `quickmove-marketing.${ext}`;
+          const b64 = match ? match[2] : rawImage.replace(/^data:image\/\w+;base64,/, '');
+          const buf = Buffer.from(b64, 'base64');
+          imageBlob = new Blob([buf], { type: `image/${ext}` });
+        }
+        // Method B: Local public file (e.g. /images/...)
+        else if (rawImage.startsWith('/')) {
+          const localPath = path.join(process.cwd(), 'public', rawImage);
+          if (fs.existsSync(localPath)) {
+            const buf = fs.readFileSync(localPath);
+            const ext = path.extname(localPath).replace('.', '') || 'jpg';
+            filename = `quickmove-marketing.${ext}`;
+            imageBlob = new Blob([buf], { type: `image/${ext === 'jpg' ? 'jpeg' : ext}` });
+          }
+        }
+        // Method C: Remote HTTP/HTTPS URL — download binary buffer to avoid external DNS/crawler failure
+        else if (rawImage.startsWith('http://') || rawImage.startsWith('https://')) {
+          try {
+            const dlRes = await fetch(rawImage);
+            if (dlRes.ok) {
+              const arrayBuf = await dlRes.arrayBuffer();
+              const cType = dlRes.headers.get('content-type') || 'image/jpeg';
+              imageBlob = new Blob([arrayBuf], { type: cType });
+              filename = 'quickmove-marketing.jpg';
+            }
+          } catch {
+            // Will fallback to url param below
+          }
         }
 
-        fbRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: finalFbImageUrl,
-            caption: post.primaryCaption,
-            access_token: pageAccessToken,
-          }),
-        });
+        // Direct Binary Upload to Facebook (Bypasses URL download completely!)
+        if (imageBlob) {
+          const formData = new FormData();
+          formData.append('source', imageBlob, filename);
+          formData.append('caption', post.primaryCaption);
+          formData.append('access_token', pageAccessToken);
+
+          fbRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
+            method: 'POST',
+            body: formData,
+          });
+        } else {
+          // Fallback to URL photo upload if Blob couldn't be constructed
+          let finalFbImageUrl = rawImage.startsWith('/') ? `${siteUrl}${rawImage}` : rawImage;
+          fbRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: finalFbImageUrl,
+              caption: post.primaryCaption,
+              access_token: pageAccessToken,
+            }),
+          });
+        }
       } else {
+        // Clean text post
         fbRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -72,12 +140,30 @@ export async function publishPostToMeta(post: {
         });
       }
 
-      const fbData = await fbRes.json();
-      if (fbData?.id || fbData?.post_id) {
-        result.facebookPostId = fbData.post_id || fbData.id;
-        result.success = true;
-      } else if (fbData?.error) {
-        result.errors.push(`Facebook Error: ${fbData.error.message} (code ${fbData.error.code})`);
+      if (fbRes) {
+        const fbData = await fbRes.json();
+        if (fbData?.id || fbData?.post_id) {
+          result.facebookPostId = fbData.post_id || fbData.id;
+          result.success = true;
+        } else if (fbData?.error) {
+          // If photo upload errored out, fallback gracefully to feed text post so publishing never blocks
+          console.warn(`Facebook photo upload warning (${fbData.error.message}), falling back to feed post...`);
+          const fallbackFeedRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: post.primaryCaption,
+              access_token: pageAccessToken,
+            }),
+          });
+          const fallbackData = await fallbackFeedRes.json();
+          if (fallbackData?.id) {
+            result.facebookPostId = fallbackData.id;
+            result.success = true;
+          } else {
+            result.errors.push(`Facebook Error: ${fbData.error.message} (code ${fbData.error.code})`);
+          }
+        }
       }
     } catch (e: any) {
       result.errors.push(`Facebook Network Exception: ${e.message}`);
@@ -92,9 +178,8 @@ export async function publishPostToMeta(post: {
 
       // If stored as base64 data URI, route through public stream endpoint for Meta
       if (finalImageUrl.startsWith('data:image/')) {
-        finalImageUrl = `${siteUrl}/api/marketing/image/${post.id || 'hero'}.png`;
+        finalImageUrl = `${siteUrl}/api/marketing/image/${postId}.png`;
       } else if (finalImageUrl.startsWith('/')) {
-        // If it's a relative path on the site, prefix with siteUrl
         finalImageUrl = `${siteUrl}${finalImageUrl}`;
       }
 
@@ -177,4 +262,3 @@ export async function publishPostToMeta(post: {
 
   return result;
 }
-

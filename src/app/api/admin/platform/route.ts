@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { getServerSession, ROLE_PERMISSION_MATRIX } from '@/lib/auth/session';
 import {
   readPlatformStore,
@@ -933,6 +935,19 @@ export async function POST(request: NextRequest) {
         post.targetCity || 'Calgary'
       );
       post.updatedAt = now;
+      if (post.imageUrl && post.imageUrl.startsWith('data:image/')) {
+        try {
+          const globalCache = (globalThis as any).__marketingImageCache || ((globalThis as any).__marketingImageCache = new Map<string, string>());
+          globalCache.set(post.id, post.imageUrl);
+          const tmpDir = path.join('/tmp', 'marketing-cache');
+          if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+          const match = post.imageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+          const b64 = match ? match[2] : post.imageUrl.replace(/^data:image\/\w+;base64,/, '');
+          fs.writeFileSync(path.join(tmpDir, `${post.id}.png`), Buffer.from(b64, 'base64'));
+        } catch {
+          // Best-effort image cache
+        }
+      }
       logActivity('MARKETING_POST', post.id, 'IMAGE_REGENERATED', `Regenerated authentic moving image via OpenRouter AI for "${post.title}".`);
       writePlatformStore(db);
       return NextResponse.json({ ok: true, post });
