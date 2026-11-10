@@ -6,6 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
 import { generateResonantMovingImageUrl } from '@/lib/marketing/image-prompt-builder';
 
 export interface MetaPublishResult {
@@ -52,9 +53,10 @@ export async function publishPostToMeta(post: {
       if (!fs.existsSync(tmpDir)) {
         fs.mkdirSync(tmpDir, { recursive: true });
       }
-      const match = post.imageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
-      const b64Data = match ? match[2] : post.imageUrl.replace(/^data:image\/\w+;base64,/, '');
-      fs.writeFileSync(path.join(tmpDir, `${postId}.png`), Buffer.from(b64Data, 'base64'));
+      const b64Data = post.imageUrl.replace(/^data:image\/\w+;base64,/, '');
+      const rawBuf = Buffer.from(b64Data, 'base64');
+      const jpegBuf = await sharp(rawBuf).jpeg({ quality: 90, mozjpeg: true }).toBuffer();
+      fs.writeFileSync(path.join(tmpDir, `${postId}.jpg`), jpegBuf);
     } catch {
       // Best-effort caching
     }
@@ -68,36 +70,37 @@ export async function publishPostToMeta(post: {
       if (post.imageUrl) {
         const rawImage = (post.imageUrl || '').trim();
         let imageBlob: Blob | null = null;
-        let filename = 'quickmove-marketing.png';
+        let filename = 'quickmove-marketing.jpg';
 
-        // Method A: Extract base64 binary buffer directly into a Blob
+        // Method A: Extract base64 binary buffer and convert to real JPEG Blob
         if (rawImage.startsWith('data:image/')) {
-          const match = rawImage.match(/^data:image\/(\w+);base64,(.+)$/);
-          const ext = match ? match[1] : 'png';
-          filename = `quickmove-marketing.${ext}`;
-          const b64 = match ? match[2] : rawImage.replace(/^data:image\/\w+;base64,/, '');
-          const buf = Buffer.from(b64, 'base64');
-          imageBlob = new Blob([buf], { type: `image/${ext}` });
+          try {
+            const b64 = rawImage.replace(/^data:image\/\w+;base64,/, '');
+            const rawBuf = Buffer.from(b64, 'base64');
+            const jpegBuf = await sharp(rawBuf).jpeg({ quality: 90, mozjpeg: true }).toBuffer();
+            imageBlob = new Blob([jpegBuf], { type: 'image/jpeg' });
+          } catch {
+            const b64 = rawImage.replace(/^data:image\/\w+;base64,/, '');
+            imageBlob = new Blob([Buffer.from(b64, 'base64')], { type: 'image/png' });
+          }
         }
         // Method B: Local public file (e.g. /images/...)
         else if (rawImage.startsWith('/')) {
           const localPath = path.join(process.cwd(), 'public', rawImage);
           if (fs.existsSync(localPath)) {
             const buf = fs.readFileSync(localPath);
-            const ext = path.extname(localPath).replace('.', '') || 'jpg';
-            filename = `quickmove-marketing.${ext}`;
-            imageBlob = new Blob([buf], { type: `image/${ext === 'jpg' ? 'jpeg' : ext}` });
+            const jpegBuf = await sharp(buf).jpeg({ quality: 90, mozjpeg: true }).toBuffer();
+            imageBlob = new Blob([jpegBuf], { type: 'image/jpeg' });
           }
         }
-        // Method C: Remote HTTP/HTTPS URL — download binary buffer to avoid external DNS/crawler failure
+        // Method C: Remote HTTP/HTTPS URL
         else if (rawImage.startsWith('http://') || rawImage.startsWith('https://')) {
           try {
             const dlRes = await fetch(rawImage);
             if (dlRes.ok) {
               const arrayBuf = await dlRes.arrayBuffer();
-              const cType = dlRes.headers.get('content-type') || 'image/jpeg';
-              imageBlob = new Blob([arrayBuf], { type: cType });
-              filename = 'quickmove-marketing.jpg';
+              const jpegBuf = await sharp(Buffer.from(arrayBuf)).jpeg({ quality: 90, mozjpeg: true }).toBuffer();
+              imageBlob = new Blob([jpegBuf], { type: 'image/jpeg' });
             }
           } catch {
             // Will fallback to url param below
@@ -146,7 +149,6 @@ export async function publishPostToMeta(post: {
           result.facebookPostId = fbData.post_id || fbData.id;
           result.success = true;
         } else if (fbData?.error) {
-          // If photo upload errored out, fallback gracefully to feed text post so publishing never blocks
           console.warn(`Facebook photo upload warning (${fbData.error.message}), falling back to feed post...`);
           const fallbackFeedRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
             method: 'POST',
@@ -173,19 +175,19 @@ export async function publishPostToMeta(post: {
   // 2. Publish to Instagram Business Account
   if ((post.platform === 'INSTAGRAM' || post.platform === 'BOTH') && igAccountId) {
     try {
-      // Instagram requires an absolute HTTPS image URL with 4:5 to 1.91:1 aspect ratio
+      // Instagram requires an absolute HTTPS image URL pointing to a valid JPEG file
       let finalImageUrl = (post.imageUrl || '').trim();
 
-      // If stored as base64 data URI, route through public stream endpoint for Meta
+      // If stored as base64 data URI, route through public stream endpoint formatted as .jpg
       if (finalImageUrl.startsWith('data:image/')) {
-        finalImageUrl = `${siteUrl}/api/marketing/image/${postId}.png`;
+        finalImageUrl = `${siteUrl}/api/marketing/image/${postId}.jpg`;
       } else if (finalImageUrl.startsWith('/')) {
         finalImageUrl = `${siteUrl}${finalImageUrl}`;
       }
 
       // If missing or not an absolute URL, generate high-res photorealistic commercial moving visual
       if (!finalImageUrl.startsWith('http://') && !finalImageUrl.startsWith('https://')) {
-        finalImageUrl = generateResonantMovingImageUrl('Residential Moving', post.title || post.primaryCaption, 'Calgary');
+        finalImageUrl = `${siteUrl}/images/quickmove-quote-concept.jpg`;
       }
 
       // Step 2A: Create Instagram Media Container
@@ -202,7 +204,29 @@ export async function publishPostToMeta(post: {
         }
       );
 
-      const containerData = await createContainerRes.json();
+      let containerData = await createContainerRes.json();
+
+      // If initial URL failed due to external crawler delay, retry once with verified static brand JPEG
+      if (containerData?.error) {
+        console.warn(`Instagram container warning (${containerData.error.message}), retrying with verified site JPEG...`);
+        const fallbackRes = await fetch(
+          `https://graph.facebook.com/v20.0/${igAccountId}/media`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image_url: `${siteUrl}/images/quickmove-quote-concept.jpg`,
+              caption: post.primaryCaption,
+              access_token: pageAccessToken,
+            }),
+          }
+        );
+        const fallbackData = await fallbackRes.json();
+        if (fallbackData?.id) {
+          containerData = fallbackData;
+        }
+      }
+
       if (containerData?.id) {
         const creationId = containerData.id;
 

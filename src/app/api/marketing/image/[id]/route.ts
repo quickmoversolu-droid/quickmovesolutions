@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
 import { readPlatformStore } from '@/lib/db/platform-store';
 
 export const dynamic = 'force-dynamic';
@@ -20,14 +21,27 @@ export async function GET(
     // 2. Check local /tmp disk cache
     if (!imageSource) {
       try {
-        const tmpPath = path.join('/tmp', 'marketing-cache', `${cleanId}.png`);
-        if (fs.existsSync(tmpPath)) {
-          const fileBuffer = fs.readFileSync(tmpPath);
+        const tmpPng = path.join('/tmp', 'marketing-cache', `${cleanId}.png`);
+        const tmpJpg = path.join('/tmp', 'marketing-cache', `${cleanId}.jpg`);
+        if (fs.existsSync(tmpJpg)) {
+          const fileBuffer = fs.readFileSync(tmpJpg);
           return new NextResponse(fileBuffer, {
             status: 200,
             headers: {
-              'Content-Type': 'image/png',
+              'Content-Type': 'image/jpeg',
               'Content-Length': fileBuffer.length.toString(),
+              'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+            },
+          });
+        }
+        if (fs.existsSync(tmpPng)) {
+          const fileBuffer = fs.readFileSync(tmpPng);
+          const jpegBuffer = await sharp(fileBuffer).jpeg({ quality: 90, mozjpeg: true }).toBuffer();
+          return new NextResponse(jpegBuffer, {
+            status: 200,
+            headers: {
+              'Content-Type': 'image/jpeg',
+              'Content-Length': jpegBuffer.length.toString(),
               'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
             },
           });
@@ -46,30 +60,50 @@ export async function GET(
       }
     }
 
-    // 4. Stream base64 if found
+    // 4. If imageSource is a base64 Data URI, convert to JPEG and stream
     if (imageSource && imageSource.startsWith('data:image/')) {
-      const match = imageSource.match(/^data:image\/(\w+);base64,(.+)$/);
-      const mime = match ? `image/${match[1]}` : 'image/png';
-      const base64Data = match ? match[2] : imageSource.replace(/^data:image\/\w+;base64,/, '');
+      const base64Data = imageSource.replace(/^data:image\/\w+;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
+      const jpegBuffer = await sharp(buffer)
+        .jpeg({ quality: 90, mozjpeg: true })
+        .toBuffer();
 
-      return new NextResponse(buffer, {
+      return new NextResponse(jpegBuffer, {
         status: 200,
         headers: {
-          'Content-Type': mime,
-          'Content-Length': buffer.length.toString(),
+          'Content-Type': 'image/jpeg',
+          'Content-Length': jpegBuffer.length.toString(),
           'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
         },
       });
     }
 
-    // 5. If HTTP/HTTPS URL, redirect directly
+    // 5. If remote HTTP/HTTPS URL, download, normalize to JPEG, and stream
     if (imageSource && (imageSource.startsWith('http://') || imageSource.startsWith('https://'))) {
-      return NextResponse.redirect(imageSource, 307);
+      try {
+        const remoteRes = await fetch(imageSource);
+        if (remoteRes.ok) {
+          const arrayBuf = await remoteRes.arrayBuffer();
+          const jpegBuffer = await sharp(Buffer.from(arrayBuf))
+            .jpeg({ quality: 90, mozjpeg: true })
+            .toBuffer();
+
+          return new NextResponse(jpegBuffer, {
+            status: 200,
+            headers: {
+              'Content-Type': 'image/jpeg',
+              'Content-Length': jpegBuffer.length.toString(),
+              'Cache-Control': 'public, max-age=86400',
+            },
+          });
+        }
+      } catch {
+        // Fall through to fallback
+      }
     }
 
-    // 6. Resilient Fallback: If no post or image found, NEVER 404 for Meta / social crawlers!
-    // Stream authentic high-resolution QuickMove commercial moving truck photo
+    // 6. Resilient Fallback: If no post or image found, stream real JPEG
+    // Instagram strictly requires JPEG format
     const fallbackPath = path.join(process.cwd(), 'public', 'images', 'quickmove-truck-hero.jpg');
     if (fs.existsSync(fallbackPath)) {
       const fallbackBuffer = fs.readFileSync(fallbackPath);
