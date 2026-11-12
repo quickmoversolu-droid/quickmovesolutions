@@ -12,6 +12,10 @@ import {
   Camera,
   CheckCircle2,
   Sparkles,
+  Eye,
+  X,
+  Download,
+  ExternalLink,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -43,6 +47,7 @@ export default function AdminLeadsPipelinePage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState<string>('');
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<any | null>(null);
 
   const loadData = async () => {
     const res = await fetch('/api/admin/platform');
@@ -345,29 +350,58 @@ export default function AdminLeadsPipelinePage() {
                   Customer-Uploaded Job Photos ({activePhotos.length})
                 </p>
                 {activePhotos.length > 0 ? (
-                  <div className="mt-2 flex flex-wrap gap-3">
-                    {activePhotos.map((pho) => (
-                      <div
-                        key={pho.id}
-                        className="w-28 overflow-hidden rounded-xl border border-brand-navy/15 bg-brand-light p-1.5 text-[10px]"
-                      >
-                        {pho.previewDataUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={pho.previewDataUrl}
-                            alt={pho.originalFilename}
-                            className="h-20 w-full rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-20 items-center justify-center bg-brand-navy/5 font-bold text-brand-muted">
-                            Photo Stored
+                  <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {activePhotos.map((pho) => {
+                      const photoUrl = pho.storageKey
+                        ? `/api/photos/${encodeURIComponent(pho.storageKey)}`
+                        : (pho.previewDataUrl || `/api/photos/${pho.id}`);
+
+                      return (
+                        <div
+                          key={pho.id}
+                          onClick={() => setPreviewPhoto(pho)}
+                          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-brand-navy/15 bg-white p-2 shadow-sm transition-all hover:border-brand-orange hover:shadow-md"
+                        >
+                          <div className="relative h-28 w-full overflow-hidden rounded-xl bg-slate-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={photoUrl}
+                              alt={pho.originalFilename}
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = 'none';
+                                const parent = (e.currentTarget as HTMLElement).parentElement;
+                                if (parent) {
+                                  const fallback = parent.querySelector('.photo-fallback');
+                                  if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                                }
+                              }}
+                            />
+                            <div className="photo-fallback absolute inset-0 hidden flex-col items-center justify-center bg-slate-100 p-2 text-center text-xs text-brand-muted">
+                              <Camera className="h-6 w-6 text-brand-muted mb-1" />
+                              <span className="font-bold truncate max-w-full">{pho.originalFilename}</span>
+                            </div>
+
+                            {/* Hover Overlay with Eye Icon */}
+                            <div className="absolute inset-0 flex items-center justify-center bg-brand-navy/60 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 group-hover:opacity-100">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-2.5 py-1 text-[11px] font-bold text-white shadow-lg">
+                                <Eye className="h-3.5 w-3.5" />
+                                <span>Inspect Photo</span>
+                              </span>
+                            </div>
                           </div>
-                        )}
-                        <p className="mt-1 truncate font-bold text-brand-navy">
-                          {pho.caption || pho.originalFilename}
-                        </p>
-                      </div>
-                    ))}
+
+                          <div className="mt-2 flex items-center justify-between gap-1">
+                            <p className="truncate text-[11px] font-bold text-brand-navy" title={pho.originalFilename}>
+                              {pho.originalFilename}
+                            </p>
+                            <span className="shrink-0 text-[10px] font-semibold text-brand-orange">
+                              Click to view
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="mt-1 text-xs text-brand-muted">
@@ -415,6 +449,81 @@ export default function AdminLeadsPipelinePage() {
           )}
         </div>
       </div>
+      {/* Full-Resolution Photo Viewer Lightbox Modal */}
+      {previewPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+          onClick={() => setPreviewPhoto(null)}
+        >
+          <div
+            className="relative max-h-[95vh] w-full max-w-4xl overflow-hidden rounded-3xl border border-white/20 bg-[#070D18] p-6 text-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-orange/20 text-brand-orange">
+                  <Camera className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading text-lg font-bold text-white">
+                    {previewPhoto.originalFilename}
+                  </h3>
+                  <p className="text-xs text-white/60">
+                    Uploaded Customer Photo • {previewPhoto.fileSizeBytes ? `${Math.round(previewPhoto.fileSizeBytes / 1024)} KB` : 'High Resolution'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewPhoto(null)}
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Image Body */}
+            <div className="mt-4 flex max-h-[65vh] items-center justify-center overflow-auto rounded-2xl bg-black/50 p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewPhoto.storageKey ? `/api/photos/${encodeURIComponent(previewPhoto.storageKey)}` : (previewPhoto.previewDataUrl || `/api/photos/${previewPhoto.id}`)}
+                alt={previewPhoto.originalFilename}
+                className="max-h-[60vh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
+              />
+            </div>
+
+            {/* Modal Footer Controls */}
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+              <div className="text-xs text-white/70">
+                {previewPhoto.caption ? (
+                  <span><strong>Caption:</strong> {previewPhoto.caption}</span>
+                ) : (
+                  <span>Inspect customer items, stairs, and parking access before preparing quote.</span>
+                )}
+              </div>
+              <div className="flex items-center gap-2.5">
+                <a
+                  href={previewPhoto.storageKey ? `/api/photos/${encodeURIComponent(previewPhoto.storageKey)}` : (previewPhoto.previewDataUrl || `/api/photos/${previewPhoto.id}`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-white/20 hover:border-brand-orange"
+                >
+                  <ExternalLink className="h-4 w-4 text-brand-orange" />
+                  <span>Open in New Tab</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewPhoto(null)}
+                  className="rounded-xl bg-brand-orange px-5 py-2 text-xs font-bold text-white shadow-md transition-all hover:brightness-110"
+                >
+                  Close Viewer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

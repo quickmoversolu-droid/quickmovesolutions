@@ -1947,6 +1947,7 @@ export function createQuoteSubmissionRecord(input: UnifiedQuoteSubmissionInput):
   jobRequestId: string;
   customerId: string;
   photoCount: number;
+  photos?: { id: string; storageKey: string; originalFilename: string }[];
   createdAt: string;
 } {
   const db = readPlatformStore();
@@ -2033,7 +2034,7 @@ export function createQuoteSubmissionRecord(input: UnifiedQuoteSubmissionInput):
       mimeType: saved.mimeType,
       fileSizeBytes: saved.fileSizeBytes,
       caption: photo.caption || '',
-      previewDataUrl: photo.dataUrl ? photo.dataUrl.slice(0, 180000) : undefined,
+      previewDataUrl: `/api/photos/${saved.storageKey}`,
       aiDetectedCategories: input.flowType === 'junk-removal' ? input.categories : [],
       createdAt: now,
     };
@@ -2205,6 +2206,11 @@ export function createQuoteSubmissionRecord(input: UnifiedQuoteSubmissionInput):
     jobRequestId,
     customerId: customer.id,
     photoCount: savedPhotos.length,
+    photos: savedPhotos.map((p) => ({
+      id: p.id,
+      storageKey: p.storageKey,
+      originalFilename: p.originalFilename,
+    })),
     createdAt: now,
   };
 }

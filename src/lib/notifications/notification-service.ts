@@ -218,6 +218,7 @@ export async function dispatchNewQuoteEmails(
     jobRequestId: string;
     customerId: string;
     photoCount: number;
+    photos?: { id: string; storageKey: string; originalFilename: string }[];
     createdAt: string;
   }
 ): Promise<{ adminSent: boolean; customerSent: boolean }> {
@@ -283,7 +284,19 @@ export async function dispatchNewQuoteEmails(
       ...(destinationCity ? [{ label: 'Destination', value: `${destinationCity} (${destinationAddress})` }] : []),
       { label: 'Preferred Schedule', value: `${preferredDate} (${preferredTime})` },
       { label: 'Scope & Categories', value: scopeDetails },
-      { label: 'Uploaded Photos', value: `${result.photoCount} photo(s) submitted` },
+      {
+        label: 'Uploaded Photos',
+        value:
+          result.photos && result.photos.length > 0
+            ? `${result.photos.length} photo(s):<br/>` +
+              result.photos
+                .map(
+                  (p, idx) =>
+                    `<div style="margin-top: 5px;"><a href="${siteUrl}/api/photos/${encodeURIComponent(p.storageKey)}" target="_blank" style="color: #F47732; font-weight: 800; text-decoration: underline;">📷 Click to Open: ${p.originalFilename}</a></div>`
+                )
+                .join('')
+            : `${result.photoCount} photo(s) submitted`,
+      },
       ...(specialNotes ? [{ label: 'Customer Notes', value: specialNotes }] : []),
     ],
     ctaButton: {
