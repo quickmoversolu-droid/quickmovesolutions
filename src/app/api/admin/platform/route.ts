@@ -39,6 +39,70 @@ export async function GET() {
   const session = getServerSession();
   const db = readPlatformStore();
 
+  // Cross-container state synchronization via InsForge Database
+  try {
+    const { pullRemoteRecordsFromInsForge } = await import('@/lib/backend/insforge-service');
+    const remote = await pullRemoteRecordsFromInsForge();
+    if (remote) {
+      let changed = false;
+      for (const rc of remote.customers) {
+        const existingIdx = db.customers.findIndex((c) => c.id === rc.id);
+        if (existingIdx === -1) {
+          db.customers.unshift(rc);
+          changed = true;
+        } else if (rc.updatedAt && (!db.customers[existingIdx].updatedAt || rc.updatedAt > db.customers[existingIdx].updatedAt)) {
+          db.customers[existingIdx] = { ...db.customers[existingIdx], ...rc };
+          changed = true;
+        }
+      }
+      for (const rl of remote.leads) {
+        const existingIdx = db.leads.findIndex((l) => l.id === rl.id);
+        if (existingIdx === -1) {
+          db.leads.unshift(rl);
+          changed = true;
+        } else if (rl.updatedAt && (!db.leads[existingIdx].updatedAt || rl.updatedAt > db.leads[existingIdx].updatedAt)) {
+          db.leads[existingIdx] = { ...db.leads[existingIdx], ...rl };
+          changed = true;
+        }
+      }
+      for (const rj of remote.jobRequests) {
+        const existingIdx = db.jobRequests.findIndex((j) => j.id === rj.id);
+        if (existingIdx === -1) {
+          db.jobRequests.unshift(rj);
+          changed = true;
+        } else if (rj.updatedAt && (!db.jobRequests[existingIdx].updatedAt || rj.updatedAt > db.jobRequests[existingIdx].updatedAt)) {
+          db.jobRequests[existingIdx] = { ...db.jobRequests[existingIdx], ...rj };
+          changed = true;
+        }
+      }
+      for (const rq of remote.quotes) {
+        const existingIdx = db.quotes.findIndex((q) => q.id === rq.id);
+        if (existingIdx === -1) {
+          db.quotes.unshift(rq);
+          changed = true;
+        } else if (rq.updatedAt && (!db.quotes[existingIdx].updatedAt || rq.updatedAt > db.quotes[existingIdx].updatedAt)) {
+          db.quotes[existingIdx] = { ...db.quotes[existingIdx], ...rq };
+          changed = true;
+        }
+      }
+      for (const rb of remote.bookings) {
+        const existingIdx = db.bookings.findIndex((b) => b.id === rb.id);
+        if (existingIdx === -1) {
+          db.bookings.unshift(rb);
+          changed = true;
+        } else if (rb.updatedAt && (!db.bookings[existingIdx].updatedAt || rb.updatedAt > db.bookings[existingIdx].updatedAt)) {
+          db.bookings[existingIdx] = { ...db.bookings[existingIdx], ...rb };
+          changed = true;
+        }
+      }
+      if (changed) {
+        writePlatformStore(db);
+      }
+    }
+  } catch (syncErr) {
+    // Graceful offline fallback
+  }
+
   // In admin platform endpoints, if session role is missing or is CUSTOMER, default to OWNER
   const activeRole: UserRole =
     session?.role && session.role !== 'CUSTOMER' && ROLE_PERMISSION_MATRIX[session.role]
@@ -457,7 +521,7 @@ export async function POST(request: NextRequest) {
           ],
           ctaButton: {
             label: 'Review & Accept Quote Online',
-            url: `${BUSINESS_INFO.website}/portal?customerId=${customer.id}`,
+            url: `${BUSINESS_INFO.website}/portal?customerId=${customer.id}&quoteId=${newQuote.id}`,
           },
         });
 
@@ -495,7 +559,7 @@ export async function POST(request: NextRequest) {
               contentParagraphs: [
                 `Quote ${quoteNumber} has been successfully sent to ${customer.fullName} (${targetCustomerEmail}).`,
                 `Total: $${(newQuote.totalCents / 100).toFixed(2)} CAD (Deposit: $${(newQuote.depositCents / 100).toFixed(2)} CAD).`,
-                `Customer Acceptance Portal: ${BUSINESS_INFO.website}/portal?customerId=${customer.id}`,
+                `Customer Acceptance Portal: ${BUSINESS_INFO.website}/portal?customerId=${customer.id}&quoteId=${newQuote.id}`,
               ],
             }),
           }).catch((err) => console.error('[Quote Sent Admin Copy Resend Error]:', err));
@@ -508,6 +572,19 @@ export async function POST(request: NextRequest) {
           `Created Quote ${quoteNumber} ($${(newQuote.totalCents / 100).toFixed(2)} CAD) for ${customer?.fullName || 'Customer'}.`
         );
         writePlatformStore(db);
+
+        // Async sync to InsForge Database
+        try {
+          const { syncRecordToInsForge } = await import('@/lib/backend/insforge-service');
+          await Promise.allSettled([
+            syncRecordToInsForge('Customer', customer as any),
+            syncRecordToInsForge('JobRequest', job as any),
+            lead ? syncRecordToInsForge('Lead', lead as any) : Promise.resolve(),
+            syncRecordToInsForge('Quote', newQuote as any),
+          ]);
+        } catch (syncErr) {
+          console.warn('[InsForge Sync Warning]:', syncErr);
+        }
         return NextResponse.json({
           ok: true,
           quote: newQuote,

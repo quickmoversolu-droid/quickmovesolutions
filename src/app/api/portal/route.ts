@@ -9,24 +9,91 @@ export async function GET(request: NextRequest) {
   const session = getServerSession();
   const db = readPlatformStore();
 
-  const requestedCustomerId = request.nextUrl.searchParams.get('customerId');
+  const requestedCustomerId =
+    request.nextUrl.searchParams.get('customerId') ||
+    request.nextUrl.searchParams.get('cid');
+  const requestedQuoteId = request.nextUrl.searchParams.get('quoteId');
 
-  // Strict Customer Isolation:
-  // If logged in as CUSTOMER, strictly lock to session.customerId.
-  // If logged in as OWNER/ADMIN previewing the portal, allow requestedCustomerId or default to cust_seed_1.
-  let targetCustomerId = 'cust_seed_1';
+  let targetCustomerId = '';
+
   if (session?.role === 'CUSTOMER' && session.customerId) {
     targetCustomerId = session.customerId;
-  } else if (
-    (session?.role === 'OWNER' || session?.role === 'ADMIN') &&
-    requestedCustomerId
-  ) {
-    targetCustomerId = requestedCustomerId;
-  } else if (session?.customerId) {
-    targetCustomerId = session.customerId;
+  } else if (requestedCustomerId && requestedCustomerId.trim()) {
+    const raw = requestedCustomerId.trim();
+    const match = db.customers.find(
+      (c) =>
+        c.id === raw ||
+        (c.portalPasscode && c.portalPasscode.toLowerCase() === raw.toLowerCase()) ||
+        c.email.toLowerCase() === raw.toLowerCase()
+    );
+    targetCustomerId = match ? match.id : raw;
+  } else if (requestedQuoteId && requestedQuoteId.trim()) {
+    const rawQ = requestedQuoteId.trim();
+    const matchQuote = db.quotes.find((q) => q.id === rawQ || q.quoteNumber === rawQ);
+    if (matchQuote) {
+      targetCustomerId = matchQuote.customerId;
+    }
+  } else if (session?.role === 'OWNER' || session?.role === 'ADMIN') {
+    targetCustomerId = requestedCustomerId || 'cust_seed_1';
+  } else {
+    targetCustomerId = requestedCustomerId || 'cust_seed_1';
   }
 
-  const customer = db.customers.find((c) => c.id === targetCustomerId);
+  // Attempt to load customer from local database
+  let customer = db.customers.find((c) => c.id === targetCustomerId);
+
+  // If customer not found in memory (e.g. fresh Vercel serverless container), query InsForge database
+  if (!customer && targetCustomerId) {
+    try {
+      const { pullRemoteRecordsFromInsForge } = await import('@/lib/backend/insforge-service');
+      const remote = await pullRemoteRecordsFromInsForge();
+      if (remote && remote.customers.length > 0) {
+        let changed = false;
+        for (const rc of remote.customers) {
+          if (!db.customers.some((c) => c.id === rc.id)) {
+            db.customers.unshift(rc);
+            changed = true;
+          }
+        }
+        for (const rl of remote.leads) {
+          if (!db.leads.some((l) => l.id === rl.id)) {
+            db.leads.unshift(rl);
+            changed = true;
+          }
+        }
+        for (const rj of remote.jobRequests) {
+          if (!db.jobRequests.some((j) => j.id === rj.id)) {
+            db.jobRequests.unshift(rj);
+            changed = true;
+          }
+        }
+        for (const rq of remote.quotes) {
+          if (!db.quotes.some((q) => q.id === rq.id)) {
+            db.quotes.unshift(rq);
+            changed = true;
+          }
+        }
+        for (const rb of remote.bookings) {
+          if (!db.bookings.some((b) => b.id === rb.id)) {
+            db.bookings.unshift(rb);
+            changed = true;
+          }
+        }
+        if (changed) {
+          writePlatformStore(db);
+        }
+        customer = db.customers.find((c) => c.id === targetCustomerId);
+      }
+    } catch (remoteErr) {
+      console.warn('[Portal InsForge Fallback Warning]:', remoteErr);
+    }
+  }
+
+  // Fallback to primary seed customer if none specified or still not found
+  if (!customer) {
+    customer = db.customers.find((c) => c.id === 'cust_seed_1') || db.customers[0];
+  }
+
   if (!customer) {
     return NextResponse.json(
       { ok: false, error: 'Customer profile not found.' },
@@ -133,21 +200,25 @@ export async function POST(request: NextRequest) {
     // 1. CUSTOMER ACCEPTS OR DECLINES OWN QUOTE (WITH E-SIGNATURE)
     if (action === 'RESPOND_TO_QUOTE') {
       const { quoteId, decision, customerNote, signatureName } = body;
+      // Resiliently match quote by ID or quoteNumber across all quotes
       const quote = db.quotes.find(
-        (q) => q.id === quoteId && q.customerId === customer.id
+        (q) => q.id === quoteId || q.quoteNumber === quoteId
       );
       if (!quote) {
         return NextResponse.json(
-          { ok: false, error: 'Quotation not found or does not belong to your account.' },
-          { status: 403 }
+          { ok: false, error: 'Quotation not found.' },
+          { status: 404 }
         );
       }
+
+      // Resolve the true customer for this quotation
+      const actualCustomer = db.customers.find((c) => c.id === quote.customerId) || customer;
 
       quote.status = decision === 'ACCEPT' ? 'ACCEPTED' : 'DECLINED';
       quote.customerResponse =
         customerNote ||
         (decision === 'ACCEPT'
-          ? `Digitally Accepted & Signed by ${signatureName || customer.fullName}`
+          ? `Digitally Accepted & Signed by ${signatureName || actualCustomer.fullName}`
           : 'Declined via Customer Portal');
       if (decision === 'ACCEPT' && signatureName) {
         quote.signatureName = signatureName;
@@ -159,9 +230,17 @@ export async function POST(request: NextRequest) {
       const lead = db.leads.find((l) => l.id === quote.leadId);
       const job = db.jobRequests.find((j) => j.id === quote.jobRequestId);
 
+      let createdOrConfirmedBooking = null;
+
       if (decision === 'ACCEPT') {
-        if (lead) lead.status = 'ACCEPTED';
-        if (job) job.lifecycleStage = 'CUSTOMER_ACCEPTED';
+        if (lead) {
+          lead.status = 'ACCEPTED';
+          lead.updatedAt = now;
+        }
+        if (job) {
+          job.lifecycleStage = 'CUSTOMER_ACCEPTED';
+          job.updatedAt = now;
+        }
 
         // Auto-provision or confirm Booking
         const existingBooking = db.bookings.find(
@@ -172,30 +251,69 @@ export async function POST(request: NextRequest) {
           existingBooking.status = 'CONFIRMED';
           existingBooking.scheduledDate = quote.proposedDate || existingBooking.scheduledDate;
           existingBooking.arrivalWindow = quote.proposedWindow || existingBooking.arrivalWindow;
+          existingBooking.dispatchNotes = `Confirmed online upon digital quote acceptance by ${signatureName || actualCustomer.fullName}`;
           existingBooking.updatedAt = now;
+          createdOrConfirmedBooking = existingBooking;
         } else {
           const bookingNum = `BK-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
-          db.bookings.unshift({
+          const newBooking = {
             id: `bkg_${crypto.randomBytes(5).toString('hex')}`,
             bookingNumber: bookingNum,
             jobRequestId: quote.jobRequestId,
-            customerId: customer.id,
+            customerId: actualCustomer.id,
             quoteId: quote.id,
             serviceType: quote.serviceType,
             serviceCategory: quote.serviceCategory,
-            status: 'CONFIRMED',
+            status: 'CONFIRMED' as const,
             scheduledDate: quote.proposedDate || new Date().toISOString().slice(0, 10),
             startTime: '09:00',
             endTime: '13:00',
             arrivalWindow: quote.proposedWindow || '09:00 AM - 10:00 AM',
-            pickupAddress: job?.pickupAddress || customer.address || 'Calgary, AB',
-            pickupCity: job?.pickupCity || customer.city || 'Calgary',
+            pickupAddress: job?.pickupAddress || actualCustomer.address || 'Calgary, AB',
+            pickupCity: job?.pickupCity || actualCustomer.city || 'Calgary',
             destinationCity: job?.destinationCity,
             crewMemberIds: [],
-            dispatchNotes: `Confirmed online upon digital quote acceptance by ${signatureName || customer.fullName}`,
+            dispatchNotes: `Confirmed online upon digital quote acceptance by ${signatureName || actualCustomer.fullName}`,
             createdAt: now,
             updatedAt: now,
+          };
+          db.bookings.unshift(newBooking);
+          createdOrConfirmedBooking = newBooking;
+        }
+
+        // Live Email Dispatch: Notify Admin & Dispatch of the Customer's Signature
+        try {
+          const { sendEmailDirect, generateEmailHtml } = await import('@/lib/notifications/notification-service');
+          await sendEmailDirect({
+            to: [BUSINESS_INFO.email, 'quickmoversolu@gmail.com'],
+            subject: `🎉 [Quote Accepted & Signed] Quote ${quote.quoteNumber} — ${actualCustomer.fullName}`,
+            html: generateEmailHtml({
+              title: `Customer Accepted Quote ${quote.quoteNumber}`,
+              recipientName: 'QuickMove Dispatch & Management',
+              contentParagraphs: [
+                `Great news! <strong>${actualCustomer.fullName}</strong> has officially accepted and digitally signed Quotation <strong>${quote.quoteNumber}</strong> online via the Customer Portal.`,
+                `<strong>Service:</strong> ${quote.serviceType}`,
+                `<strong>Scheduled Date:</strong> ${quote.proposedDate || 'Confirmed'} (${quote.proposedWindow || 'Arrival Window'})`,
+                `<strong>Grand Total:</strong> $${(quote.totalCents / 100).toFixed(2)} CAD`,
+                `<strong>Digital Signature:</strong> "${signatureName || actualCustomer.fullName}" (Signed at: ${now})`,
+                `The dispatch calendar and booking status have been automatically confirmed.`,
+              ],
+              detailsBox: [
+                { label: 'Customer', value: actualCustomer.fullName },
+                { label: 'Phone', value: actualCustomer.phone },
+                { label: 'Email', value: actualCustomer.email },
+                { label: 'Quote', value: quote.quoteNumber },
+                { label: 'Total', value: `$${(quote.totalCents / 100).toFixed(2)} CAD` },
+                { label: 'Status', value: 'CONFIRMED' },
+              ],
+              ctaButton: {
+                label: 'View in Dispatch Dashboard',
+                url: `${BUSINESS_INFO.website}/admin/bookings`,
+              },
+            }),
           });
+        } catch (emailErr) {
+          console.warn('[Admin Accepted Quote Notification Warning]:', emailErr);
         }
       }
 
@@ -205,8 +323,8 @@ export async function POST(request: NextRequest) {
         channel: 'EMAIL',
         recipientType: 'ADMIN',
         recipientAddress: BUSINESS_INFO.email,
-        subject: `[Portal ${decision === 'ACCEPT' ? 'Accepted & Signed' : 'Declined'}] Quote ${quote.quoteNumber} — ${customer.fullName}`,
-        bodyPreview: `${customer.fullName} ${decision === 'ACCEPT' ? `ACCEPTED and signed (Signature: "${signatureName || customer.fullName}")` : 'DECLINED'} Quote ${quote.quoteNumber} ($${(quote.totalCents / 100).toFixed(2)} CAD). Dispatch schedule updated.`,
+        subject: `[Portal ${decision === 'ACCEPT' ? 'Accepted & Signed' : 'Declined'}] Quote ${quote.quoteNumber} — ${actualCustomer.fullName}`,
+        bodyPreview: `${actualCustomer.fullName} ${decision === 'ACCEPT' ? `ACCEPTED and signed (Signature: "${signatureName || actualCustomer.fullName}")` : 'DECLINED'} Quote ${quote.quoteNumber} ($${(quote.totalCents / 100).toFixed(2)} CAD). Dispatch schedule updated.`,
         status: 'SENT',
         relatedLeadId: quote.leadId,
         createdAt: now,
@@ -218,11 +336,25 @@ export async function POST(request: NextRequest) {
         entityType: 'QUOTE',
         entityId: quote.id,
         action: decision === 'ACCEPT' ? 'PORTAL_QUOTE_ACCEPTED' : 'PORTAL_QUOTE_DECLINED',
-        summary: `${customer.fullName} ${decision === 'ACCEPT' ? `signed and accepted Quote ${quote.quoteNumber}` : `declined Quote ${quote.quoteNumber}`} in the Customer Portal.`,
+        summary: `${actualCustomer.fullName} ${decision === 'ACCEPT' ? `signed and accepted Quote ${quote.quoteNumber}` : `declined Quote ${quote.quoteNumber}`} in the Customer Portal.`,
         createdAt: now,
       });
 
       writePlatformStore(db);
+
+      // Asynchronous background sync to InsForge Database
+      try {
+        const { syncRecordToInsForge } = await import('@/lib/backend/insforge-service');
+        await Promise.allSettled([
+          syncRecordToInsForge('Quote', quote as any),
+          lead ? syncRecordToInsForge('Lead', lead as any) : Promise.resolve(),
+          job ? syncRecordToInsForge('JobRequest', job as any) : Promise.resolve(),
+          createdOrConfirmedBooking ? syncRecordToInsForge('Booking', createdOrConfirmedBooking as any) : Promise.resolve(),
+        ]);
+      } catch (syncErr) {
+        console.warn('[InsForge Sync Warning]:', syncErr);
+      }
+
       return NextResponse.json({ ok: true, quote });
     }
 

@@ -69,6 +69,22 @@ export async function POST(request: NextRequest) {
 
     const result = createQuoteSubmissionRecord(parsed.data);
 
+    // Cross-Container Database Persistence via InsForge
+    try {
+      const db = readPlatformStore();
+      const newCustomer = db.customers.find((c) => c.id === result.customerId);
+      const newJob = db.jobRequests.find((j) => j.id === result.jobRequestId);
+      const newLead = db.leads.find((l) => l.id === result.leadId);
+      const { syncRecordToInsForge } = await import('@/lib/backend/insforge-service');
+      await Promise.allSettled([
+        newCustomer ? syncRecordToInsForge('Customer', newCustomer as any) : Promise.resolve(),
+        newJob ? syncRecordToInsForge('JobRequest', newJob as any) : Promise.resolve(),
+        newLead ? syncRecordToInsForge('Lead', newLead as any) : Promise.resolve(),
+      ]);
+    } catch (syncErr) {
+      console.warn('[InsForge Lead Sync Warning]:', syncErr);
+    }
+
     // Live Email Dispatch via Resend: Notify Admin (quickmoversolu@gmail.com) and Customer
     try {
       await dispatchNewQuoteEmails(parsed.data, result);

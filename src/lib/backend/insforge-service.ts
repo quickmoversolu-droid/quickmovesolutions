@@ -64,7 +64,21 @@ export async function getInsForgeClient() {
  * Synchronize a business record to InsForge Database
  */
 export async function syncRecordToInsForge(
-  table: 'customers' | 'leads' | 'job_requests' | 'quotes' | 'bookings' | 'marketing_posts',
+  table:
+    | 'customers'
+    | 'leads'
+    | 'job_requests'
+    | 'quotes'
+    | 'bookings'
+    | 'marketing_posts'
+    | 'job_photos'
+    | 'Customer'
+    | 'Lead'
+    | 'JobRequest'
+    | 'Quote'
+    | 'Booking'
+    | 'MarketingPost'
+    | 'JobPhoto',
   record: Record<string, unknown>
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   const client = await getInsForgeClient();
@@ -73,15 +87,44 @@ export async function syncRecordToInsForge(
     return { success: true, data: record };
   }
 
+  const tableNameMap: Record<string, string> = {
+    customers: 'Customer',
+    leads: 'Lead',
+    job_requests: 'JobRequest',
+    quotes: 'Quote',
+    bookings: 'Booking',
+    marketing_posts: 'MarketingPost',
+    job_photos: 'JobPhoto',
+    Customer: 'Customer',
+    Lead: 'Lead',
+    JobRequest: 'JobRequest',
+    Quote: 'Quote',
+    Booking: 'Booking',
+    MarketingPost: 'MarketingPost',
+    JobPhoto: 'JobPhoto',
+  };
+
+  const remoteTable = tableNameMap[table] || table;
+
   try {
+    // Try upsert first so existing records can update in place without unique constraint failure
     const { data, error } = await client.database
-      .from(table)
-      .insert([record])
+      .from(remoteTable)
+      .upsert([record], { onConflict: 'id' })
       .select();
 
     if (error) {
-      console.error(`[InsForge] Error inserting to ${table}:`, error);
-      return { success: false, error: error.message };
+      // Fallback to standard insert
+      const { data: insData, error: insErr } = await client.database
+        .from(remoteTable)
+        .insert([record])
+        .select();
+
+      if (insErr) {
+        console.warn(`[InsForge] Insert fallback to ${remoteTable} warning:`, insErr.message);
+        return { success: false, error: insErr.message };
+      }
+      return { success: true, data: insData };
     }
 
     return { success: true, data };
@@ -90,6 +133,41 @@ export async function syncRecordToInsForge(
       success: false,
       error: err instanceof Error ? err.message : 'Unknown InsForge database error',
     };
+  }
+}
+
+/**
+ * Pull remote records from InsForge database to restore state across Vercel serverless restarts
+ */
+export async function pullRemoteRecordsFromInsForge(): Promise<{
+  customers: any[];
+  leads: any[];
+  jobRequests: any[];
+  quotes: any[];
+  bookings: any[];
+} | null> {
+  const client = await getInsForgeClient();
+  if (!client) return null;
+
+  try {
+    const [customersRes, leadsRes, jobsRes, quotesRes, bookingsRes] = await Promise.all([
+      client.database.from('Customer').select('*').limit(200),
+      client.database.from('Lead').select('*').limit(200),
+      client.database.from('JobRequest').select('*').limit(200),
+      client.database.from('Quote').select('*').limit(200),
+      client.database.from('Booking').select('*').limit(200),
+    ]);
+
+    return {
+      customers: Array.isArray(customersRes.data) ? customersRes.data : [],
+      leads: Array.isArray(leadsRes.data) ? leadsRes.data : [],
+      jobRequests: Array.isArray(jobsRes.data) ? jobsRes.data : [],
+      quotes: Array.isArray(quotesRes.data) ? quotesRes.data : [],
+      bookings: Array.isArray(bookingsRes.data) ? bookingsRes.data : [],
+    };
+  } catch (err) {
+    console.warn('[InsForge] pullRemoteRecords warning:', err);
+    return null;
   }
 }
 

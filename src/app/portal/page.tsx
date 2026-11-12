@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Truck,
   CheckCircle2,
@@ -90,12 +90,16 @@ interface PortalPayload {
   }[];
 }
 
-export default function CustomerPortalDashboardPage() {
+function CustomerPortalContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryCustomerId = searchParams.get('customerId') || searchParams.get('cid') || '';
+  const queryQuoteId = searchParams.get('quoteId') || '';
+
   const [data, setData] = useState<PortalPayload | null>(null);
   const [newPhotos, setNewPhotos] = useState<WizardPhotoItem[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [previewCustomerId, setPreviewCustomerId] = useState<string>('cust_seed_1');
+  const [previewCustomerId, setPreviewCustomerId] = useState<string>(queryCustomerId || 'cust_seed_1');
 
   // E-Signature Modal State
   const [signingQuote, setSigningQuote] = useState<QuoteRecord | null>(null);
@@ -113,24 +117,44 @@ export default function CustomerPortalDashboardPage() {
   const [changeDetails, setChangeDetails] = useState<string>('');
   const [isSubmittingChange, setIsSubmittingChange] = useState<boolean>(false);
 
-  const loadPortal = async (cid?: string) => {
-    const query = cid ? `?customerId=${cid}` : '';
+  const loadPortal = async (cid?: string, targetQuoteId?: string) => {
+    const activeCid = cid || queryCustomerId || previewCustomerId;
+    const activeQid = targetQuoteId || queryQuoteId;
+    const queryParts: string[] = [];
+    if (activeCid) queryParts.push(`customerId=${encodeURIComponent(activeCid)}`);
+    if (activeQid) queryParts.push(`quoteId=${encodeURIComponent(activeQid)}`);
+    const query = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+
     const res = await fetch(`/api/portal${query}`);
     const json = await res.json();
     if (json.ok) {
       setData(json);
+      if (json.customer?.id) {
+        setPreviewCustomerId(json.customer.id);
+      }
       if (json.customer?.fullName) {
         setLegalSignatureName(json.customer.fullName);
       }
       if (json.bookings?.length > 0) {
         setSelectedBookingId(json.bookings[0].id);
       }
+      // If a specific quote was requested in URL and is awaiting signature, auto-open signature modal
+      if (activeQid && Array.isArray(json.quotes)) {
+        const targetQ = json.quotes.find(
+          (q: QuoteRecord) => q.id === activeQid || q.quoteNumber === activeQid
+        );
+        if (targetQ && (targetQ.status === 'SENT' || targetQ.status === 'DRAFT' || targetQ.status === 'REVISED')) {
+          setSigningQuote(targetQ);
+        }
+      }
+    } else {
+      setFeedback(json.error || 'Customer profile not found.');
     }
   };
 
   useEffect(() => {
-    loadPortal();
-  }, []);
+    loadPortal(queryCustomerId || previewCustomerId, queryQuoteId);
+  }, [queryCustomerId, queryQuoteId]);
 
   // Handle Online Digital Signature / Quote Acceptance
   const handleSignAndAcceptQuote = async (e: React.FormEvent) => {
@@ -331,6 +355,11 @@ export default function CustomerPortalDashboardPage() {
                 <option value="cust_seed_2" className="text-black">
                   Priya Patel (Junk Removal)
                 </option>
+                {data?.customer && data.customer.id !== 'cust_seed_1' && data.customer.id !== 'cust_seed_2' && (
+                  <option value={data.customer.id} className="text-black">
+                    {data.customer.fullName} (Active Account)
+                  </option>
+                )}
               </select>
             </div>
 
@@ -1070,5 +1099,24 @@ export default function CustomerPortalDashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CustomerPortalDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0A1220] flex items-center justify-center text-white">
+          <div className="flex flex-col items-center gap-3">
+            <Truck className="h-8 w-8 animate-bounce text-[#F47732]" />
+            <p className="text-sm font-semibold tracking-wide text-slate-300">
+              Loading QuickMove Customer Portal...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <CustomerPortalContent />
+    </Suspense>
   );
 }
