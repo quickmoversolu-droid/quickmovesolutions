@@ -76,7 +76,7 @@ export async function syncRecordToInsForge(
   try {
     const { data, error } = await client.database
       .from(table)
-      .insert(record)
+      .insert([record])
       .select();
 
     if (error) {

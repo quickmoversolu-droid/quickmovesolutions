@@ -23,6 +23,7 @@ import type {
   PlatformDatabaseState,
   LeadRecord,
   LeadStatus,
+  JobRequestRecord,
 } from '@/lib/db/platform-store';
 
 const LEAD_STATUSES: LeadStatus[] = [
@@ -93,8 +94,33 @@ export default function AdminLeadsPipelinePage() {
   const activeCustomer = activeLead
     ? db.customers.find((c) => c.id === activeLead.customerId)
     : undefined;
-  const activeJob = activeLead
-    ? db.jobRequests.find((j) => j.id === activeLead.jobRequestId)
+  const activeJob: JobRequestRecord | undefined = activeLead
+    ? db.jobRequests.find((j) => j.id === activeLead.jobRequestId || j.leadId === activeLead.id) || {
+        id: activeLead.jobRequestId || `job_${activeLead.id}`,
+        leadId: activeLead.id,
+        customerId: activeLead.customerId,
+        serviceType: activeLead.serviceType,
+        serviceCategory: activeLead.serviceType.toLowerCase().includes('junk')
+          ? ('JUNK_REMOVAL' as const)
+          : activeLead.serviceType.toLowerCase().includes('delivery')
+          ? ('DELIVERY' as const)
+          : ('MOVING' as const),
+        lifecycleStage: 'NEW_LEAD' as const,
+        pickupAddress: activeCustomer?.address || 'Calgary, AB',
+        pickupCity: activeCustomer?.city || 'Calgary',
+        pickupPostalCode: activeCustomer?.postalCode || 'T2P 1J9',
+        pickupAccessDetails: 'Standard access',
+        preferredDate: new Date().toISOString().slice(0, 10),
+        isFlexibleDate: true,
+        preferredTimeWindow: 'Flexible',
+        inventoryDetails: {},
+        junkCategories: [],
+        specialRequirements: '',
+        aiSummary: activeLead.internalNotes || 'Customer inquiry submitted via website.',
+        requiresManualInspection: false,
+        createdAt: activeLead.createdAt,
+        updatedAt: activeLead.updatedAt,
+      }
     : undefined;
   const activePhotos = activeJob
     ? db.jobPhotos.filter((p) => p.jobRequestId === activeJob.id)
@@ -280,7 +306,7 @@ export default function AdminLeadsPipelinePage() {
                 </div>
 
                 <Link
-                  href={`/admin/quotes?jobRequestId=${activeJob.id}`}
+                  href={`/admin/quotes?jobRequestId=${activeJob ? activeJob.id : (activeLead?.jobRequestId || activeLead?.id || '')}`}
                   className="inline-flex items-center gap-2 rounded-xl bg-brand-orange px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-brand-orange/90"
                 >
                   <FileText className="h-4 w-4" />

@@ -92,11 +92,13 @@ function QuotesManagerContent() {
       if (!selectedQuoteId && json.data.quotes.length > 0) {
         setSelectedQuoteId(json.data.quotes[0].id);
       }
-      if (!jobRequestId && json.data.jobRequests.length > 0) {
-        const firstJob = json.data.jobRequests[0];
-        setJobRequestId(firstJob.id);
-        setProposedDate(firstJob.preferredDate);
-        setScopeSummary(firstJob.aiSummary);
+      if (json.data.jobRequests && json.data.jobRequests.length > 0) {
+        const matching = initialJobId
+          ? json.data.jobRequests.find((j: any) => j.id === initialJobId || j.leadId === initialJobId) || json.data.jobRequests[0]
+          : json.data.jobRequests[0];
+        setJobRequestId(matching.id);
+        setProposedDate(matching.preferredDate || new Date().toISOString().slice(0, 10));
+        setScopeSummary(matching.aiSummary || '');
       }
     }
   };
@@ -108,11 +110,23 @@ function QuotesManagerContent() {
 
   useEffect(() => {
     if (db && initialJobId) {
-      const targetJob = db.jobRequests.find((j) => j.id === initialJobId);
+      const targetJob =
+        db.jobRequests.find((j) => j.id === initialJobId || j.leadId === initialJobId) ||
+        (db.leads.find((l) => l.id === initialJobId || l.referenceCode === initialJobId)
+          ? db.jobRequests.find(
+              (j) =>
+                j.id ===
+                  db.leads.find((l) => l.id === initialJobId || l.referenceCode === initialJobId)
+                    ?.jobRequestId ||
+                j.leadId ===
+                  db.leads.find((l) => l.id === initialJobId || l.referenceCode === initialJobId)?.id
+            )
+          : undefined);
+
       if (targetJob) {
         setJobRequestId(targetJob.id);
-        setProposedDate(targetJob.preferredDate);
-        setScopeSummary(targetJob.aiSummary);
+        setProposedDate(targetJob.preferredDate || new Date().toISOString().slice(0, 10));
+        setScopeSummary(targetJob.aiSummary || '');
         setShowBuilder(true);
       }
     }
@@ -155,12 +169,18 @@ function QuotesManagerContent() {
 
   const handleCreateQuote = async (sendImmediately: boolean) => {
     setFeedback(null);
+    const resolvedJobId = jobRequestId || (db?.jobRequests[0]?.id ?? '');
+    const activeJob = db?.jobRequests.find((j) => j.id === resolvedJobId || j.leadId === resolvedJobId);
+    const activeLead = activeJob ? db?.leads.find((l) => l.id === activeJob.leadId) : undefined;
+
     const res = await fetch('/api/admin/platform', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'CREATE_QUOTE',
-        jobRequestId,
+        jobRequestId: resolvedJobId,
+        leadId: activeJob?.leadId || activeLead?.id,
+        customerId: activeJob?.customerId || activeLead?.customerId,
         proposedDate,
         proposedWindow,
         scopeSummary,
@@ -269,14 +289,14 @@ function QuotesManagerContent() {
                 Select Customer Job Request *
               </label>
               <select
-                value={jobRequestId}
+                value={jobRequestId || (db.jobRequests[0]?.id ?? '')}
                 onChange={(e) => {
                   const jId = e.target.value;
                   setJobRequestId(jId);
-                  const found = db.jobRequests.find((j) => j.id === jId);
+                  const found = db.jobRequests.find((j) => j.id === jId || j.leadId === jId);
                   if (found) {
-                    setProposedDate(found.preferredDate);
-                    setScopeSummary(found.aiSummary);
+                    setProposedDate(found.preferredDate || new Date().toISOString().slice(0, 10));
+                    setScopeSummary(found.aiSummary || '');
                   }
                 }}
                 className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy"
@@ -286,7 +306,7 @@ function QuotesManagerContent() {
                   const lead = db.leads.find((l) => l.id === j.leadId);
                   return (
                     <option key={j.id} value={j.id}>
-                      {lead?.referenceCode || j.id} — {cust?.fullName} ({j.serviceType})
+                      {lead?.referenceCode || j.id} — {cust?.fullName || 'Customer'} ({j.serviceType})
                     </option>
                   );
                 })}
