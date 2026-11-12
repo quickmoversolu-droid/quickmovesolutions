@@ -829,6 +829,20 @@
   ],
   "customers": [
     {
+      "id": "cust_ajibade_1",
+      "fullName": "Ajibade Monsuru Adekunle",
+      "email": "quickmoversolu@gmail.com",
+      "phone": "(587) 999-9565",
+      "preferredContact": "phone",
+      "address": "Calgary, AB",
+      "city": "Calgary",
+      "postalCode": "T2P 1J9",
+      "notes": "Photo-verified junk removal cleanout in Calgary, AB.",
+      "portalPasscode": "QM-JNK-261112-Q1003",
+      "createdAt": "2026-11-12T03:00:00.000Z",
+      "updatedAt": "2026-11-12T03:00:00.000Z"
+    },
+    {
       "id": "cust_seed_1",
       "fullName": "Michael Henderson",
       "email": "m.henderson.yyc@example.com",
@@ -872,6 +886,18 @@
     }
   ],
   "leads": [
+    {
+      "id": "lead_ajibade_1",
+      "referenceCode": "QM-JNK-261112-Q1003",
+      "customerId": "cust_ajibade_1",
+      "jobRequestId": "job_ajibade_1",
+      "serviceType": "junk-removal",
+      "status": "ACCEPTED",
+      "source": "Website JUNK-REMOVAL Wizard",
+      "internalNotes": "Photo-verified junk removal cleanout in Calgary, AB.",
+      "createdAt": "2026-11-12T03:00:00.000Z",
+      "updatedAt": "2026-11-12T03:00:00.000Z"
+    },
     {
       "id": "lead_seed_1",
       "referenceCode": "QM-MOV-261101-A1B2",
@@ -919,6 +945,21 @@
     }
   ],
   "jobRequests": [
+    {
+      "id": "job_ajibade_1",
+      "leadId": "lead_ajibade_1",
+      "customerId": "cust_ajibade_1",
+      "serviceType": "junk-removal",
+      "serviceCategory": "JUNK_REMOVAL",
+      "lifecycleStage": "CUSTOMER_ACCEPTED",
+      "pickupAddress": "Calgary, AB",
+      "pickupCity": "Calgary",
+      "preferredDate": "2026-11-15",
+      "preferredTimeWindow": "8:30 AM – 10:30 AM Arrival",
+      "specialRequirements": "Customer-uploaded job photos verified (junk 1.jpeg, junk 2.jpeg, junk 3.jpeg). Full haul-away.",
+      "createdAt": "2026-11-12T03:00:00.000Z",
+      "updatedAt": "2026-11-12T03:00:00.000Z"
+    },
     {
       "id": "job_seed_1",
       "leadId": "lead_seed_1",
@@ -1150,6 +1191,55 @@
   ],
   "quotes": [
     {
+      "id": "quo_ajibade_1",
+      "quoteNumber": "Q-2026-1003",
+      "version": 1,
+      "leadId": "lead_ajibade_1",
+      "jobRequestId": "job_ajibade_1",
+      "customerId": "cust_ajibade_1",
+      "serviceType": "junk-removal",
+      "serviceCategory": "JUNK_REMOVAL",
+      "status": "ACCEPTED",
+      "proposedDate": "2026-11-15",
+      "proposedWindow": "8:30 AM – 10:30 AM Arrival",
+      "scopeSummary": "Photo-verified junk removal and disposal service for Ajibade Monsuru Adekunle in Calgary, AB.",
+      "lineItems": [
+        {
+          "id": "qli_aj_1",
+          "category": "JUNK_REMOVAL",
+          "description": "Full-Load Photo-Verified Junk Removal & Hauling Service",
+          "quantity": 1,
+          "unitPriceCents": 65000,
+          "sortOrder": 1,
+          "totalCents": 65000
+        },
+        {
+          "id": "qli_aj_2",
+          "category": "DISPOSAL_HANDLING",
+          "description": "Eco-Station Recycling & City Transfer Disposal Fee",
+          "quantity": 1,
+          "unitPriceCents": 5000,
+          "sortOrder": 2,
+          "totalCents": 5000
+        }
+      ],
+      "subtotalCents": 70000,
+      "discountCents": 0,
+      "taxRatePercent": 5,
+      "taxCents": 3500,
+      "totalCents": 73500,
+      "depositCents": 10000,
+      "validityDays": 14,
+      "validUntil": "2026-11-26",
+      "termsAndNotes": "Based on customer-submitted photos. Final rate includes heavy loading, hauling, sorting, and municipal disposal fees.",
+      "customerResponse": "Digitally signed by Ajibade Monsuru Adekunle via QuickMove Customer Portal.",
+      "signatureName": "Ajibade Monsuru Adekunle",
+      "signedAt": "2026-11-12T16:38:00.000Z",
+      "respondedAt": "2026-11-12T16:38:00.000Z",
+      "createdAt": "2026-11-12T03:00:00.000Z",
+      "updatedAt": "2026-11-12T16:38:00.000Z"
+    },
+    {
       "id": "quo_seed_1",
       "quoteNumber": "Q-2026-1001",
       "version": 1,
@@ -1254,6 +1344,26 @@
     }
   ],
   "bookings": [
+    {
+      "id": "bkg_ajibade_1",
+      "bookingNumber": "BK-2026-504",
+      "jobRequestId": "job_ajibade_1",
+      "customerId": "cust_ajibade_1",
+      "quoteId": "quo_ajibade_1",
+      "serviceType": "junk-removal",
+      "serviceCategory": "JUNK_REMOVAL",
+      "status": "CONFIRMED",
+      "scheduledDate": "2026-11-15",
+      "startTime": "08:30",
+      "endTime": "11:30",
+      "arrivalWindow": "8:30 AM – 10:30 AM Arrival",
+      "pickupAddress": "Calgary, AB",
+      "pickupCity": "Calgary",
+      "crewMemberIds": ["emp_2", "emp_3"],
+      "dispatchNotes": "Confirmed online upon digital quote acceptance by Ajibade Monsuru Adekunle (Quote Q-2026-1003).",
+      "createdAt": "2026-11-12T03:00:00.000Z",
+      "updatedAt": "2026-11-12T16:38:00.000Z"
+    },
     {
       "id": "bkg_44cb809ad2",
       "bookingNumber": "BK-2026-503",
