@@ -5,6 +5,7 @@ import {
   readPlatformStore,
 } from '@/lib/db/platform-store';
 import { BUSINESS_INFO } from '@/lib/constants/business';
+import { dispatchNewQuoteEmails } from '@/lib/notifications/notification-service';
 
 // Simple in-memory rate limiter per IP (Phase 4.D spam prevention)
 const rateLimitWindowMs = 60 * 1000;
@@ -68,6 +69,13 @@ export async function POST(request: NextRequest) {
 
     const result = createQuoteSubmissionRecord(parsed.data);
 
+    // Live Email Dispatch via Resend: Notify Admin (quickmoversolu@gmail.com) and Customer
+    try {
+      await dispatchNewQuoteEmails(parsed.data, result);
+    } catch (emailErr) {
+      console.error('[Quote Notification Dispatch Warning]:', emailErr);
+    }
+
     return NextResponse.json(
       {
         ok: true,
@@ -99,4 +107,3 @@ export async function GET() {
     totalJobRequests: db.jobRequests.length,
   });
 }
-

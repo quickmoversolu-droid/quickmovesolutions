@@ -25,6 +25,7 @@ import {
   UserPermissionMatrix,
 } from '@/lib/db/platform-store';
 import { BUSINESS_INFO } from '@/lib/constants/business';
+import { sendEmailDirect, generateEmailHtml } from '@/lib/notifications/notification-service';
 import { publishPostToMeta } from '@/lib/marketing/meta-publisher';
 import {
   generateResonantMovingImageUrl,
@@ -120,8 +121,9 @@ export async function POST(request: NextRequest) {
       bodyPreview: string;
       relatedLeadId?: string;
     }) => {
+      const notifId = `ntf_${crypto.randomBytes(5).toString('hex')}`;
       db.notifications.unshift({
-        id: `ntf_${crypto.randomBytes(5).toString('hex')}`,
+        id: notifId,
         eventType: params.eventType,
         channel: 'EMAIL',
         recipientType: params.recipientType,
@@ -132,6 +134,24 @@ export async function POST(request: NextRequest) {
         relatedLeadId: params.relatedLeadId,
         createdAt: now,
       });
+
+      // Dispatch live transactional email via Resend
+      if (params.recipientAddress && params.recipientAddress.includes('@')) {
+        const emailHtml = generateEmailHtml({
+          title: params.subject,
+          recipientName: params.recipientType === 'CUSTOMER' ? 'Valued Customer' : 'QuickMove Team',
+          contentParagraphs: [params.bodyPreview],
+          ctaButton: {
+            label: params.recipientType === 'CUSTOMER' ? 'View Your Online Portal' : 'Open Admin Dashboard',
+            url: `${BUSINESS_INFO.website}/${params.recipientType === 'CUSTOMER' ? 'portal' : 'admin'}`,
+          },
+        });
+        sendEmailDirect({
+          to: params.recipientAddress,
+          subject: params.subject,
+          html: emailHtml,
+        }).catch((err) => console.error('[Platform Push Notification Resend Warning]:', err));
+      }
     };
 
     // 1. UPDATE LEAD STATUS
