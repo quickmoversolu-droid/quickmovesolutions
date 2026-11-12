@@ -47,7 +47,18 @@ export async function sendEmailDirect(options: {
   replyTo?: string;
 }): Promise<{ success: boolean; id?: string; error?: string }> {
   const resendApiKey = (process.env.RESEND_API_KEY || '').trim();
-  const fromEmail = process.env.EMAIL_FROM || 'QuickMove Solutions <info@quickmovesolution.ca>';
+
+  // Enforce verified business sender domain for live customer delivery.
+  // onboarding@resend.dev is strictly rejected by Resend when delivering to external customer recipients.
+  let fromEmail = 'QuickMove Solutions <info@quickmovesolution.ca>';
+  if (
+    process.env.EMAIL_FROM &&
+    !process.env.EMAIL_FROM.includes('resend.dev') &&
+    !process.env.EMAIL_FROM.includes('example.com')
+  ) {
+    fromEmail = process.env.EMAIL_FROM;
+  }
+
   const recipients = Array.isArray(options.to) ? options.to : [options.to];
 
   try {

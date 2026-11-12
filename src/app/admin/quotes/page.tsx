@@ -50,6 +50,9 @@ function QuotesManagerContent() {
 
   // New Quote Builder Form State
   const [jobRequestId, setJobRequestId] = useState<string>(initialJobId);
+  const [recipientEmail, setRecipientEmail] = useState<string>('');
+  const [overrideCustomerEmail, setOverrideCustomerEmail] = useState<string>('');
+  const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
   const [proposedDate, setProposedDate] = useState<string>('2026-11-10');
   const [proposedWindow, setProposedWindow] = useState<string>('8:30 AM – 10:30 AM Arrival');
   const [scopeSummary, setScopeSummary] = useState<string>('');
@@ -99,6 +102,10 @@ function QuotesManagerContent() {
         setJobRequestId(matching.id);
         setProposedDate(matching.preferredDate || new Date().toISOString().slice(0, 10));
         setScopeSummary(matching.aiSummary || '');
+        const matchingCust = json.data.customers?.find((c: any) => c.id === matching.customerId);
+        if (matchingCust?.email) {
+          setRecipientEmail(matchingCust.email);
+        }
       }
     }
   };
@@ -127,6 +134,10 @@ function QuotesManagerContent() {
         setJobRequestId(targetJob.id);
         setProposedDate(targetJob.preferredDate || new Date().toISOString().slice(0, 10));
         setScopeSummary(targetJob.aiSummary || '');
+        const targetCust = db.customers.find((c) => c.id === targetJob.customerId);
+        if (targetCust?.email) {
+          setRecipientEmail(targetCust.email);
+        }
         setShowBuilder(true);
       }
     }
@@ -169,66 +180,105 @@ function QuotesManagerContent() {
 
   const handleCreateQuote = async (sendImmediately: boolean) => {
     setFeedback(null);
+    setIsSendingEmail(true);
     const resolvedJobId = jobRequestId || (db?.jobRequests[0]?.id ?? '');
     const activeJob = db?.jobRequests.find((j) => j.id === resolvedJobId || j.leadId === resolvedJobId);
     const activeLead = activeJob ? db?.leads.find((l) => l.id === activeJob.leadId) : undefined;
+    const targetCustomer = activeJob ? db?.customers.find((c) => c.id === activeJob.customerId) : undefined;
 
-    const res = await fetch('/api/admin/platform', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'CREATE_QUOTE',
-        jobRequestId: resolvedJobId,
-        leadId: activeJob?.leadId || activeLead?.id,
-        customerId: activeJob?.customerId || activeLead?.customerId,
-        proposedDate,
-        proposedWindow,
-        scopeSummary,
-        discountCents: Math.round((Number(discountDollars) || 0) * 100),
-        depositCents: Math.round((Number(depositDollars) || 0) * 100),
-        validityDays,
-        termsAndNotes,
-        sendImmediately,
-        lineItems: lineItems.map((li, idx) => ({
-          id: li.id,
-          category: li.category,
-          description: li.description || 'Service Line Item',
-          quantity: Number(li.quantity) || 1,
-          unitPriceCents: Math.round((Number(li.unitPriceDollars) || 0) * 100),
-          sortOrder: idx + 1,
-        })),
-      }),
-    });
-    const data = await res.json();
-    if (res.ok && data.ok) {
-      setFeedback(
-        `Created Quote ${data.quote.quoteNumber} (${
-          sendImmediately ? 'Sent to Customer' : 'Saved as Draft'
-        }).`
-      );
-      setSelectedQuoteId(data.quote.id);
-      setShowBuilder(false);
-      await loadData();
-    } else {
-      setFeedback(data.error || 'Error creating quote.');
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'CREATE_QUOTE',
+          jobRequestId: resolvedJobId,
+          leadId: activeJob?.leadId || activeLead?.id,
+          customerId: activeJob?.customerId || activeLead?.customerId,
+          customerEmail: recipientEmail.trim() || targetCustomer?.email,
+          proposedDate,
+          proposedWindow,
+          scopeSummary,
+          discountCents: Math.round((Number(discountDollars) || 0) * 100),
+          depositCents: Math.round((Number(depositDollars) || 0) * 100),
+          validityDays,
+          termsAndNotes,
+          sendImmediately,
+          lineItems: lineItems.map((li, idx) => ({
+            id: li.id,
+            category: li.category,
+            description: li.description || 'Service Line Item',
+            quantity: Number(li.quantity) || 1,
+            unitPriceCents: Math.round((Number(li.unitPriceDollars) || 0) * 100),
+            sortOrder: idx + 1,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        if (sendImmediately) {
+          if (data.emailDispatched) {
+            setFeedback(
+              `✅ Created Quote ${data.quote.quoteNumber} and sent directly to customer at ${data.recipientEmail}!`
+            );
+          } else if (data.emailError) {
+            setFeedback(
+              `⚠️ Created Quote ${data.quote.quoteNumber}, but email delivery failed: ${data.emailError}`
+            );
+          } else {
+            setFeedback(`Created Quote ${data.quote.quoteNumber} (Sent to Customer).`);
+          }
+        } else {
+          setFeedback(`Created Quote ${data.quote.quoteNumber} (Saved as Draft).`);
+        }
+        setSelectedQuoteId(data.quote.id);
+        setShowBuilder(false);
+        await loadData();
+      } else {
+        setFeedback(data.error || 'Error creating quote.');
+      }
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
   const handleQuoteStatusChange = async (quoteId: string, status: QuoteStatus) => {
     setFeedback(null);
-    const res = await fetch('/api/admin/platform', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'UPDATE_QUOTE_STATUS',
-        quoteId,
-        status,
-      }),
-    });
-    const data = await res.json();
-    if (res.ok && data.ok) {
-      setFeedback(`Quote ${data.quote.quoteNumber} marked as ${status}.`);
-      await loadData();
+    setIsSendingEmail(true);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_QUOTE_STATUS',
+          quoteId,
+          status,
+          customerEmail: overrideCustomerEmail.trim() || activeQuoteCustomer?.email,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        if (status === 'SENT') {
+          if (data.emailDispatched) {
+            setFeedback(
+              `✅ Quote ${data.quote.quoteNumber} officially dispatched via Resend to ${data.recipientEmail}!`
+            );
+          } else if (data.emailError) {
+            setFeedback(
+              `⚠️ Quote ${data.quote.quoteNumber} marked as ${status}, but email delivery failed: ${data.emailError}`
+            );
+          } else {
+            setFeedback(`Quote ${data.quote.quoteNumber} marked as ${status}.`);
+          }
+        } else {
+          setFeedback(`Quote ${data.quote.quoteNumber} marked as ${status}.`);
+        }
+        await loadData();
+      } else {
+        setFeedback(data.error || 'Failed to update quote status.');
+      }
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -283,7 +333,7 @@ function QuotesManagerContent() {
             <Badge variant="orange">Server-Verified Totals (5% GST)</Badge>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-brand-navy">
                 Select Customer Job Request *
@@ -297,6 +347,8 @@ function QuotesManagerContent() {
                   if (found) {
                     setProposedDate(found.preferredDate || new Date().toISOString().slice(0, 10));
                     setScopeSummary(found.aiSummary || '');
+                    const cust = db.customers.find((c) => c.id === found.customerId);
+                    if (cust?.email) setRecipientEmail(cust.email);
                   }
                 }}
                 className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy"
@@ -311,6 +363,19 @@ function QuotesManagerContent() {
                   );
                 })}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-brand-navy">
+                Customer Email (Recipient) *
+              </label>
+              <input
+                type="email"
+                placeholder="customer@email.com"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy"
+              />
             </div>
 
             <div>
@@ -500,6 +565,7 @@ function QuotesManagerContent() {
             <Button
               type="button"
               variant="outline"
+              disabled={isSendingEmail}
               onClick={() => handleCreateQuote(false)}
             >
               Save as Draft Quote
@@ -507,10 +573,11 @@ function QuotesManagerContent() {
             <Button
               type="button"
               variant="primary"
+              disabled={isSendingEmail}
               onClick={() => handleCreateQuote(true)}
             >
               <Send className="mr-2 h-4 w-4" />
-              Save &amp; Send Quote to Customer
+              {isSendingEmail ? 'Dispatching via Resend...' : 'Save & Send Quote to Customer'}
             </Button>
           </div>
         </div>
@@ -657,21 +724,46 @@ function QuotesManagerContent() {
                 </div>
               </div>
 
+              {/* Customer Dispatch Email Box */}
+              <div className="rounded-2xl border border-brand-orange/30 bg-brand-orange/5 p-4 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-brand-navy">
+                  <span className="flex items-center gap-1.5 uppercase tracking-wider text-brand-orange">
+                    <Send className="h-3.5 w-3.5 text-brand-orange" />
+                    Customer Dispatch Email
+                  </span>
+                  <span className="text-[11px] text-brand-muted">
+                    {activeQuoteCustomer ? `Customer: ${activeQuoteCustomer.fullName}` : ''}
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="email"
+                    value={overrideCustomerEmail || activeQuoteCustomer?.email || ''}
+                    onChange={(e) => setOverrideCustomerEmail(e.target.value)}
+                    placeholder="Enter customer email to send quotation..."
+                    className="flex-1 rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2 text-xs font-bold text-brand-navy"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="primary"
+                    disabled={isSendingEmail}
+                    onClick={() => handleQuoteStatusChange(activeQuote.id, 'SENT')}
+                    className="shrink-0"
+                  >
+                    <Send className="mr-1.5 h-3.5 w-3.5" />
+                    {isSendingEmail ? 'Dispatching via Resend...' : 'Send / Resend to Customer'}
+                  </Button>
+                </div>
+              </div>
+
               {/* Status Actions */}
               <div className="flex flex-wrap items-center gap-2 border-t border-brand-navy/10 pt-4">
                 <Button
                   type="button"
                   size="sm"
-                  variant="primary"
-                  onClick={() => handleQuoteStatusChange(activeQuote.id, 'SENT')}
-                >
-                  <Send className="mr-1.5 h-3.5 w-3.5" />
-                  Send / Resend to Customer
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
                   variant="secondary"
+                  disabled={isSendingEmail}
                   onClick={() => handleQuoteStatusChange(activeQuote.id, 'ACCEPTED')}
                 >
                   <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
@@ -681,6 +773,7 @@ function QuotesManagerContent() {
                   type="button"
                   size="sm"
                   variant="outline"
+                  disabled={isSendingEmail}
                   onClick={() => handleQuoteStatusChange(activeQuote.id, 'DECLINED')}
                 >
                   <XCircle className="mr-1.5 h-3.5 w-3.5" />

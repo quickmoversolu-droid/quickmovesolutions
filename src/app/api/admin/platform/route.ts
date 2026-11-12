@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
       });
     };
 
-    const pushNotification = (params: {
+    const pushNotification = async (params: {
       eventType: string;
       recipientType: 'CUSTOMER' | 'ADMIN';
       recipientAddress: string;
@@ -237,11 +237,15 @@ export async function POST(request: NextRequest) {
             url: `${BUSINESS_INFO.website}/${params.recipientType === 'CUSTOMER' ? 'portal' : 'admin'}`,
           },
         });
-        sendEmailDirect({
-          to: params.recipientAddress,
-          subject: params.subject,
-          html: emailHtml,
-        }).catch((err) => console.error('[Platform Push Notification Resend Warning]:', err));
+        try {
+          await sendEmailDirect({
+            to: params.recipientAddress,
+            subject: params.subject,
+            html: emailHtml,
+          });
+        } catch (err) {
+          console.error('[Platform Push Notification Resend Warning]:', err);
+        }
       }
     };
 
@@ -425,6 +429,8 @@ export async function POST(request: NextRequest) {
         if (lead) lead.status = 'QUOTE_SENT';
         job.lifecycleStage = 'QUOTE_SENT';
 
+        const targetCustomerEmail = (body.customerEmail || customer.email || '').trim();
+
         const itemsSummary = calc.computedItems
           .map((item) => `• ${item.description}: ${item.quantity} x $${(item.unitPriceCents / 100).toFixed(2)} = $${(item.totalCents / 100).toFixed(2)} CAD`)
           .join('\n');
@@ -455,38 +461,60 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        pushNotification({
+        await pushNotification({
           eventType: 'QUOTE_SENT',
           recipientType: 'CUSTOMER',
-          recipientAddress: customer.email,
+          recipientAddress: targetCustomerEmail,
           subject: `Your QuickMove Solutions Quotation (${quoteNumber}) — $${(newQuote.totalCents / 100).toFixed(2)} CAD`,
           bodyPreview: `Hi ${customer.fullName}, your itemized quotation ${quoteNumber} ($${(newQuote.totalCents / 100).toFixed(2)} CAD incl. GST) is ready for review.`,
           relatedLeadId: job.leadId,
         });
 
-        if (customer.email && customer.email.includes('@')) {
-          sendEmailDirect({
-            to: customer.email,
+        let emailDispatched = false;
+        let emailError = '';
+        if (targetCustomerEmail && targetCustomerEmail.includes('@')) {
+          const res = await sendEmailDirect({
+            to: targetCustomerEmail,
             subject: `Your QuickMove Solutions Quotation (${quoteNumber}) — $${(newQuote.totalCents / 100).toFixed(2)} CAD`,
             html: customerEmailHtml,
-          }).catch((err) => console.error('[Quote Sent Customer Email Resend Error]:', err));
+          });
+          emailDispatched = res.success;
+          if (!res.success) {
+            emailError = res.error || 'Resend rejected delivery';
+            console.error('[Quote Sent Customer Email Failed]:', res.error);
+          }
         }
 
         if (process.env.ADMIN_NOTIFICATION_EMAIL) {
-          sendEmailDirect({
+          await sendEmailDirect({
             to: process.env.ADMIN_NOTIFICATION_EMAIL,
             subject: `[Quote Sent] ${quoteNumber} dispatched to ${customer.fullName} ($${(newQuote.totalCents / 100).toFixed(2)} CAD)`,
             html: generateEmailHtml({
               title: `Quote ${quoteNumber} Dispatched`,
               recipientName: 'QuickMove Dispatch',
               contentParagraphs: [
-                `Quote ${quoteNumber} has been successfully sent to ${customer.fullName} (${customer.email}).`,
+                `Quote ${quoteNumber} has been successfully sent to ${customer.fullName} (${targetCustomerEmail}).`,
                 `Total: $${(newQuote.totalCents / 100).toFixed(2)} CAD (Deposit: $${(newQuote.depositCents / 100).toFixed(2)} CAD).`,
                 `Customer Acceptance Portal: ${BUSINESS_INFO.website}/portal?customerId=${customer.id}`,
               ],
             }),
           }).catch((err) => console.error('[Quote Sent Admin Copy Resend Error]:', err));
         }
+
+        logActivity(
+          'QUOTE',
+          newQuote.id,
+          'QUOTE_CREATED',
+          `Created Quote ${quoteNumber} ($${(newQuote.totalCents / 100).toFixed(2)} CAD) for ${customer?.fullName || 'Customer'}.`
+        );
+        writePlatformStore(db);
+        return NextResponse.json({
+          ok: true,
+          quote: newQuote,
+          emailDispatched,
+          recipientEmail: targetCustomerEmail,
+          emailError: emailError || undefined,
+        });
       }
 
       logActivity(
@@ -515,16 +543,83 @@ export async function POST(request: NextRequest) {
       const job = db.jobRequests.find((j) => j.id === quote.jobRequestId);
       const customer = db.customers.find((c) => c.id === quote.customerId);
 
-      if (status === 'SENT' && customer) {
+      if (status === 'SENT') {
+        const targetCustomerEmail = (body.customerEmail || customer?.email || '').trim();
         if (lead) lead.status = 'QUOTE_SENT';
         if (job) job.lifecycleStage = 'QUOTE_SENT';
-        pushNotification({
-          eventType: 'QUOTE_SENT',
-          recipientType: 'CUSTOMER',
-          recipientAddress: customer.email,
-          subject: `Your QuickMove Solutions Quotation (${quote.quoteNumber})`,
-          bodyPreview: `Hi ${customer.fullName}, your itemized quote ${quote.quoteNumber} is ready for review.`,
-          relatedLeadId: quote.leadId,
+
+        const itemsSummary = quote.lineItems
+          .map(
+            (item) =>
+              `• ${item.description}: ${item.quantity} x $${(item.unitPriceCents / 100).toFixed(2)} = $${(item.totalCents / 100).toFixed(2)} CAD`
+          )
+          .join('\n');
+
+        const customerEmailHtml = generateEmailHtml({
+          title: `Your Official Itemized Quotation (${quote.quoteNumber})`,
+          recipientName: customer?.fullName || 'Valued Customer',
+          contentParagraphs: [
+            `Hi ${customer?.fullName || 'Valued Customer'}, thank you for choosing QuickMove Solutions! Our dispatch team has prepared your official itemized moving & hauling quotation (${quote.quoteNumber}).`,
+            `Please review your itemized scope below and click the button to view your quote and digitally accept it online:`,
+            itemsSummary,
+            `Deposit Required to Confirm Booking: $${(quote.depositCents / 100).toFixed(2)} CAD`,
+            `Questions? Our Calgary dispatch team is directly available by phone at ${BUSINESS_INFO.phoneDisplay}.`,
+          ],
+          detailsBox: [
+            { label: 'Quote Number', value: quote.quoteNumber },
+            { label: 'Service Date', value: quote.proposedDate },
+            { label: 'Arrival Window', value: quote.proposedWindow },
+            { label: 'Subtotal', value: `$${(quote.subtotalCents / 100).toFixed(2)} CAD` },
+            {
+              label: 'GST (5%)',
+              value: `${quote.taxRatePercent || 5}% ($${(quote.taxCents / 100).toFixed(2)} CAD)`,
+            },
+            { label: 'Total Amount', value: `$${(quote.totalCents / 100).toFixed(2)} CAD` },
+            { label: 'Deposit Required', value: `$${(quote.depositCents / 100).toFixed(2)} CAD` },
+            { label: 'Quote Valid Until', value: quote.validUntil },
+          ],
+          ctaButton: {
+            label: 'Review & Accept Quote Online',
+            url: `${BUSINESS_INFO.website}/portal?customerId=${customer?.id || ''}`,
+          },
+        });
+
+        let emailDispatched = false;
+        let emailError = '';
+        if (targetCustomerEmail && targetCustomerEmail.includes('@')) {
+          const res = await sendEmailDirect({
+            to: targetCustomerEmail,
+            subject: `Your QuickMove Solutions Quotation (${quote.quoteNumber}) — $${(quote.totalCents / 100).toFixed(2)} CAD`,
+            html: customerEmailHtml,
+          });
+          emailDispatched = res.success;
+          if (!res.success) emailError = res.error || 'Resend rejected delivery';
+        }
+
+        if (process.env.ADMIN_NOTIFICATION_EMAIL) {
+          await sendEmailDirect({
+            to: process.env.ADMIN_NOTIFICATION_EMAIL,
+            subject: `[Quote Sent] ${quote.quoteNumber} dispatched to ${customer?.fullName || 'Customer'} ($${(quote.totalCents / 100).toFixed(2)} CAD)`,
+            html: generateEmailHtml({
+              title: `Quote ${quote.quoteNumber} Dispatched`,
+              recipientName: 'QuickMove Dispatch',
+              contentParagraphs: [
+                `Quote ${quote.quoteNumber} was sent to ${customer?.fullName || 'Customer'} (${targetCustomerEmail}).`,
+                `Total: $${(quote.totalCents / 100).toFixed(2)} CAD (Deposit: $${(quote.depositCents / 100).toFixed(2)} CAD).`,
+                `Customer Acceptance Portal: ${BUSINESS_INFO.website}/portal?customerId=${customer?.id || ''}`,
+              ],
+            }),
+          }).catch((err) => console.error('[Quote Sent Admin Copy Error]:', err));
+        }
+
+        logActivity('QUOTE', quote.id, `QUOTE_SENT`, `Quote ${quote.quoteNumber} sent to ${customer?.fullName || 'Customer'} (${targetCustomerEmail}).`);
+        writePlatformStore(db);
+        return NextResponse.json({
+          ok: true,
+          quote,
+          emailDispatched,
+          recipientEmail: targetCustomerEmail,
+          emailError: emailError || undefined,
         });
       }
 
