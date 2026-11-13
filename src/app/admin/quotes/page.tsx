@@ -341,27 +341,57 @@ function QuotesManagerContent() {
               <select
                 value={jobRequestId || (db.jobRequests[0]?.id ?? '')}
                 onChange={(e) => {
-                  const jId = e.target.value;
-                  setJobRequestId(jId);
-                  const found = db.jobRequests.find((j) => j.id === jId || j.leadId === jId);
-                  if (found) {
-                    setProposedDate(found.preferredDate || new Date().toISOString().slice(0, 10));
-                    setScopeSummary(found.aiSummary || '');
-                    const cust = db.customers.find((c) => c.id === found.customerId);
-                    if (cust?.email) setRecipientEmail(cust.email);
+                  const targetId = e.target.value;
+                  setJobRequestId(targetId);
+                  const foundJob = db.jobRequests.find((j) => j.id === targetId || j.leadId === targetId);
+                  const foundLead = db.leads.find(
+                    (l) => l.jobRequestId === targetId || l.id === targetId || l.referenceCode === targetId
+                  );
+                  const targetCustId = foundJob?.customerId || foundLead?.customerId;
+                  const cust = db.customers.find((c) => c.id === targetCustId);
+
+                  if (foundJob) {
+                    setProposedDate(foundJob.preferredDate || new Date().toISOString().slice(0, 10));
+                    setScopeSummary(foundJob.aiSummary || '');
+                  }
+                  if (cust?.email) {
+                    setRecipientEmail(cust.email);
                   }
                 }}
                 className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy"
               >
-                {db.jobRequests.map((j) => {
-                  const cust = db.customers.find((c) => c.id === j.customerId);
-                  const lead = db.leads.find((l) => l.id === j.leadId);
-                  return (
-                    <option key={j.id} value={j.id}>
-                      {lead?.referenceCode || j.id} — {cust?.fullName || 'Customer'} ({j.serviceType})
+                {(() => {
+                  const mappedLeads = db.leads.map((l) => {
+                    const cust = db.customers.find((c) => c.id === l.customerId);
+                    const job = db.jobRequests.find(
+                      (j) => j.id === l.jobRequestId || j.leadId === l.id || j.customerId === l.customerId
+                    );
+                    const effectiveJobId = job?.id || l.jobRequestId || l.id;
+                    return {
+                      value: effectiveJobId,
+                      label: `${l.referenceCode} — ${cust?.fullName || 'Customer'} (${l.serviceType})`,
+                    };
+                  });
+
+                  const extraJobs = db.jobRequests
+                    .filter((j) => !mappedLeads.some((m) => m.value === j.id))
+                    .map((j) => {
+                      const cust = db.customers.find((c) => c.id === j.customerId);
+                      const lead = db.leads.find(
+                        (l) => l.id === j.leadId || l.jobRequestId === j.id || l.customerId === j.customerId
+                      );
+                      return {
+                        value: j.id,
+                        label: `${lead?.referenceCode || j.id} — ${cust?.fullName || 'Customer'} (${j.serviceType})`,
+                      };
+                    });
+
+                  return [...mappedLeads, ...extraJobs].map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
                     </option>
-                  );
-                })}
+                  ));
+                })()}
               </select>
             </div>
 

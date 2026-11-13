@@ -218,14 +218,116 @@ export function AdminShell({
     router.push('/admin/login');
   };
 
+  const [platformData, setPlatformData] = useState<{
+    customers: any[];
+    leads: any[];
+    quotes: any[];
+    bookings: any[];
+  } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/admin/platform')
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.ok && res.data) {
+          setPlatformData({
+            customers: res.data.customers || [],
+            leads: res.data.leads || [],
+            quotes: res.data.quotes || [],
+            bookings: res.data.bookings || [],
+          });
+        }
+      })
+      .catch(() => {});
+  }, [pathname]);
+
   const visibleNav = ADMIN_NAV_ITEMS.filter((item) => item.roles.includes(currentRole));
-  const filteredSearch = searchQuery.trim()
-    ? QUICK_SEARCH_LINKS.filter(
+  
+  const filteredSearch = (() => {
+    if (!searchQuery.trim()) {
+      return QUICK_SEARCH_LINKS.slice(0, 6);
+    }
+    const q = searchQuery.trim().toLowerCase();
+    const cleanQ = q.replace(/[^a-z0-9]/g, '');
+
+    // Nav matches
+    const navMatches = QUICK_SEARCH_LINKS.filter(
       (item) =>
-        item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    : QUICK_SEARCH_LINKS.slice(0, 6);
+        item.label.toLowerCase().includes(q) || item.category.toLowerCase().includes(q)
+    );
+
+    // Customer matches
+    const custMatches = (platformData?.customers || [])
+      .filter((c) => {
+        const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
+        return (
+          c.fullName?.toLowerCase().includes(q) ||
+          c.email?.toLowerCase().includes(q) ||
+          (cleanQ && cleanPhone.includes(cleanQ)) ||
+          c.phone?.toLowerCase().includes(q) ||
+          c.city?.toLowerCase().includes(q)
+        );
+      })
+      .slice(0, 4)
+      .map((c) => ({
+        label: `${c.fullName} • ${c.email || c.phone}`,
+        href: `/admin/customers`,
+        category: 'Customer',
+      }));
+
+    // Lead matches
+    const leadMatches = (platformData?.leads || [])
+      .filter((l) => {
+        const cust = platformData?.customers?.find((c) => c.id === l.customerId);
+        return (
+          l.referenceCode?.toLowerCase().includes(q) ||
+          l.serviceType?.toLowerCase().includes(q) ||
+          cust?.fullName?.toLowerCase().includes(q) ||
+          cust?.email?.toLowerCase().includes(q)
+        );
+      })
+      .slice(0, 4)
+      .map((l) => {
+        const cust = platformData?.customers?.find((c) => c.id === l.customerId);
+        return {
+          label: `${l.referenceCode} — ${l.serviceType} (${cust?.fullName || 'Customer'})`,
+          href: `/admin/leads`,
+          category: 'Lead CRM',
+        };
+      });
+
+    // Quote matches
+    const quoteMatches = (platformData?.quotes || [])
+      .filter((quo) => {
+        const cust = platformData?.customers?.find((c) => c.id === quo.customerId);
+        return (
+          quo.quoteNumber?.toLowerCase().includes(q) ||
+          quo.serviceType?.toLowerCase().includes(q) ||
+          cust?.fullName?.toLowerCase().includes(q)
+        );
+      })
+      .slice(0, 3)
+      .map((quo) => {
+        const cust = platformData?.customers?.find((c) => c.id === quo.customerId);
+        return {
+          label: `Quote ${quo.quoteNumber} • $${(quo.totalCents / 100).toFixed(2)} CAD (${cust?.fullName || 'Customer'})`,
+          href: `/admin/quotes?quoteId=${encodeURIComponent(quo.id)}`,
+          category: 'Quotation',
+        };
+      });
+
+    // Booking matches
+    const bookingMatches = (platformData?.bookings || [])
+      .filter((b) => b.bookingNumber?.toLowerCase().includes(q) || b.scheduledDate?.includes(q))
+      .slice(0, 3)
+      .map((b) => ({
+        label: `Booking ${b.bookingNumber} • ${b.scheduledDate} (${b.status})`,
+        href: `/admin/bookings`,
+        category: 'Dispatch',
+      }));
+
+    return [...leadMatches, ...custMatches, ...quoteMatches, ...bookingMatches, ...navMatches].slice(0, 8);
+  })();
 
   const activeUserMeta = ROLE_LABELS[currentRole] || ROLE_LABELS.OWNER;
 

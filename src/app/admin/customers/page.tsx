@@ -43,13 +43,42 @@ export default function AdminCustomersDirectoryPage() {
 
   const filtered = db.customers.filter((c) => {
     if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
+    const q = search.trim().toLowerCase();
+    const cleanQ = q.replace(/[^a-z0-9]/g, '');
+    const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
+
+    // 1. Direct Customer attributes
+    const directMatch =
       c.fullName.toLowerCase().includes(q) ||
       c.email.toLowerCase().includes(q) ||
-      c.phone.toLowerCase().includes(q) ||
-      c.city.toLowerCase().includes(q)
+      (cleanQ.length > 0 && cleanPhone.includes(cleanQ)) ||
+      (c.phone || '').toLowerCase().includes(q) ||
+      (c.city || '').toLowerCase().includes(q) ||
+      (c.address || '').toLowerCase().includes(q) ||
+      (c.postalCode || '').toLowerCase().includes(q) ||
+      (c.portalPasscode || '').toLowerCase().includes(q);
+
+    if (directMatch) return true;
+
+    // 2. Cross-reference customer's leads (Reference codes like QM-JNK-..., service types)
+    const leadMatch = db.leads.some(
+      (l) =>
+        l.customerId === c.id &&
+        (l.referenceCode.toLowerCase().includes(q) || l.serviceType.toLowerCase().includes(q))
     );
+    if (leadMatch) return true;
+
+    // 3. Cross-reference customer's quotes (e.g. Q-2026-1003)
+    const quoteMatch = db.quotes.some(
+      (quo) => quo.customerId === c.id && quo.quoteNumber.toLowerCase().includes(q)
+    );
+    if (quoteMatch) return true;
+
+    // 4. Cross-reference customer's bookings (e.g. BK-2026-504)
+    const bookingMatch = db.bookings.some(
+      (b) => b.customerId === c.id && b.bookingNumber.toLowerCase().includes(q)
+    );
+    return bookingMatch;
   });
 
   const activeCustomer =

@@ -77,14 +77,45 @@ export default function AdminLeadsPipelinePage() {
 
   const filteredLeads = db.leads.filter((lead) => {
     if (statusFilter !== 'ALL' && lead.status !== statusFilter) return false;
-    if (serviceFilter !== 'ALL' && !lead.serviceType.includes(serviceFilter)) return false;
+    if (serviceFilter !== 'ALL' && !lead.serviceType.toLowerCase().includes(serviceFilter.toLowerCase())) return false;
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.trim().toLowerCase();
+      const cleanQ = q.replace(/[^a-z0-9]/g, '');
       const customer = db.customers.find((c) => c.id === lead.customerId);
+      const cleanPhone = (customer?.phone || '').replace(/[^0-9]/g, '');
+      const job = db.jobRequests.find((j) => j.id === lead.jobRequestId || j.leadId === lead.id);
+      const quote = db.quotes.find((quo) => quo.leadId === lead.id || quo.jobRequestId === lead.jobRequestId);
+
       const matchesRef = lead.referenceCode.toLowerCase().includes(q);
-      const matchesName = customer?.fullName.toLowerCase().includes(q);
-      const matchesCity = customer?.city.toLowerCase().includes(q);
-      if (!matchesRef && !matchesName && !matchesCity) return false;
+      const matchesName = Boolean(customer?.fullName.toLowerCase().includes(q));
+      const matchesEmail = Boolean(customer?.email.toLowerCase().includes(q));
+      const matchesPhone = Boolean(
+        (cleanQ.length > 0 && cleanPhone.includes(cleanQ)) ||
+        customer?.phone?.toLowerCase().includes(q)
+      );
+      const matchesCity = Boolean(
+        customer?.city.toLowerCase().includes(q) ||
+        customer?.address?.toLowerCase().includes(q) ||
+        job?.pickupCity?.toLowerCase().includes(q) ||
+        job?.pickupAddress?.toLowerCase().includes(q) ||
+        job?.destinationCity?.toLowerCase().includes(q)
+      );
+      const matchesService = lead.serviceType.toLowerCase().includes(q);
+      const matchesNotes = Boolean(lead.internalNotes?.toLowerCase().includes(q));
+      const matchesQuote = Boolean(quote?.quoteNumber.toLowerCase().includes(q));
+
+      if (
+        !matchesRef &&
+        !matchesName &&
+        !matchesEmail &&
+        !matchesPhone &&
+        !matchesCity &&
+        !matchesService &&
+        !matchesNotes &&
+        !matchesQuote
+      ) {
+        return false;
+      }
     }
     return true;
   });
