@@ -169,11 +169,33 @@ export function AdminShell({
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordFeedback, setPasswordFeedback] = useState<string | null>(null);
+  const [platformData, setPlatformData] = useState<{
+    customers: any[];
+    leads: any[];
+    quotes: any[];
+    bookings: any[];
+  } | null>(null);
 
   useEffect(() => {
     setMobileOpen(false);
     setProfileMenuOpen(false);
     setNotifOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    fetch('/api/admin/platform')
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.ok && res.data) {
+          setPlatformData({
+            customers: res.data.customers || [],
+            leads: res.data.leads || [],
+            quotes: res.data.quotes || [],
+            bookings: res.data.bookings || [],
+          });
+        }
+      })
+      .catch(() => {});
   }, [pathname]);
 
   // If on login page or printable PDF page, render children bare
@@ -225,29 +247,6 @@ export function AdminShell({
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/admin/login');
   };
-
-  const [platformData, setPlatformData] = useState<{
-    customers: any[];
-    leads: any[];
-    quotes: any[];
-    bookings: any[];
-  } | null>(null);
-
-  useEffect(() => {
-    fetch('/api/admin/platform')
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.ok && res.data) {
-          setPlatformData({
-            customers: res.data.customers || [],
-            leads: res.data.leads || [],
-            quotes: res.data.quotes || [],
-            bookings: res.data.bookings || [],
-          });
-        }
-      })
-      .catch(() => {});
-  }, [pathname]);
 
   const visibleNav = ADMIN_NAV_ITEMS.filter((item) => item.roles.includes(currentRole));
   
