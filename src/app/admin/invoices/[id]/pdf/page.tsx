@@ -199,9 +199,6 @@ export default function BrandedInvoicePdfDocumentPage() {
                     <Mail className="h-3.5 w-3.5 text-brand-orange" />
                     {BUSINESS_INFO.email}
                   </p>
-                  <p className="font-mono text-[11px] font-bold text-brand-muted">
-                    Alberta GST / Business # 74829 4812 RT0001
-                  </p>
                 </div>
               </div>
             </div>
