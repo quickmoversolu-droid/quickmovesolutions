@@ -13,6 +13,7 @@ import {
   Calendar,
   Calculator,
   XCircle,
+  Receipt,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -680,6 +681,13 @@ function QuotesManagerContent() {
                   >
                     <Printer className="h-3.5 w-3.5 text-brand-orange" />
                     Open Branded PDF View
+                  </Link>
+                  <Link
+                    href={`/admin/invoices?quoteId=${activeQuote.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-extrabold text-white hover:bg-emerald-700"
+                  >
+                    <Receipt className="h-3.5 w-3.5" />
+                    Generate Invoice
                   </Link>
                   <Link
                     href={`/admin/bookings?jobRequestId=${activeQuote.jobRequestId}&quoteId=${activeQuote.id}`}

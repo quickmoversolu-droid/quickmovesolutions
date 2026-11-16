@@ -108,6 +108,7 @@ export async function syncRecordToInsForge(
     | 'leads'
     | 'job_requests'
     | 'quotes'
+    | 'invoices'
     | 'bookings'
     | 'marketing_posts'
     | 'job_photos'
@@ -115,6 +116,7 @@ export async function syncRecordToInsForge(
     | 'Lead'
     | 'JobRequest'
     | 'Quote'
+    | 'Invoice'
     | 'Booking'
     | 'MarketingPost'
     | 'JobPhoto',
@@ -405,12 +407,155 @@ export async function syncRecordToInsForge(
       return { success: true };
     }
 
+    if (norm === 'invoices' || norm === 'invoice') {
+      await ensureInvoiceTablesExist();
+      const sql = `
+        INSERT INTO "Invoice" (
+          "id", "invoiceNumber", "bookingId", "quoteId", "jobRequestId", "customerId",
+          "customerName", "customerEmail", "customerPhone", "customerAddress",
+          "serviceType", "serviceCategory", "status", "issueDate", "dueDate", "completionDate",
+          "subtotalCents", "discountCents", "taxRatePercent", "taxCents", "totalCents",
+          "depositPaidCents", "amountPaidCents", "balanceDueCents", "paymentMethod",
+          "paymentReference", "paidAt", "paymentTerms", "notesAndInstructions",
+          "sentAt", "recipientEmail", "createdAt", "updatedAt"
+        ) VALUES (
+          ${escapeSql(record.id)},
+          ${escapeSql(record.invoiceNumber)},
+          ${escapeSql(record.bookingId || null)},
+          ${escapeSql(record.quoteId || null)},
+          ${escapeSql(record.jobRequestId || null)},
+          ${escapeSql(record.customerId)},
+          ${escapeSql(record.customerName || null)},
+          ${escapeSql(record.customerEmail || null)},
+          ${escapeSql(record.customerPhone || null)},
+          ${escapeSql(record.customerAddress || null)},
+          ${escapeSql(record.serviceType)},
+          ${escapeSql(record.serviceCategory || 'MOVING')},
+          ${escapeSql(record.status || 'DRAFT')},
+          ${escapeSql(record.issueDate || new Date().toISOString().slice(0, 10))},
+          ${escapeSql(record.dueDate || new Date().toISOString().slice(0, 10))},
+          ${escapeSql(record.completionDate || null)},
+          ${record.subtotalCents || 0},
+          ${record.discountCents || 0},
+          ${record.taxRatePercent || 5.0},
+          ${record.taxCents || 0},
+          ${record.totalCents || 0},
+          ${record.depositPaidCents || 0},
+          ${record.amountPaidCents || 0},
+          ${record.balanceDueCents || 0},
+          ${escapeSql(record.paymentMethod || 'INTERAC_E_TRANSFER')},
+          ${escapeSql(record.paymentReference || null)},
+          ${escapeSql(record.paidAt || null)},
+          ${escapeSql(record.paymentTerms || 'Payment Due Upon Completion of Service')},
+          ${escapeSql(record.notesAndInstructions || '')},
+          ${escapeSql(record.sentAt || null)},
+          ${escapeSql(record.recipientEmail || null)},
+          ${escapeSql(record.createdAt || new Date().toISOString())},
+          ${escapeSql(record.updatedAt || new Date().toISOString())}
+        )
+        ON CONFLICT ("id") DO UPDATE SET
+          "status" = EXCLUDED."status",
+          "amountPaidCents" = EXCLUDED."amountPaidCents",
+          "balanceDueCents" = EXCLUDED."balanceDueCents",
+          "paymentMethod" = EXCLUDED."paymentMethod",
+          "paymentReference" = EXCLUDED."paymentReference",
+          "paidAt" = EXCLUDED."paidAt",
+          "sentAt" = EXCLUDED."sentAt",
+          "updatedAt" = EXCLUDED."updatedAt";
+      `;
+      await executeInsForgeSql(sql);
+
+      if (Array.isArray(record.lineItems)) {
+        for (const item of record.lineItems) {
+          const itemSql = `
+            INSERT INTO "InvoiceLineItem" ("id", "invoiceId", "category", "description", "quantity", "unitPriceCents", "totalCents", "sortOrder")
+            VALUES (
+              ${escapeSql(item.id)},
+              ${escapeSql(record.id)},
+              ${escapeSql(item.category || 'MOVING_SERVICE')},
+              ${escapeSql(item.description || 'Service Line Item')},
+              ${Number(item.quantity) || 1},
+              ${item.unitPriceCents || 0},
+              ${item.totalCents || 0},
+              ${item.sortOrder || 1}
+            )
+            ON CONFLICT ("id") DO UPDATE SET
+              "description" = EXCLUDED."description",
+              "quantity" = EXCLUDED."quantity",
+              "unitPriceCents" = EXCLUDED."unitPriceCents",
+              "totalCents" = EXCLUDED."totalCents";
+          `;
+          await executeInsForgeSql(itemSql);
+        }
+      }
+      return { success: true };
+    }
+
     return { success: true };
   } catch (err) {
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Unknown InsForge database error',
     };
+  }
+}
+
+let invoiceTablesChecked = false;
+async function ensureInvoiceTablesExist() {
+  if (invoiceTablesChecked) return;
+  try {
+    const ddl = `
+      CREATE TABLE IF NOT EXISTS "Invoice" (
+        "id" text PRIMARY KEY,
+        "invoiceNumber" text NOT NULL UNIQUE,
+        "bookingId" text,
+        "quoteId" text,
+        "jobRequestId" text,
+        "customerId" text NOT NULL,
+        "customerName" text,
+        "customerEmail" text,
+        "customerPhone" text,
+        "customerAddress" text,
+        "serviceType" text NOT NULL,
+        "serviceCategory" text NOT NULL DEFAULT 'MOVING',
+        "status" text NOT NULL DEFAULT 'DRAFT',
+        "issueDate" text NOT NULL,
+        "dueDate" text NOT NULL,
+        "completionDate" text,
+        "subtotalCents" integer NOT NULL DEFAULT 0,
+        "discountCents" integer NOT NULL DEFAULT 0,
+        "taxRatePercent" double precision NOT NULL DEFAULT 5.0,
+        "taxCents" integer NOT NULL DEFAULT 0,
+        "totalCents" integer NOT NULL DEFAULT 0,
+        "depositPaidCents" integer NOT NULL DEFAULT 0,
+        "amountPaidCents" integer NOT NULL DEFAULT 0,
+        "balanceDueCents" integer NOT NULL DEFAULT 0,
+        "paymentMethod" text DEFAULT 'INTERAC_E_TRANSFER',
+        "paymentReference" text,
+        "paidAt" timestamp without time zone,
+        "paymentTerms" text DEFAULT 'Payment Due Upon Completion of Service',
+        "notesAndInstructions" text,
+        "sentAt" timestamp without time zone,
+        "recipientEmail" text,
+        "createdAt" timestamp without time zone NOT NULL DEFAULT NOW(),
+        "updatedAt" timestamp without time zone NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS "InvoiceLineItem" (
+        "id" text PRIMARY KEY,
+        "invoiceId" text NOT NULL,
+        "category" text NOT NULL DEFAULT 'MOVING_SERVICE',
+        "description" text NOT NULL,
+        "quantity" double precision NOT NULL DEFAULT 1,
+        "unitPriceCents" integer NOT NULL DEFAULT 0,
+        "totalCents" integer NOT NULL DEFAULT 0,
+        "sortOrder" integer NOT NULL DEFAULT 1
+      );
+    `;
+    await executeInsForgeSql(ddl);
+    invoiceTablesChecked = true;
+  } catch {
+    // Ignore schema creation warnings
   }
 }
 
@@ -422,17 +567,22 @@ export async function pullRemoteRecordsFromInsForge(): Promise<{
   leads: any[];
   jobRequests: any[];
   quotes: any[];
+  invoices: any[];
   bookings: any[];
 } | null> {
   try {
-    const [custRes, leadsRes, jobsRes, quotesRes, lineItemsRes, bookingsRes] = await Promise.all([
-      executeInsForgeSql('SELECT * FROM "Customer" ORDER BY "createdAt" DESC LIMIT 200;'),
-      executeInsForgeSql('SELECT * FROM "Lead" ORDER BY "createdAt" DESC LIMIT 200;'),
-      executeInsForgeSql('SELECT * FROM "JobRequest" ORDER BY "createdAt" DESC LIMIT 200;'),
-      executeInsForgeSql('SELECT * FROM "Quote" ORDER BY "createdAt" DESC LIMIT 200;'),
-      executeInsForgeSql('SELECT * FROM "QuoteLineItem" ORDER BY "sortOrder" ASC LIMIT 500;'),
-      executeInsForgeSql('SELECT * FROM "Booking" ORDER BY "createdAt" DESC LIMIT 200;'),
-    ]);
+    await ensureInvoiceTablesExist();
+    const [custRes, leadsRes, jobsRes, quotesRes, lineItemsRes, bookingsRes, invRes, invItemsRes] =
+      await Promise.all([
+        executeInsForgeSql('SELECT * FROM "Customer" ORDER BY "createdAt" DESC LIMIT 200;'),
+        executeInsForgeSql('SELECT * FROM "Lead" ORDER BY "createdAt" DESC LIMIT 200;'),
+        executeInsForgeSql('SELECT * FROM "JobRequest" ORDER BY "createdAt" DESC LIMIT 200;'),
+        executeInsForgeSql('SELECT * FROM "Quote" ORDER BY "createdAt" DESC LIMIT 200;'),
+        executeInsForgeSql('SELECT * FROM "QuoteLineItem" ORDER BY "sortOrder" ASC LIMIT 500;'),
+        executeInsForgeSql('SELECT * FROM "Booking" ORDER BY "createdAt" DESC LIMIT 200;'),
+        executeInsForgeSql('SELECT * FROM "Invoice" ORDER BY "createdAt" DESC LIMIT 200;'),
+        executeInsForgeSql('SELECT * FROM "InvoiceLineItem" ORDER BY "sortOrder" ASC LIMIT 500;'),
+      ]);
 
     // Attach line items to quotes
     const quotesWithItems = quotesRes.rows.map((q: any) => {
@@ -443,11 +593,21 @@ export async function pullRemoteRecordsFromInsForge(): Promise<{
       };
     });
 
+    // Attach line items to invoices
+    const invoicesWithItems = invRes.rows.map((inv: any) => {
+      const items = invItemsRes.rows.filter((li: any) => li.invoiceId === inv.id);
+      return {
+        ...inv,
+        lineItems: items.length > 0 ? items : inv.lineItems || [],
+      };
+    });
+
     return {
       customers: custRes.rows,
       leads: leadsRes.rows,
       jobRequests: jobsRes.rows,
       quotes: quotesWithItems,
+      invoices: invoicesWithItems,
       bookings: bookingsRes.rows,
     };
   } catch (err) {

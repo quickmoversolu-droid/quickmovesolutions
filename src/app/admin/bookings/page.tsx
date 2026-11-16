@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   Calendar as CalendarIcon,
@@ -12,6 +13,7 @@ import {
   CheckCircle2,
   MapPin,
   ShieldAlert,
+  Receipt,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -586,6 +588,13 @@ function BookingsAndCalendarContent() {
                   >
                     Complete
                   </Button>
+                  <Link
+                    href={`/admin/invoices?bookingId=${bkg.id}`}
+                    className="inline-flex items-center gap-1 rounded-xl border border-brand-navy/20 bg-brand-light px-2.5 py-1 text-xs font-bold text-brand-navy hover:bg-brand-navy hover:text-white"
+                  >
+                    <Receipt className="h-3.5 w-3.5 text-brand-orange" />
+                    Invoice
+                  </Link>
                 </div>
               </div>
             );

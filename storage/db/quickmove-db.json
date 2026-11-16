@@ -1359,7 +1359,10 @@
       "arrivalWindow": "8:30 AM – 10:30 AM Arrival",
       "pickupAddress": "Calgary, AB",
       "pickupCity": "Calgary",
-      "crewMemberIds": ["emp_2", "emp_3"],
+      "crewMemberIds": [
+        "emp_2",
+        "emp_3"
+      ],
       "dispatchNotes": "Confirmed online upon digital quote acceptance by Ajibade Monsuru Adekunle (Quote Q-2026-1003).",
       "createdAt": "2026-11-12T03:00:00.000Z",
       "updatedAt": "2026-11-12T16:38:00.000Z"
@@ -2727,5 +2730,71 @@
     "requireOwnerMarketingApproval": true,
     "updatedAt": "2026-11-01T08:00:00.000Z"
   },
-  "finishedJobs": []
+  "finishedJobs": [],
+  "invoices": [
+    {
+      "id": "inv_seed_1",
+      "invoiceNumber": "INV-2026-1001",
+      "bookingId": "bkg_seed_1",
+      "quoteId": "quo_seed_1",
+      "jobRequestId": "job_seed_1",
+      "customerId": "cust_seed_1",
+      "customerName": "Michael Henderson",
+      "customerEmail": "m.henderson.yyc@example.com",
+      "customerPhone": "(403) 555-0192",
+      "customerAddress": "1420 Memorial Dr NW, Calgary, AB",
+      "serviceType": "moving:residential",
+      "serviceCategory": "MOVING",
+      "status": "PAID",
+      "issueDate": "2026-11-08",
+      "dueDate": "2026-11-08",
+      "completionDate": "2026-11-08",
+      "lineItems": [
+        {
+          "id": "ili_1",
+          "category": "MOVING_SERVICE",
+          "description": "Professional Moving Crew & Equipped 20ft Truck (6.5 hrs)",
+          "quantity": 6.5,
+          "unitPriceCents": 17500,
+          "totalCents": 113750,
+          "sortOrder": 1
+        },
+        {
+          "id": "ili_2",
+          "category": "MATERIALS",
+          "description": "Mattress Bags, Shrink Wrap & Floor Protection Package",
+          "quantity": 1,
+          "unitPriceCents": 6500,
+          "totalCents": 6500,
+          "sortOrder": 2
+        },
+        {
+          "id": "ili_3",
+          "category": "PACKING_UNPACKING",
+          "description": "Partial Kitchen & Fragile Packing Service",
+          "quantity": 1,
+          "unitPriceCents": 19250,
+          "totalCents": 19250,
+          "sortOrder": 3
+        }
+      ],
+      "subtotalCents": 139500,
+      "discountCents": 0,
+      "taxRatePercent": 5,
+      "taxCents": 6975,
+      "totalCents": 146475,
+      "depositPaidCents": 15000,
+      "amountPaidCents": 146475,
+      "balanceDueCents": 0,
+      "paymentMethod": "INTERAC_E_TRANSFER",
+      "paymentReference": "EMT-20261108-98421",
+      "paidAt": "2026-11-08T15:30:00.000Z",
+      "paymentTerms": "Payment Due Upon Completion of Service",
+      "notesAndInstructions": "Interac E-Transfer sent to quickmoversolu@gmail.com. Paid in full upon move completion. Thank you for choosing QuickMove Solutions!",
+      "sentAt": "2026-11-08T15:45:00.000Z",
+      "recipientEmail": "m.henderson.yyc@example.com",
+      "createdAt": "2026-11-08T15:30:00.000Z",
+      "updatedAt": "2026-11-08T15:30:00.000Z"
+    }
+  ]
 }

@@ -27,6 +27,7 @@ import {
   X,
   CheckCircle2,
   Camera,
+  Receipt,
 } from 'lucide-react';
 import { BUSINESS_INFO } from '@/lib/constants/business';
 import { BrandLogo } from '@/components/layout/BrandLogo';
@@ -66,6 +67,12 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: 'Quotations',
     href: '/admin/quotes',
     icon: FileText,
+    roles: ['OWNER', 'ADMIN', 'COORDINATOR'],
+  },
+  {
+    label: 'Invoices & Billing',
+    href: '/admin/invoices',
+    icon: Receipt,
     roles: ['OWNER', 'ADMIN', 'COORDINATOR'],
   },
   {
@@ -129,6 +136,7 @@ const QUICK_SEARCH_LINKS = [
   { label: 'Dispatch Calendar & Bookings', href: '/admin/bookings', category: 'Dispatch' },
   { label: 'Active Jobs & Operational Checklists', href: '/admin/jobs', category: 'Operations' },
   { label: 'Quotations & Printable PDF Builder', href: '/admin/quotes', category: 'Sales' },
+  { label: 'Invoices & Official Billing (Interac & PDF Generation)', href: '/admin/invoices', category: 'Finance' },
   { label: 'Customer Directory & History', href: '/admin/customers', category: 'CRM' },
   { label: 'Fleet Vehicles & Moving Crews', href: '/admin/resources', category: 'Fleet' },
   { label: 'Finished Jobs & Media Portfolio (Upload Photos & Banners)', href: '/admin/finished-jobs', category: 'Portfolio & Media' },

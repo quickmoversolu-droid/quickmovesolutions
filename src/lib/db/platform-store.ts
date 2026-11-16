@@ -272,6 +272,61 @@ export interface QuoteRecord {
   updatedAt: string;
 }
 
+export type InvoicePaymentStatus =
+  | 'DRAFT'
+  | 'ISSUED'
+  | 'PAID'
+  | 'PARTIALLY_PAID'
+  | 'OVERDUE'
+  | 'CANCELLED';
+
+export interface InvoiceLineItemRecord {
+  id: string;
+  category: QuoteLineItemRecord['category'];
+  description: string;
+  quantity: number;
+  unitPriceCents: number;
+  totalCents: number;
+  sortOrder: number;
+}
+
+export interface InvoiceRecord {
+  id: string;
+  invoiceNumber: string; // e.g. INV-2026-1001
+  bookingId?: string;
+  quoteId?: string;
+  jobRequestId?: string;
+  customerId: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  serviceType: string;
+  serviceCategory: 'MOVING' | 'JUNK_REMOVAL' | 'DELIVERY';
+  status: InvoicePaymentStatus;
+  issueDate: string; // YYYY-MM-DD
+  dueDate: string; // YYYY-MM-DD
+  completionDate?: string;
+  lineItems: InvoiceLineItemRecord[];
+  subtotalCents: number;
+  discountCents: number;
+  taxRatePercent: number; // 5.0 for Alberta GST
+  taxCents: number;
+  totalCents: number;
+  depositPaidCents: number;
+  amountPaidCents: number;
+  balanceDueCents: number;
+  paymentMethod?: 'INTERAC_E_TRANSFER' | 'CREDIT_CARD' | 'CASH' | 'DIRECT_DEPOSIT' | 'OTHER';
+  paymentReference?: string;
+  paidAt?: string;
+  paymentTerms: string;
+  notesAndInstructions: string;
+  sentAt?: string;
+  recipientEmail?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface BookingRecord {
   id: string;
   bookingNumber: string;
@@ -472,6 +527,7 @@ export interface PlatformDatabaseState {
   jobPhotos: JobPhotoRecord[];
   jobChecklists: JobChecklistRecord[];
   quotes: QuoteRecord[];
+  invoices: InvoiceRecord[];
   bookings: BookingRecord[];
   employees: EmployeeRecord[];
   teams: TeamRecord[];
@@ -1739,6 +1795,74 @@ function createInitialSeedState(): PlatformDatabaseState {
     updatedAt: now,
   };
 
+  const invoices: InvoiceRecord[] = [
+    {
+      id: 'inv_seed_1',
+      invoiceNumber: 'INV-2026-1001',
+      bookingId: 'bkg_seed_1',
+      quoteId: 'quo_seed_1',
+      jobRequestId: 'job_seed_1',
+      customerId: 'cust_seed_1',
+      customerName: 'Michael Henderson',
+      customerEmail: 'm.henderson.yyc@example.com',
+      customerPhone: '(403) 555-0192',
+      customerAddress: '1420 Memorial Dr NW, Calgary, AB',
+      serviceType: 'moving:residential',
+      serviceCategory: 'MOVING',
+      status: 'PAID',
+      issueDate: '2026-11-08',
+      dueDate: '2026-11-08',
+      completionDate: '2026-11-08',
+      lineItems: [
+        {
+          id: 'ili_1',
+          category: 'MOVING_SERVICE',
+          description: 'Professional Moving Crew & Equipped 20ft Truck (6.5 hrs)',
+          quantity: 6.5,
+          unitPriceCents: 17500,
+          totalCents: 113750,
+          sortOrder: 1,
+        },
+        {
+          id: 'ili_2',
+          category: 'MATERIALS',
+          description: 'Mattress Bags, Shrink Wrap & Floor Protection Package',
+          quantity: 1,
+          unitPriceCents: 6500,
+          totalCents: 6500,
+          sortOrder: 2,
+        },
+        {
+          id: 'ili_3',
+          category: 'PACKING_UNPACKING',
+          description: 'Partial Kitchen & Fragile Packing Service',
+          quantity: 1,
+          unitPriceCents: 19250,
+          totalCents: 19250,
+          sortOrder: 3,
+        },
+      ],
+      subtotalCents: 139500,
+      discountCents: 0,
+      taxRatePercent: 5.0,
+      taxCents: 6975,
+      totalCents: 146475,
+      depositPaidCents: 15000,
+      amountPaidCents: 146475,
+      balanceDueCents: 0,
+      paymentMethod: 'INTERAC_E_TRANSFER',
+      paymentReference: 'EMT-20261108-98421',
+      paidAt: '2026-11-08T15:30:00.000Z',
+      paymentTerms: 'Payment Due Upon Completion of Service',
+      notesAndInstructions:
+        'Interac E-Transfer sent to quickmoversolu@gmail.com. Paid in full upon move completion. Thank you for choosing QuickMove Solutions!',
+      sentAt: '2026-11-08T15:45:00.000Z',
+      recipientEmail: 'm.henderson.yyc@example.com',
+      createdAt: '2026-11-08T15:30:00.000Z',
+      updatedAt: '2026-11-08T15:30:00.000Z',
+    },
+  ];
+
   const finishedJobs: FinishedJobRecord[] = [];
 
   return {
@@ -1750,6 +1874,7 @@ function createInitialSeedState(): PlatformDatabaseState {
     jobPhotos: [],
     jobChecklists,
     quotes,
+    invoices,
     bookings,
     employees,
     teams,
@@ -1815,6 +1940,7 @@ export function readPlatformStore(): PlatformDatabaseState {
       jobPhotos: Array.isArray(parsed.jobPhotos) ? parsed.jobPhotos : [],
       jobChecklists: Array.isArray(parsed.jobChecklists) ? parsed.jobChecklists : seed.jobChecklists,
       quotes: Array.isArray(parsed.quotes) ? parsed.quotes : seed.quotes,
+      invoices: Array.isArray(parsed.invoices) ? parsed.invoices : (seed.invoices || []),
       bookings: Array.isArray(parsed.bookings) ? parsed.bookings : seed.bookings,
       employees: Array.isArray(parsed.employees) ? parsed.employees : seed.employees,
       teams: Array.isArray(parsed.teams) ? parsed.teams : seed.teams,

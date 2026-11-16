@@ -14,6 +14,9 @@ import {
   LeadStatus,
   JobLifecycleStage,
   QuoteStatus,
+  InvoicePaymentStatus,
+  InvoiceRecord,
+  InvoiceLineItemRecord,
   BookingStatus,
   MarketingPostStatus,
   QuoteRecord,
@@ -93,6 +96,19 @@ export async function GET() {
         } else if (rb.updatedAt && (!db.bookings[existingIdx].updatedAt || rb.updatedAt > db.bookings[existingIdx].updatedAt)) {
           db.bookings[existingIdx] = { ...db.bookings[existingIdx], ...rb };
           changed = true;
+        }
+      }
+      if (Array.isArray(remote.invoices)) {
+        if (!db.invoices) db.invoices = [];
+        for (const ri of remote.invoices) {
+          const existingIdx = db.invoices.findIndex((inv) => inv.id === ri.id);
+          if (existingIdx === -1) {
+            db.invoices.unshift(ri);
+            changed = true;
+          } else if (ri.updatedAt && (!db.invoices[existingIdx].updatedAt || ri.updatedAt > db.invoices[existingIdx].updatedAt)) {
+            db.invoices[existingIdx] = { ...db.invoices[existingIdx], ...ri };
+            changed = true;
+          }
         }
       }
       if (changed) {
@@ -716,6 +732,301 @@ export async function POST(request: NextRequest) {
       logActivity('QUOTE', quote.id, `QUOTE_${status}`, `Quote ${quote.quoteNumber} marked as ${status}.`);
       writePlatformStore(db);
       return NextResponse.json({ ok: true, quote });
+    }
+
+    // 5.B CREATE INVOICE (With server-enforced Alberta GST calculations)
+    if (action === 'CREATE_INVOICE') {
+      if (!permissions.canManageQuotes && !permissions.canManageBookings) {
+        return NextResponse.json({ ok: false, error: 'Role cannot manage invoices.' }, { status: 403 });
+      }
+
+      if (!db.invoices) db.invoices = [];
+
+      const {
+        customerId,
+        bookingId,
+        quoteId,
+        jobRequestId,
+        serviceType,
+        serviceCategory,
+        issueDate,
+        dueDate,
+        completionDate,
+        lineItems,
+        discountCents,
+        depositPaidCents,
+        amountPaidCents,
+        paymentMethod,
+        paymentReference,
+        paymentTerms,
+        notesAndInstructions,
+        sendImmediately,
+        customerEmail: overrideEmail,
+      } = body;
+
+      const customer = db.customers.find((c) => c.id === customerId) || db.customers[0];
+      const targetEmail = (overrideEmail || customer?.email || '').trim();
+
+      const rawItems = Array.isArray(lineItems) ? lineItems : [];
+      let subtotal = 0;
+      const computedItems: InvoiceLineItemRecord[] = rawItems.map((item: any, idx: number) => {
+        const qty = Number(item.quantity) || 1;
+        const rate = Math.round(Number(item.unitPriceCents) || 0);
+        const itemTotal = Math.round(qty * rate);
+        subtotal += itemTotal;
+        return {
+          id: item.id || `ili_${crypto.randomBytes(4).toString('hex')}`,
+          category: item.category || 'MOVING_SERVICE',
+          description: item.description || 'Service Line Item',
+          quantity: qty,
+          unitPriceCents: rate,
+          totalCents: itemTotal,
+          sortOrder: idx + 1,
+        };
+      });
+
+      const discount = Math.max(0, Math.round(Number(discountCents) || 0));
+      const adjustedSubtotal = Math.max(0, subtotal - discount);
+      const taxRate = db.settings.albertaGstPercent || 5.0;
+      const tax = Math.round(adjustedSubtotal * (taxRate / 100));
+      const grandTotal = adjustedSubtotal + tax;
+
+      const depositPaid = Math.max(0, Math.round(Number(depositPaidCents) || 0));
+      const directPaid = Math.max(0, Math.round(Number(amountPaidCents) || 0));
+      const totalPaid = depositPaid + directPaid;
+      const balanceDue = Math.max(0, grandTotal - totalPaid);
+
+      let invoiceStatus: InvoicePaymentStatus = 'DRAFT';
+      if (balanceDue === 0 && grandTotal > 0) {
+        invoiceStatus = 'PAID';
+      } else if (totalPaid > 0 && balanceDue > 0) {
+        invoiceStatus = 'PARTIALLY_PAID';
+      } else if (sendImmediately) {
+        invoiceStatus = 'ISSUED';
+      }
+
+      const invNumber = `INV-${new Date().getFullYear()}-${1001 + db.invoices.length}`;
+      const newInvoice: InvoiceRecord = {
+        id: `inv_${crypto.randomBytes(5).toString('hex')}`,
+        invoiceNumber: invNumber,
+        bookingId: bookingId || undefined,
+        quoteId: quoteId || undefined,
+        jobRequestId: jobRequestId || undefined,
+        customerId: customer?.id || customerId || 'cust_seed_1',
+        customerName: customer?.fullName || body.customerName || 'Valued Customer',
+        customerEmail: targetEmail || customer?.email,
+        customerPhone: customer?.phone || body.customerPhone,
+        customerAddress: customer?.address || body.customerAddress || 'Calgary, AB',
+        serviceType: serviceType || 'Moving & Delivery Service',
+        serviceCategory: serviceCategory || 'MOVING',
+        status: invoiceStatus,
+        issueDate: issueDate || now.slice(0, 10),
+        dueDate: dueDate || now.slice(0, 10),
+        completionDate: completionDate || now.slice(0, 10),
+        lineItems: computedItems,
+        subtotalCents: adjustedSubtotal,
+        discountCents: discount,
+        taxRatePercent: taxRate,
+        taxCents: tax,
+        totalCents: grandTotal,
+        depositPaidCents: depositPaid,
+        amountPaidCents: totalPaid,
+        balanceDueCents: balanceDue,
+        paymentMethod: paymentMethod || 'INTERAC_E_TRANSFER',
+        paymentReference: paymentReference || undefined,
+        paidAt: invoiceStatus === 'PAID' ? now : undefined,
+        paymentTerms: paymentTerms || 'Payment Due Upon Completion of Service',
+        notesAndInstructions:
+          notesAndInstructions ||
+          'Please send Interac E-Transfer to: quickmoversolu@gmail.com (Auto-Deposit is enabled). For questions or credit card payments, please call (587) 999-9565.',
+        sentAt: sendImmediately ? now : undefined,
+        recipientEmail: targetEmail || undefined,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      db.invoices.unshift(newInvoice);
+
+      // Cross-container InsForge persistence
+      try {
+        const { syncRecordToInsForge } = await import('@/lib/backend/insforge-service');
+        await syncRecordToInsForge('Invoice', newInvoice as any);
+      } catch (err) {
+        console.warn('[InsForge Invoice Sync Warning]:', err);
+      }
+
+      let emailDispatched = false;
+      let emailError: string | null = null;
+
+      if (sendImmediately && targetEmail) {
+        try {
+          const itemsSummary = computedItems
+            .map((item) => `• ${item.description}: ${item.quantity} x $${(item.unitPriceCents / 100).toFixed(2)} = $${(item.totalCents / 100).toFixed(2)} CAD`)
+            .join('\n');
+
+          const invoiceEmailHtml = generateEmailHtml({
+            title: `Official Invoice ${invNumber} from QuickMove Solutions`,
+            recipientName: customer?.fullName || 'Valued Customer',
+            contentParagraphs: [
+              `Hi ${customer?.fullName || 'Valued Customer'}, thank you for choosing QuickMove Solutions! Here is your official itemized invoice for your recent ${newInvoice.serviceType} service.`,
+              `Below is your itemized service summary:`,
+              itemsSummary,
+              newInvoice.balanceDueCents === 0
+                ? `<strong>Status: PAID IN FULL. Thank you for your payment!</strong>`
+                : `<strong>Balance Due: $${(newInvoice.balanceDueCents / 100).toFixed(2)} CAD</strong> (Due: ${newInvoice.dueDate})`,
+              `Payment Instructions:\n• Interac E-Transfer to: quickmoversolu@gmail.com\n• Direct questions or credit card processing: call ${BUSINESS_INFO.phoneDisplay}.`,
+            ],
+            detailsBox: [
+              { label: 'Invoice #', value: invNumber },
+              { label: 'Service', value: newInvoice.serviceType },
+              { label: 'Completion Date', value: newInvoice.completionDate || newInvoice.issueDate },
+              { label: 'Subtotal', value: `$${(newInvoice.subtotalCents / 100).toFixed(2)} CAD` },
+              { label: 'Alberta GST (5%)', value: `$${(newInvoice.taxCents / 100).toFixed(2)} CAD` },
+              { label: 'Total Amount', value: `$${(newInvoice.totalCents / 100).toFixed(2)} CAD` },
+              { label: 'Amount Paid', value: `$${(newInvoice.amountPaidCents / 100).toFixed(2)} CAD` },
+              { label: 'Balance Due', value: `$${(newInvoice.balanceDueCents / 100).toFixed(2)} CAD` },
+              { label: 'Status', value: newInvoice.status },
+            ],
+            ctaButton: {
+              label: 'View / Print Official Invoice PDF',
+              url: `${BUSINESS_INFO.website}/admin/invoices/${newInvoice.id}/pdf`,
+            },
+          });
+
+          await sendEmailDirect({
+            to: targetEmail,
+            subject: `📄 [Official Invoice ${invNumber}] QuickMove Solutions — $${(newInvoice.totalCents / 100).toFixed(2)} CAD`,
+            html: invoiceEmailHtml,
+          });
+
+          emailDispatched = true;
+          newInvoice.sentAt = now;
+        } catch (err) {
+          emailError = err instanceof Error ? err.message : 'Email dispatch failed';
+        }
+      }
+
+      logActivity('INVOICE', newInvoice.id, 'INVOICE_CREATED', `Invoice ${invNumber} generated for ${customer?.fullName || 'Customer'} ($${(newInvoice.totalCents / 100).toFixed(2)} CAD).`);
+      writePlatformStore(db);
+
+      return NextResponse.json({
+        ok: true,
+        invoice: newInvoice,
+        emailDispatched,
+        recipientEmail: targetEmail,
+        emailError: emailError || undefined,
+      });
+    }
+
+    // 5.C UPDATE INVOICE STATUS / MARK AS PAID
+    if (action === 'UPDATE_INVOICE_STATUS') {
+      const { invoiceId, status, amountPaidCents, paymentMethod, paymentReference } = body;
+      const invoice = (db.invoices || []).find((i) => i.id === invoiceId || i.invoiceNumber === invoiceId);
+      if (!invoice) {
+        return NextResponse.json({ ok: false, error: 'Invoice not found.' }, { status: 404 });
+      }
+
+      invoice.status = status || invoice.status;
+      if (typeof amountPaidCents === 'number') {
+        invoice.amountPaidCents = Math.round(amountPaidCents);
+        invoice.balanceDueCents = Math.max(0, invoice.totalCents - invoice.amountPaidCents);
+        if (invoice.balanceDueCents === 0) invoice.status = 'PAID';
+      } else if (status === 'PAID') {
+        invoice.amountPaidCents = invoice.totalCents;
+        invoice.balanceDueCents = 0;
+        invoice.paidAt = now;
+      }
+
+      if (paymentMethod) invoice.paymentMethod = paymentMethod;
+      if (paymentReference) invoice.paymentReference = paymentReference;
+      invoice.updatedAt = now;
+
+      try {
+        const { syncRecordToInsForge } = await import('@/lib/backend/insforge-service');
+        await syncRecordToInsForge('Invoice', invoice as any);
+      } catch (err) {
+        console.warn('[InsForge Invoice Status Update Warning]:', err);
+      }
+
+      logActivity('INVOICE', invoice.id, `INVOICE_${invoice.status}`, `Invoice ${invoice.invoiceNumber} updated to ${invoice.status}.`);
+      writePlatformStore(db);
+      return NextResponse.json({ ok: true, invoice });
+    }
+
+    // 5.D SEND INVOICE EMAIL
+    if (action === 'SEND_INVOICE_EMAIL') {
+      const { invoiceId, customerEmail: overrideEmail } = body;
+      const invoice = (db.invoices || []).find((i) => i.id === invoiceId || i.invoiceNumber === invoiceId);
+      if (!invoice) {
+        return NextResponse.json({ ok: false, error: 'Invoice not found.' }, { status: 404 });
+      }
+
+      const customer = db.customers.find((c) => c.id === invoice.customerId);
+      const targetEmail = (overrideEmail || invoice.recipientEmail || customer?.email || '').trim();
+
+      if (!targetEmail) {
+        return NextResponse.json({ ok: false, error: 'No recipient email specified.' }, { status: 400 });
+      }
+
+      const itemsSummary = (invoice.lineItems || [])
+        .map((item) => `• ${item.description}: ${item.quantity} x $${(item.unitPriceCents / 100).toFixed(2)} = $${(item.totalCents / 100).toFixed(2)} CAD`)
+        .join('\n');
+
+      const invoiceEmailHtml = generateEmailHtml({
+        title: `Official Invoice ${invoice.invoiceNumber} from QuickMove Solutions`,
+        recipientName: invoice.customerName || customer?.fullName || 'Valued Customer',
+        contentParagraphs: [
+          `Hi ${invoice.customerName || customer?.fullName || 'Valued Customer'}, thank you for choosing QuickMove Solutions! Here is your official itemized invoice for your ${invoice.serviceType} service.`,
+          `Below is your itemized service summary:`,
+          itemsSummary,
+          invoice.balanceDueCents === 0
+            ? `<strong>Status: PAID IN FULL. Thank you for your business!</strong>`
+            : `<strong>Balance Due: $${(invoice.balanceDueCents / 100).toFixed(2)} CAD</strong> (Due: ${invoice.dueDate})`,
+          `Payment Instructions:\n• Interac E-Transfer to: quickmoversolu@gmail.com\n• Direct questions or credit card processing: call ${BUSINESS_INFO.phoneDisplay}.`,
+        ],
+        detailsBox: [
+          { label: 'Invoice #', value: invoice.invoiceNumber },
+          { label: 'Service', value: invoice.serviceType },
+          { label: 'Completion Date', value: invoice.completionDate || invoice.issueDate },
+          { label: 'Subtotal', value: `$${(invoice.subtotalCents / 100).toFixed(2)} CAD` },
+          { label: 'Alberta GST (5%)', value: `$${(invoice.taxCents / 100).toFixed(2)} CAD` },
+          { label: 'Total Amount', value: `$${(invoice.totalCents / 100).toFixed(2)} CAD` },
+          { label: 'Amount Paid', value: `$${(invoice.amountPaidCents / 100).toFixed(2)} CAD` },
+          { label: 'Balance Due', value: `$${(invoice.balanceDueCents / 100).toFixed(2)} CAD` },
+          { label: 'Status', value: invoice.status },
+        ],
+        ctaButton: {
+          label: 'View / Print Official Invoice PDF',
+          url: `${BUSINESS_INFO.website}/admin/invoices/${invoice.id}/pdf`,
+        },
+      });
+
+      await sendEmailDirect({
+        to: targetEmail,
+        subject: `📄 [Official Invoice ${invoice.invoiceNumber}] QuickMove Solutions — $${(invoice.totalCents / 100).toFixed(2)} CAD`,
+        html: invoiceEmailHtml,
+      });
+
+      invoice.sentAt = now;
+      invoice.status = invoice.status === 'DRAFT' ? 'ISSUED' : invoice.status;
+      invoice.recipientEmail = targetEmail;
+      invoice.updatedAt = now;
+
+      writePlatformStore(db);
+      return NextResponse.json({ ok: true, invoice, emailDispatched: true, recipientEmail: targetEmail });
+    }
+
+    // 5.E DELETE INVOICE
+    if (action === 'DELETE_INVOICE') {
+      const { invoiceId } = body;
+      const idx = (db.invoices || []).findIndex((i) => i.id === invoiceId || i.invoiceNumber === invoiceId);
+      if (idx === -1) {
+        return NextResponse.json({ ok: false, error: 'Invoice not found.' }, { status: 404 });
+      }
+      const removed = db.invoices.splice(idx, 1)[0];
+      logActivity('INVOICE', removed.id, 'INVOICE_DELETED', `Invoice ${removed.invoiceNumber} deleted.`);
+      writePlatformStore(db);
+      return NextResponse.json({ ok: true, removedId: removed.id });
     }
 
     // 6. CREATE OR UPDATE BOOKING WITH DOUBLE-BOOKING CONFLICT DETECTION
