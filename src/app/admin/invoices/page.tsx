@@ -290,14 +290,16 @@ function InvoicesManagerContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'CREATE_INVOICE',
+          ...payload,
           payload,
         }),
       });
 
       const data = await res.json();
       if (data.ok) {
+        const inv = data.invoice || data.data || data;
         setFeedback({
-          text: `Invoice ${data.data.invoiceNumber} created successfully! ${
+          text: `Invoice ${inv?.invoiceNumber || ''} created successfully! ${
             sendEmailDirectly ? 'Email dispatched to client.' : ''
           }`,
           type: 'success',
@@ -307,8 +309,9 @@ function InvoicesManagerContent() {
       } else {
         setFeedback({ text: data.error || 'Failed to create invoice.', type: 'error' });
       }
-    } catch {
-      setFeedback({ text: 'Network error saving invoice.', type: 'error' });
+    } catch (err: any) {
+      console.error('[Create Invoice Error]:', err);
+      setFeedback({ text: err?.message || 'Network error saving invoice.', type: 'error' });
     } finally {
       setIsSubmitting(false);
     }
@@ -322,6 +325,8 @@ function InvoicesManagerContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'UPDATE_INVOICE_STATUS',
+          invoiceId,
+          status: newStatus,
           payload: {
             invoiceId,
             status: newStatus,
@@ -332,8 +337,11 @@ function InvoicesManagerContent() {
       if (data.ok) {
         setFeedback({ text: `Invoice marked as ${newStatus}`, type: 'success' });
         await loadData();
+      } else {
+        setFeedback({ text: data.error || 'Failed to update invoice status.', type: 'error' });
       }
-    } catch {
+    } catch (err: any) {
+      console.error('[Update Status Error]:', err);
       setFeedback({ text: 'Failed to update invoice status.', type: 'error' });
     }
   };
@@ -347,17 +355,20 @@ function InvoicesManagerContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'SEND_INVOICE_EMAIL',
+          invoiceId,
           payload: { invoiceId },
         }),
       });
       const data = await res.json();
       if (data.ok) {
-        setFeedback({ text: `Invoice emailed to ${data.data?.recipientEmail}`, type: 'success' });
+        const target = data.recipientEmail || data.data?.recipientEmail || 'client';
+        setFeedback({ text: `Invoice emailed to ${target}`, type: 'success' });
         await loadData();
       } else {
         setFeedback({ text: data.error || 'Email dispatch failed.', type: 'error' });
       }
-    } catch {
+    } catch (err: any) {
+      console.error('[Send Email Error]:', err);
       setFeedback({ text: 'Failed to dispatch email.', type: 'error' });
     } finally {
       setSendingEmailId(null);
@@ -1100,3 +1111,4 @@ export default function AdminInvoicesPage() {
     </Suspense>
   );
 }
+

@@ -92,17 +92,20 @@ export default function BrandedInvoicePdfDocumentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'SEND_INVOICE_EMAIL',
+          invoiceId: invoice.id,
           payload: { invoiceId: invoice.id },
         }),
       });
       const data = await res.json();
       if (data.ok) {
-        setEmailStatus('Invoice successfully emailed to ' + (data.data?.recipientEmail || clientEmail));
+        const target = data.recipientEmail || data.data?.recipientEmail || clientEmail;
+        setEmailStatus('Invoice successfully emailed to ' + target);
       } else {
         setEmailStatus('Failed to send email: ' + (data.error || 'Server error'));
       }
-    } catch {
-      setEmailStatus('Network error while dispatching invoice email.');
+    } catch (err: any) {
+      console.error('[Send Invoice Email Error]:', err);
+      setEmailStatus('Network error while dispatching invoice email: ' + (err?.message || ''));
     } finally {
       setIsSendingEmail(false);
     }
@@ -441,3 +444,4 @@ export default function BrandedInvoicePdfDocumentPage() {
     </div>
   );
 }
+

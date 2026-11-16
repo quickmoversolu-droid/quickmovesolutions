@@ -742,6 +742,7 @@ export async function POST(request: NextRequest) {
 
       if (!db.invoices) db.invoices = [];
 
+      const params = body.payload || body;
       const {
         customerId,
         bookingId,
@@ -761,10 +762,47 @@ export async function POST(request: NextRequest) {
         paymentTerms,
         notesAndInstructions,
         sendImmediately,
-        customerEmail: overrideEmail,
-      } = body;
+        sendEmail,
+        customerName: directCustomerName,
+        customerPhone: directCustomerPhone,
+        customerAddress: directCustomerAddress,
+      } = params;
 
-      const customer = db.customers.find((c) => c.id === customerId) || db.customers[0];
+      const overrideEmail = (params.customerEmail || params.recipientEmail || '').trim();
+      const overrideName = (directCustomerName || '').trim();
+      const overridePhone = (directCustomerPhone || '').trim();
+      const overrideAddress = (directCustomerAddress || '').trim();
+
+      let customer = customerId ? db.customers.find((c) => c.id === customerId) : undefined;
+      if (!customer && overrideEmail) {
+        customer = db.customers.find((c) => c.email.toLowerCase() === overrideEmail.toLowerCase());
+      }
+      if (!customer && (overrideName || overrideEmail)) {
+        const newCustId = `cust_${crypto.randomBytes(5).toString('hex')}`;
+        customer = {
+          id: newCustId,
+          fullName: overrideName || 'Valued Customer',
+          email: overrideEmail || `customer_${Date.now()}@quickmovesolutions.ca`,
+          phone: overridePhone || '(403) 555-0199',
+          preferredContact: 'email',
+          address: overrideAddress || 'Calgary, AB',
+          city: 'Calgary',
+          postalCode: 'T2P 1J9',
+          notes: 'Customer profile synthesized via Invoice Generator.',
+          portalPasscode: Math.floor(100000 + Math.random() * 900000).toString(),
+          createdAt: now,
+          updatedAt: now,
+        };
+        db.customers.unshift(customer);
+        try {
+          const { syncRecordToInsForge } = await import('@/lib/backend/insforge-service');
+          await syncRecordToInsForge('Customer', customer as any);
+        } catch {}
+      }
+      if (!customer) {
+        customer = db.customers[0];
+      }
+
       const targetEmail = (overrideEmail || customer?.email || '').trim();
 
       const rawItems = Array.isArray(lineItems) ? lineItems : [];
@@ -787,7 +825,7 @@ export async function POST(request: NextRequest) {
 
       const discount = Math.max(0, Math.round(Number(discountCents) || 0));
       const adjustedSubtotal = Math.max(0, subtotal - discount);
-      const taxRate = db.settings.albertaGstPercent || 5.0;
+      const taxRate = db.settings?.albertaGstPercent || 5.0;
       const tax = Math.round(adjustedSubtotal * (taxRate / 100));
       const grandTotal = adjustedSubtotal + tax;
 
@@ -796,12 +834,13 @@ export async function POST(request: NextRequest) {
       const totalPaid = depositPaid + directPaid;
       const balanceDue = Math.max(0, grandTotal - totalPaid);
 
-      let invoiceStatus: InvoicePaymentStatus = 'DRAFT';
+      const willSendImmediately = Boolean(sendImmediately || sendEmail);
+      let invoiceStatus: InvoicePaymentStatus = params.status || 'ISSUED';
       if (balanceDue === 0 && grandTotal > 0) {
         invoiceStatus = 'PAID';
       } else if (totalPaid > 0 && balanceDue > 0) {
         invoiceStatus = 'PARTIALLY_PAID';
-      } else if (sendImmediately) {
+      } else if (willSendImmediately) {
         invoiceStatus = 'ISSUED';
       }
 
@@ -813,10 +852,10 @@ export async function POST(request: NextRequest) {
         quoteId: quoteId || undefined,
         jobRequestId: jobRequestId || undefined,
         customerId: customer?.id || customerId || 'cust_seed_1',
-        customerName: customer?.fullName || body.customerName || 'Valued Customer',
+        customerName: overrideName || customer?.fullName || 'Valued Customer',
         customerEmail: targetEmail || customer?.email,
-        customerPhone: customer?.phone || body.customerPhone,
-        customerAddress: customer?.address || body.customerAddress || 'Calgary, AB',
+        customerPhone: overridePhone || customer?.phone,
+        customerAddress: overrideAddress || customer?.address || 'Calgary, AB',
         serviceType: serviceType || 'Moving & Delivery Service',
         serviceCategory: serviceCategory || 'MOVING',
         status: invoiceStatus,
@@ -839,7 +878,7 @@ export async function POST(request: NextRequest) {
         notesAndInstructions:
           notesAndInstructions ||
           'Please send Interac E-Transfer to: quickmoversolu@gmail.com (Auto-Deposit is enabled). For questions or credit card payments, please call (587) 999-9565.',
-        sentAt: sendImmediately ? now : undefined,
+        sentAt: willSendImmediately ? now : undefined,
         recipientEmail: targetEmail || undefined,
         createdAt: now,
         updatedAt: now,
@@ -858,7 +897,7 @@ export async function POST(request: NextRequest) {
       let emailDispatched = false;
       let emailError: string | null = null;
 
-      if (sendImmediately && targetEmail) {
+      if (willSendImmediately && targetEmail) {
         try {
           const itemsSummary = computedItems
             .map((item) => `• ${item.description}: ${item.quantity} x $${(item.unitPriceCents / 100).toFixed(2)} = $${(item.totalCents / 100).toFixed(2)} CAD`)
@@ -866,9 +905,9 @@ export async function POST(request: NextRequest) {
 
           const invoiceEmailHtml = generateEmailHtml({
             title: `Official Invoice ${invNumber} from QuickMove Solutions`,
-            recipientName: customer?.fullName || 'Valued Customer',
+            recipientName: newInvoice.customerName || 'Valued Customer',
             contentParagraphs: [
-              `Hi ${customer?.fullName || 'Valued Customer'}, thank you for choosing QuickMove Solutions! Here is your official itemized invoice for your recent ${newInvoice.serviceType} service.`,
+              `Hi ${newInvoice.customerName || 'Valued Customer'}, thank you for choosing QuickMove Solutions! Here is your official itemized invoice for your recent ${newInvoice.serviceType} service.`,
               `Below is your itemized service summary:`,
               itemsSummary,
               newInvoice.balanceDueCents === 0
@@ -906,12 +945,13 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      logActivity('INVOICE', newInvoice.id, 'INVOICE_CREATED', `Invoice ${invNumber} generated for ${customer?.fullName || 'Customer'} ($${(newInvoice.totalCents / 100).toFixed(2)} CAD).`);
+      logActivity('INVOICE', newInvoice.id, 'INVOICE_CREATED', `Invoice ${invNumber} generated for ${newInvoice.customerName} ($${(newInvoice.totalCents / 100).toFixed(2)} CAD).`);
       writePlatformStore(db);
 
       return NextResponse.json({
         ok: true,
         invoice: newInvoice,
+        data: newInvoice,
         emailDispatched,
         recipientEmail: targetEmail,
         emailError: emailError || undefined,
@@ -920,7 +960,8 @@ export async function POST(request: NextRequest) {
 
     // 5.C UPDATE INVOICE STATUS / MARK AS PAID
     if (action === 'UPDATE_INVOICE_STATUS') {
-      const { invoiceId, status, amountPaidCents, paymentMethod, paymentReference } = body;
+      const params = body.payload || body;
+      const { invoiceId, status, amountPaidCents, paymentMethod, paymentReference } = params;
       const invoice = (db.invoices || []).find((i) => i.id === invoiceId || i.invoiceNumber === invoiceId);
       if (!invoice) {
         return NextResponse.json({ ok: false, error: 'Invoice not found.' }, { status: 404 });
@@ -950,12 +991,13 @@ export async function POST(request: NextRequest) {
 
       logActivity('INVOICE', invoice.id, `INVOICE_${invoice.status}`, `Invoice ${invoice.invoiceNumber} updated to ${invoice.status}.`);
       writePlatformStore(db);
-      return NextResponse.json({ ok: true, invoice });
+      return NextResponse.json({ ok: true, invoice, data: invoice });
     }
 
     // 5.D SEND INVOICE EMAIL
     if (action === 'SEND_INVOICE_EMAIL') {
-      const { invoiceId, customerEmail: overrideEmail } = body;
+      const params = body.payload || body;
+      const { invoiceId, customerEmail: overrideEmail } = params;
       const invoice = (db.invoices || []).find((i) => i.id === invoiceId || i.invoiceNumber === invoiceId);
       if (!invoice) {
         return NextResponse.json({ ok: false, error: 'Invoice not found.' }, { status: 404 });
@@ -1013,12 +1055,19 @@ export async function POST(request: NextRequest) {
       invoice.updatedAt = now;
 
       writePlatformStore(db);
-      return NextResponse.json({ ok: true, invoice, emailDispatched: true, recipientEmail: targetEmail });
+      return NextResponse.json({
+        ok: true,
+        invoice,
+        data: { recipientEmail: targetEmail, invoice },
+        emailDispatched: true,
+        recipientEmail: targetEmail,
+      });
     }
 
     // 5.E DELETE INVOICE
     if (action === 'DELETE_INVOICE') {
-      const { invoiceId } = body;
+      const params = body.payload || body;
+      const { invoiceId } = params;
       const idx = (db.invoices || []).findIndex((i) => i.id === invoiceId || i.invoiceNumber === invoiceId);
       if (idx === -1) {
         return NextResponse.json({ ok: false, error: 'Invoice not found.' }, { status: 404 });
@@ -1026,7 +1075,7 @@ export async function POST(request: NextRequest) {
       const removed = db.invoices.splice(idx, 1)[0];
       logActivity('INVOICE', removed.id, 'INVOICE_DELETED', `Invoice ${removed.invoiceNumber} deleted.`);
       writePlatformStore(db);
-      return NextResponse.json({ ok: true, removedId: removed.id });
+      return NextResponse.json({ ok: true, removedId: removed.id, data: { id: removed.id } });
     }
 
     // 6. CREATE OR UPDATE BOOKING WITH DOUBLE-BOOKING CONFLICT DETECTION
