@@ -223,6 +223,10 @@ export interface LeadRecord {
 export interface QuoteLineItemRecord {
   id: string;
   category:
+    | 'MOVING_CREW'
+    | 'TRUCK_VEHICLE'
+    | 'MILEAGE'
+    | 'FUEL_SURCHARGE'
     | 'LABOUR'
     | 'MOVING_SERVICE'
     | 'PACKING_UNPACKING'

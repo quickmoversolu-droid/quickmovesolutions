@@ -16,6 +16,43 @@ import { Button } from '@/components/ui/Button';
 import { BUSINESS_INFO, JUNK_REMOVAL_DISCLAIMER } from '@/lib/constants/business';
 import type { PlatformDatabaseState } from '@/lib/db/platform-store';
 
+function formatCategoryLabel(category?: string): string {
+  switch (category) {
+    case 'MOVING_CREW':
+      return 'Moving Crew';
+    case 'TRUCK_VEHICLE':
+      return 'Equipped Truck';
+    case 'MILEAGE':
+      return 'Mileage';
+    case 'FUEL_SURCHARGE':
+      return 'Fuel Surcharge';
+    case 'MOVING_SERVICE':
+      return 'Crew & Truck';
+    case 'LABOUR':
+      return 'Labour';
+    case 'PACKING_UNPACKING':
+      return 'Packing';
+    case 'MATERIALS':
+      return 'Materials';
+    case 'JUNK_REMOVAL':
+      return 'Junk Removal';
+    case 'DISPOSAL_HANDLING':
+      return 'Disposal Fee';
+    case 'DELIVERY':
+      return 'Delivery';
+    case 'STAIRS_ACCESS':
+      return 'Access / Stairs';
+    case 'TRAVEL_DISTANCE':
+      return 'Travel';
+    case 'SPECIALTY_ITEM':
+      return 'Specialty Item';
+    case 'CUSTOM':
+      return 'Custom';
+    default:
+      return category?.replace(/_/g, ' ') || 'Service Item';
+  }
+}
+
 export default function BrandedQuotePdfDocumentPage() {
   const params = useParams();
   const quoteId = String(params?.id || '');
@@ -195,7 +232,7 @@ export default function BrandedQuotePdfDocumentPage() {
                 <tr key={item.id}>
                   <td className="py-3.5 px-4 font-mono text-brand-muted">{index + 1}</td>
                   <td className="py-3.5 px-4 font-mono text-[11px] font-bold text-brand-orange">
-                    {item.category}
+                    {formatCategoryLabel(item.category)}
                   </td>
                   <td className="py-3.5 px-4 font-medium text-brand-navy">{item.description}</td>
                   <td className="py-3.5 px-4 text-right">{item.quantity}</td>

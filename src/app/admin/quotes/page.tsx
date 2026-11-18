@@ -26,18 +26,24 @@ import type {
 const LINE_ITEM_CATEGORIES: {
   value: QuoteLineItemRecord['category'];
   label: string;
+  defaultDescription: string;
+  defaultUnitPrice: number;
 }[] = [
-  { value: 'MOVING_SERVICE', label: 'Moving Crew & Equipped Truck' },
-  { value: 'LABOUR', label: 'Additional Crew Labour' },
-  { value: 'PACKING_UNPACKING', label: 'Packing & Unpacking Service' },
-  { value: 'MATERIALS', label: 'Boxes & Protective Materials' },
-  { value: 'JUNK_REMOVAL', label: 'Junk Removal & Hauling' },
-  { value: 'DISPOSAL_HANDLING', label: 'Disposal / Recycling Transfer Fee' },
-  { value: 'DELIVERY', label: 'Furniture / Appliance Delivery' },
-  { value: 'STAIRS_ACCESS', label: 'Stairs / Elevator / Long-Walk Access' },
-  { value: 'TRAVEL_DISTANCE', label: 'Inter-City / Highway Travel' },
-  { value: 'SPECIALTY_ITEM', label: 'Heavy / Specialty Item Handling' },
-  { value: 'CUSTOM', label: 'Custom Line Item' },
+  { value: 'MOVING_CREW', label: 'Moving Crew (Labour)', defaultDescription: 'Professional Moving Crew (Hourly Labour)', defaultUnitPrice: 110 },
+  { value: 'TRUCK_VEHICLE', label: 'Equipped Moving Truck', defaultDescription: 'Equipped 20ft Moving Box Truck', defaultUnitPrice: 65 },
+  { value: 'MILEAGE', label: 'Mileage / Travel Distance', defaultDescription: 'Travel Mileage (Per km rate)', defaultUnitPrice: 1.5 },
+  { value: 'FUEL_SURCHARGE', label: 'Fuel / Fuel Surcharge', defaultDescription: 'Fuel Surcharge / Fuel Expense', defaultUnitPrice: 45 },
+  { value: 'MOVING_SERVICE', label: 'Moving Crew & Equipped Truck (Combo)', defaultDescription: 'Professional Moving Crew & Equipped Box Truck', defaultUnitPrice: 175 },
+  { value: 'LABOUR', label: 'Additional Crew Labour / Helper', defaultDescription: 'Additional Crew Labour / Helper', defaultUnitPrice: 55 },
+  { value: 'PACKING_UNPACKING', label: 'Packing & Unpacking Service', defaultDescription: 'Full Packing & Unpacking Service', defaultUnitPrice: 95 },
+  { value: 'MATERIALS', label: 'Boxes & Protective Materials', defaultDescription: 'Mattress Bags, Shrink Wrap & Floor Protection Package', defaultUnitPrice: 65 },
+  { value: 'JUNK_REMOVAL', label: 'Junk Removal & Hauling', defaultDescription: 'Junk Removal, Hauling & Loading Labour', defaultUnitPrice: 150 },
+  { value: 'DISPOSAL_HANDLING', label: 'Disposal / Recycling Transfer Fee', defaultDescription: 'City Landfill & Disposal Transfer Fee', defaultUnitPrice: 85 },
+  { value: 'DELIVERY', label: 'Furniture / Appliance Delivery', defaultDescription: 'White Glove Furniture / Appliance Delivery', defaultUnitPrice: 120 },
+  { value: 'STAIRS_ACCESS', label: 'Stairs / Elevator / Long-Walk Access', defaultDescription: 'Stairs / Long-Walk Access Handling Fee', defaultUnitPrice: 50 },
+  { value: 'TRAVEL_DISTANCE', label: 'Inter-City / Highway Travel', defaultDescription: 'Inter-City Highway Transit Fee', defaultUnitPrice: 100 },
+  { value: 'SPECIALTY_ITEM', label: 'Heavy / Specialty Item Handling', defaultDescription: 'Piano / Heavy Safe Specialty Handling', defaultUnitPrice: 150 },
+  { value: 'CUSTOM', label: 'Custom Line Item', defaultDescription: 'Custom Service Line Item', defaultUnitPrice: 95 },
 ];
 
 function QuotesManagerContent() {
@@ -74,13 +80,20 @@ function QuotesManagerContent() {
   >([
     {
       id: 'item_1',
-      category: 'MOVING_SERVICE',
-      description: 'Professional Moving Crew & Equipped Box Truck (Estimated Hours)',
+      category: 'MOVING_CREW',
+      description: 'Professional Moving Crew (Hourly Labour)',
       quantity: 4,
-      unitPriceDollars: 175,
+      unitPriceDollars: 110,
     },
     {
       id: 'item_2',
+      category: 'TRUCK_VEHICLE',
+      description: 'Equipped 20ft Moving Box Truck',
+      quantity: 4,
+      unitPriceDollars: 65,
+    },
+    {
+      id: 'item_3',
       category: 'MATERIALS',
       description: 'Mattress Bags, Shrink Wrap & Floor Runner Protection Package',
       quantity: 1,
@@ -157,10 +170,10 @@ function QuotesManagerContent() {
       ...prev,
       {
         id: `item_${Date.now()}`,
-        category: 'CUSTOM',
-        description: '',
+        category: 'MOVING_CREW',
+        description: 'Professional Moving Crew (Hourly Labour)',
         quantity: 1,
-        unitPriceDollars: 95,
+        unitPriceDollars: 110,
       },
     ]);
   };
@@ -472,8 +485,30 @@ function QuotesManagerContent() {
                       value={item.category}
                       onChange={(e) => {
                         const val = e.target.value as QuoteLineItemRecord['category'];
+                        const matching = LINE_ITEM_CATEGORIES.find((c) => c.value === val);
                         setLineItems((prev) =>
-                          prev.map((r, i) => (i === idx ? { ...r, category: val } : r))
+                          prev.map((r, i) => {
+                            if (i !== idx) return r;
+                            const isDefaultDesc =
+                              !r.description ||
+                              r.description.trim() === '' ||
+                              LINE_ITEM_CATEGORIES.some((c) => c.defaultDescription === r.description);
+                            const isDefaultPrice =
+                              r.unitPriceDollars === 0 ||
+                              LINE_ITEM_CATEGORIES.some((c) => c.defaultUnitPrice === r.unitPriceDollars);
+                            return {
+                              ...r,
+                              category: val,
+                              description:
+                                isDefaultDesc && matching?.defaultDescription
+                                  ? matching.defaultDescription
+                                  : r.description,
+                              unitPriceDollars:
+                                isDefaultPrice && matching?.defaultUnitPrice
+                                  ? matching.defaultUnitPrice
+                                  : r.unitPriceDollars,
+                            };
+                          })
                         );
                       }}
                       className="w-full rounded-xl border border-brand-navy/15 bg-white px-2.5 py-2 text-xs font-bold text-brand-navy"
