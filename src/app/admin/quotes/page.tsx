@@ -198,11 +198,8 @@ function QuotesManagerContent() {
     const activeJob = db?.jobRequests.find((j) => j.id === resolvedJobId || j.leadId === resolvedJobId);
     const activeLead = activeJob ? db?.leads.find((l) => l.id === activeJob.leadId) : undefined;
     const targetCustomer = activeJob ? db?.customers.find((c) => c.id === activeJob.customerId) : undefined;
-
-    if (sendImmediately && !recipientEmail.trim() && !targetCustomer?.email) {
-      setFeedback('⚠️ Customer email is required to send the quote directly. You can click "Save as Draft Quote" to save without emailing.');
-      return;
-    }
+    const effectiveEmail = (recipientEmail.trim() || targetCustomer?.email || '').trim();
+    const shouldSendDirectly = Boolean(sendImmediately && effectiveEmail);
 
     setIsSendingEmail(true);
 
@@ -215,7 +212,7 @@ function QuotesManagerContent() {
           jobRequestId: resolvedJobId,
           leadId: activeJob?.leadId || activeLead?.id,
           customerId: activeJob?.customerId || activeLead?.customerId,
-          customerEmail: recipientEmail.trim() || targetCustomer?.email,
+          customerEmail: effectiveEmail || undefined,
           proposedDate,
           proposedWindow,
           scopeSummary,
@@ -223,7 +220,7 @@ function QuotesManagerContent() {
           depositCents: Math.round((Number(depositDollars) || 0) * 100),
           validityDays,
           termsAndNotes,
-          sendImmediately,
+          sendImmediately: shouldSendDirectly,
           lineItems: lineItems.map((li, idx) => ({
             id: li.id,
             category: li.category,
@@ -236,7 +233,7 @@ function QuotesManagerContent() {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
-        if (sendImmediately) {
+        if (shouldSendDirectly) {
           if (data.emailDispatched) {
             setFeedback(
               `✅ Created Quote ${data.quote.quoteNumber} and sent directly to customer at ${data.recipientEmail}!`
@@ -248,6 +245,8 @@ function QuotesManagerContent() {
           } else {
             setFeedback(`Created Quote ${data.quote.quoteNumber} (Sent to Customer).`);
           }
+        } else if (sendImmediately && !effectiveEmail) {
+          setFeedback(`Created Quote ${data.quote.quoteNumber} (Saved successfully; email delivery was skipped because no email address was provided).`);
         } else {
           setFeedback(`Created Quote ${data.quote.quoteNumber} (Saved as Draft).`);
         }

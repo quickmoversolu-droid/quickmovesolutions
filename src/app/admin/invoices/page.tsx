@@ -275,13 +275,9 @@ function InvoicesManagerContent() {
 
   // Submit invoice
   const handleSaveInvoice = async (sendEmailDirectly = false) => {
-    if (sendEmailDirectly && !customerEmail?.trim()) {
-      setFeedback({
-        text: 'Customer email is required to send the invoice email directly. You can click "Save as Issued Invoice" to save without emailing.',
-        type: 'error',
-      });
-      return;
-    }
+    // Email is completely optional. If "Save & Email" is clicked without an email,
+    // we save the invoice as issued and simply skip the email dispatch without errors.
+    const shouldDispatchEmail = Boolean(sendEmailDirectly && customerEmail?.trim());
 
     setIsSubmitting(true);
     setFeedback(null);
@@ -290,10 +286,10 @@ function InvoicesManagerContent() {
       bookingId: selectedBookingId || undefined,
       quoteId: selectedQuoteId || undefined,
       customerId: customerId || undefined,
-      customerName: customerName || undefined,
-      customerEmail: customerEmail || undefined,
-      customerPhone: customerPhone || undefined,
-      customerAddress: customerAddress || undefined,
+      customerName: customerName?.trim() || undefined,
+      customerEmail: customerEmail?.trim() || undefined,
+      customerPhone: customerPhone?.trim() || undefined,
+      customerAddress: customerAddress?.trim() || undefined,
       serviceCategory,
       serviceType,
       status: sendEmailDirectly ? 'ISSUED' : status,
@@ -315,7 +311,7 @@ function InvoicesManagerContent() {
       paymentReference,
       paymentTerms,
       notesAndInstructions,
-      sendEmail: sendEmailDirectly,
+      sendEmail: shouldDispatchEmail,
     };
 
     try {
@@ -332,10 +328,14 @@ function InvoicesManagerContent() {
       const data = await res.json();
       if (data.ok) {
         const inv = data.invoice || data.data || data;
+        let successMessage = `Invoice ${inv?.invoiceNumber || ''} saved successfully!`;
+        if (shouldDispatchEmail) {
+          successMessage += ` Email dispatched to ${customerEmail.trim()}.`;
+        } else if (sendEmailDirectly && !customerEmail?.trim()) {
+          successMessage += ` (Saved as issued; email was skipped because no customer email address was provided).`;
+        }
         setFeedback({
-          text: `Invoice ${inv?.invoiceNumber || ''} created successfully! ${
-            sendEmailDirectly ? 'Email dispatched to client.' : ''
-          }`,
+          text: successMessage,
           type: 'success',
         });
         setShowBuilder(false);
@@ -616,12 +616,12 @@ function InvoicesManagerContent() {
             {/* Customer Details */}
             <div className="grid gap-4 sm:grid-cols-4 border-t border-white/10 pt-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Customer Full Name *</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Customer / Business Name</label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g. John Doe"
+                  placeholder="e.g. John Doe or Company"
                   className="w-full rounded-xl border border-white/15 bg-brand-charcoal/60 px-3 py-2 text-xs text-white focus:border-brand-orange focus:outline-none"
                 />
               </div>
@@ -631,7 +631,7 @@ function InvoicesManagerContent() {
                   type="email"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder="client@example.com (optional)"
+                  placeholder="Optional — leave blank if not emailing"
                   className="w-full rounded-xl border border-white/15 bg-brand-charcoal/60 px-3 py-2 text-xs text-white focus:border-brand-orange focus:outline-none"
                 />
               </div>

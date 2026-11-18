@@ -777,14 +777,14 @@ export async function POST(request: NextRequest) {
       if (!customer && overrideEmail) {
         customer = db.customers.find((c) => c.email.toLowerCase() === overrideEmail.toLowerCase());
       }
-      if (!customer && (overrideName || overrideEmail)) {
+      if (!customer) {
         const newCustId = `cust_${crypto.randomBytes(5).toString('hex')}`;
         customer = {
           id: newCustId,
           fullName: overrideName || 'Valued Customer',
-          email: overrideEmail || `customer_${Date.now()}@quickmovesolutions.ca`,
+          email: overrideEmail || '',
           phone: overridePhone || '(403) 555-0199',
-          preferredContact: 'email',
+          preferredContact: overrideEmail ? 'email' : 'phone',
           address: overrideAddress || 'Calgary, AB',
           city: 'Calgary',
           postalCode: 'T2P 1J9',
@@ -798,9 +798,6 @@ export async function POST(request: NextRequest) {
           const { syncRecordToInsForge } = await import('@/lib/backend/insforge-service');
           await syncRecordToInsForge('Customer', customer as any);
         } catch {}
-      }
-      if (!customer) {
-        customer = db.customers[0];
       }
 
       const targetEmail = (overrideEmail || customer?.email || '').trim();
