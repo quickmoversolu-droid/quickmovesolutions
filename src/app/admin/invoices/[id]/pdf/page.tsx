@@ -63,6 +63,8 @@ export default function BrandedInvoicePdfDocumentPage() {
   const [db, setDb] = useState<PlatformDatabaseState | null>(null);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState<string | null>(null);
+  const [isUpdatingType, setIsUpdatingType] = useState(false);
+  const [currentServiceType, setCurrentServiceType] = useState<string>('residential');
 
   useEffect(() => {
     fetch('/api/admin/platform')
@@ -70,9 +72,49 @@ export default function BrandedInvoicePdfDocumentPage() {
       .then((res) => {
         if (res.ok && res.data) {
           setDb(res.data);
+          const foundInv = res.data.invoices?.find(
+            (inv: any) => inv.id === invoiceId || inv.invoiceNumber === invoiceId
+          ) || res.data.invoices?.[0];
+          if (foundInv?.serviceType) {
+            setCurrentServiceType(foundInv.serviceType);
+          }
         }
       });
-  }, []);
+  }, [invoiceId]);
+
+  const handleUpdateServiceType = async (newType: string) => {
+    if (!invoice) return;
+    setIsUpdatingType(true);
+    setCurrentServiceType(newType);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_INVOICE_STATUS',
+          invoiceId: invoice.id,
+          serviceType: newType,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setDb((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            invoices: prev.invoices.map((inv) =>
+              inv.id === invoice.id ? { ...inv, serviceType: newType } : inv
+            ),
+          };
+        });
+        setEmailStatus(`Invoice service scope updated to ${newType === 'commercial' ? 'Commercial' : 'Residential'}.`);
+      }
+    } catch (err) {
+      console.error('[Update Service Type Error]:', err);
+    } finally {
+      setIsUpdatingType(false);
+    }
+  };
 
   if (!db) {
     return (
@@ -160,6 +202,18 @@ export default function BrandedInvoicePdfDocumentPage() {
           Back to Invoice Directory
         </Link>
         <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 rounded-xl border border-brand-navy/15 bg-white px-3 py-1.5 shadow-sm">
+            <span className="text-xs font-bold text-brand-navy">Service Scope:</span>
+            <select
+              value={currentServiceType.toLowerCase()}
+              onChange={(e) => handleUpdateServiceType(e.target.value)}
+              disabled={isUpdatingType}
+              className="rounded-lg border border-brand-navy/20 bg-brand-light px-2.5 py-1 text-xs font-bold text-brand-navy focus:border-brand-orange focus:outline-none"
+            >
+              <option value="residential">Residential</option>
+              <option value="commercial">Commercial</option>
+            </select>
+          </div>
           {clientEmail && (
             <Button
               type="button"
@@ -286,11 +340,25 @@ export default function BrandedInvoicePdfDocumentPage() {
             </div>
 
             <div className="rounded-2xl bg-brand-light p-4">
-              <p className="font-bold uppercase tracking-wider text-brand-muted">
-                Service &amp; Reference Details
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="font-bold uppercase tracking-wider text-brand-muted">
+                  Service &amp; Reference Details
+                </p>
+                <div className="print:hidden flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-slate-500">Change:</span>
+                  <select
+                    value={currentServiceType.toLowerCase()}
+                    onChange={(e) => handleUpdateServiceType(e.target.value)}
+                    disabled={isUpdatingType}
+                    className="rounded-lg border border-brand-navy/20 bg-white px-2 py-0.5 text-xs font-bold text-brand-navy focus:border-brand-orange focus:outline-none"
+                  >
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                  </select>
+                </div>
+              </div>
               <p className="mt-1 font-heading text-sm font-extrabold text-brand-navy">
-                Category: {invoice.serviceCategory} ({invoice.serviceType})
+                Category: {invoice.serviceCategory} ({currentServiceType.toLowerCase() === 'commercial' ? 'Commercial' : 'Residential'})
               </p>
               {booking && (
                 <p className="mt-1 text-brand-charcoal">

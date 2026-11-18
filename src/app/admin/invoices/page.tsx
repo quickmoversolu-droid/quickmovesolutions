@@ -658,7 +658,7 @@ function InvoicesManagerContent() {
             </div>
 
             {/* Dates & Categories */}
-            <div className="grid gap-4 sm:grid-cols-5 border-t border-white/10 pt-4">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 border-t border-white/10 pt-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">Service Category</label>
                 <select
@@ -669,6 +669,17 @@ function InvoicesManagerContent() {
                   <option value="MOVING">Moving Services</option>
                   <option value="JUNK_REMOVAL">Junk Removal</option>
                   <option value="DELIVERY">Delivery Services</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Service Scope</label>
+                <select
+                  value={serviceType}
+                  onChange={(e) => setServiceType(e.target.value)}
+                  className="w-full rounded-xl border border-white/15 bg-brand-charcoal/60 px-3 py-2 text-xs text-white focus:border-brand-orange focus:outline-none font-bold"
+                >
+                  <option value="residential">Residential</option>
+                  <option value="commercial">Commercial</option>
                 </select>
               </div>
               <div>
@@ -1038,8 +1049,11 @@ function InvoicesManagerContent() {
                         <span className="font-medium text-slate-300">
                           {inv.serviceCategory}
                         </span>
+                        <span className="block text-[10px] text-slate-400 capitalize">
+                          {inv.serviceType || 'residential'}
+                        </span>
                         {inv.bookingId && (
-                          <span className="block text-[10px] text-slate-400">
+                          <span className="block text-[10px] text-brand-orange/80">
                             Booking linked
                           </span>
                         )}

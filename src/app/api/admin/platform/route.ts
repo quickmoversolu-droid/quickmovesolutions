@@ -999,13 +999,15 @@ export async function POST(request: NextRequest) {
     // 5.C UPDATE INVOICE STATUS / MARK AS PAID
     if (action === 'UPDATE_INVOICE_STATUS') {
       const params = body.payload || body;
-      const { invoiceId, status, amountPaidCents, paymentMethod, paymentReference } = params;
+      const { invoiceId, status, amountPaidCents, paymentMethod, paymentReference, serviceType, serviceCategory } = params;
       const invoice = (db.invoices || []).find((i) => i.id === invoiceId || i.invoiceNumber === invoiceId);
       if (!invoice) {
         return NextResponse.json({ ok: false, error: 'Invoice not found.' }, { status: 404 });
       }
 
-      invoice.status = status || invoice.status;
+      if (status) invoice.status = status;
+      if (serviceType) invoice.serviceType = serviceType;
+      if (serviceCategory) invoice.serviceCategory = serviceCategory;
       if (typeof amountPaidCents === 'number') {
         invoice.amountPaidCents = Math.round(amountPaidCents);
         invoice.balanceDueCents = Math.max(0, invoice.totalCents - invoice.amountPaidCents);
