@@ -194,11 +194,17 @@ function QuotesManagerContent() {
 
   const handleCreateQuote = async (sendImmediately: boolean) => {
     setFeedback(null);
-    setIsSendingEmail(true);
     const resolvedJobId = jobRequestId || (db?.jobRequests[0]?.id ?? '');
     const activeJob = db?.jobRequests.find((j) => j.id === resolvedJobId || j.leadId === resolvedJobId);
     const activeLead = activeJob ? db?.leads.find((l) => l.id === activeJob.leadId) : undefined;
     const targetCustomer = activeJob ? db?.customers.find((c) => c.id === activeJob.customerId) : undefined;
+
+    if (sendImmediately && !recipientEmail.trim() && !targetCustomer?.email) {
+      setFeedback('⚠️ Customer email is required to send the quote directly. You can click "Save as Draft Quote" to save without emailing.');
+      return;
+    }
+
+    setIsSendingEmail(true);
 
     try {
       const res = await fetch('/api/admin/platform', {
@@ -411,11 +417,11 @@ function QuotesManagerContent() {
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-brand-navy">
-                Customer Email (Recipient) *
+                Customer Email (Optional)
               </label>
               <input
                 type="email"
-                placeholder="customer@email.com"
+                placeholder="customer@email.com (optional)"
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
                 className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy"

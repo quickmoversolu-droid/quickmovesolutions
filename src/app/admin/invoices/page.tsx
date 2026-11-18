@@ -275,8 +275,11 @@ function InvoicesManagerContent() {
 
   // Submit invoice
   const handleSaveInvoice = async (sendEmailDirectly = false) => {
-    if (!customerEmail && !customerId) {
-      setFeedback({ text: 'Customer or recipient email is required to issue an invoice.', type: 'error' });
+    if (sendEmailDirectly && !customerEmail?.trim()) {
+      setFeedback({
+        text: 'Customer email is required to send the invoice email directly. You can click "Save as Issued Invoice" to save without emailing.',
+        type: 'error',
+      });
       return;
     }
 
@@ -623,12 +626,12 @@ function InvoicesManagerContent() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Customer Email (Recipient) *</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Customer Email (Optional)</label>
                 <input
                   type="email"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder="client@example.com"
+                  placeholder="client@example.com (optional)"
                   className="w-full rounded-xl border border-white/15 bg-brand-charcoal/60 px-3 py-2 text-xs text-white focus:border-brand-orange focus:outline-none"
                 />
               </div>
