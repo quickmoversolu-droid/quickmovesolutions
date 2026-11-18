@@ -676,18 +676,16 @@ function QuotesManagerContent() {
               />
             </div>
 
-            <div className="rounded-2xl bg-brand-navy p-4 text-white text-xs space-y-1">
-              <div className="flex justify-between">
-                <span className="text-white/70">Subtotal:</span>
-                <span className="font-bold">${previewSubtotal.toFixed(2)}</span>
+            <div className="rounded-2xl bg-brand-navy p-4 text-white text-xs space-y-2">
+              <div className="flex justify-between items-center text-brand-orange font-bold">
+                <span>Deposit to Lock Date:</span>
+                <span className="font-heading text-base text-white">${depositDollars.toFixed(2)} CAD</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-white/70">Alberta GST (5%):</span>
-                <span className="font-bold">${previewTax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between border-t border-white/15 pt-1 text-sm font-extrabold text-brand-orange">
-                <span>Grand Total:</span>
-                <span>${previewTotal.toFixed(2)} CAD</span>
+              <div className="border-t border-white/10 pt-1.5 text-[11px] text-white/60 space-y-1">
+                <p className="font-semibold text-white/90">⏱️ Hourly Service Billing Model</p>
+                <p>
+                  No fixed grand total is displayed to the client so they understand charges depend on actual hours worked on move day.
+                </p>
               </div>
             </div>
           </div>
@@ -836,29 +834,20 @@ function QuotesManagerContent() {
                 </table>
               </div>
 
-              {/* Financial Breakdown */}
+              {/* Booking & Deposit Summary */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl bg-brand-navy p-5 text-white text-xs">
                 <div className="space-y-1">
-                  <p className="text-white/70">
-                    Subtotal: <strong>${(activeQuote.subtotalCents / 100).toFixed(2)} CAD</strong>
+                  <p className="font-bold text-white text-sm">
+                    Deposit to Confirm: <span className="text-brand-orange">${(activeQuote.depositCents / 100).toFixed(2)} CAD</span>
                   </p>
-                  {activeQuote.discountCents > 0 && (
-                    <p className="text-emerald-400">
-                      Discount: -${(activeQuote.discountCents / 100).toFixed(2)} CAD
-                    </p>
-                  )}
-                  <p className="text-white/70">
-                    Alberta GST ({activeQuote.taxRatePercent}%):{' '}
-                    <strong>${(activeQuote.taxCents / 100).toFixed(2)} CAD</strong>
+                  <p className="text-white/60 text-[11px] leading-relaxed">
+                    ⏱️ Billed on actual hours worked upon job completion (subject to 5% Alberta GST on final invoice).
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[11px] uppercase tracking-wider text-brand-orange font-bold">
-                    Server-Calculated Grand Total
-                  </p>
-                  <p className="font-heading text-2xl font-extrabold text-white">
-                    ${(activeQuote.totalCents / 100).toFixed(2)} CAD
-                  </p>
+                  <span className="inline-block rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white">
+                    Status: {activeQuote.status}
+                  </span>
                 </div>
               </div>
 

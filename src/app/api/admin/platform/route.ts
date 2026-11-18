@@ -564,16 +564,15 @@ export async function POST(request: NextRequest) {
             `Please review your itemized scope below and click the button to view your quote and digitally accept it online:`,
             itemsSummary,
             `Deposit Required to Confirm Booking: $${(newQuote.depositCents / 100).toFixed(2)} CAD`,
+            `Billing Policy: Rates above indicate hourly & service charges. Final billing will be calculated upon completion based on actual hours worked (subject to 5% Alberta GST on final invoice).`,
             `Questions? Our Calgary dispatch team is directly available by phone at ${BUSINESS_INFO.phoneDisplay}.`,
           ],
           detailsBox: [
             { label: 'Quote Number', value: quoteNumber },
             { label: 'Service Date', value: newQuote.proposedDate },
             { label: 'Arrival Window', value: newQuote.proposedWindow },
-            { label: 'Subtotal', value: `$${(newQuote.subtotalCents / 100).toFixed(2)} CAD` },
-            { label: 'GST (5%)', value: `$${(newQuote.taxCents / 100).toFixed(2)} CAD` },
-            { label: 'Total Amount', value: `$${(newQuote.totalCents / 100).toFixed(2)} CAD` },
             { label: 'Deposit Required', value: `$${(newQuote.depositCents / 100).toFixed(2)} CAD` },
+            { label: 'Billing Terms', value: 'Billed upon completion based on actual hours worked' },
             { label: 'Quote Valid Until', value: newQuote.validUntil },
           ],
           ctaButton: {
@@ -703,13 +702,8 @@ export async function POST(request: NextRequest) {
             { label: 'Quote Number', value: quote.quoteNumber },
             { label: 'Service Date', value: quote.proposedDate },
             { label: 'Arrival Window', value: quote.proposedWindow },
-            { label: 'Subtotal', value: `$${(quote.subtotalCents / 100).toFixed(2)} CAD` },
-            {
-              label: 'GST (5%)',
-              value: `${quote.taxRatePercent || 5}% ($${(quote.taxCents / 100).toFixed(2)} CAD)`,
-            },
-            { label: 'Total Amount', value: `$${(quote.totalCents / 100).toFixed(2)} CAD` },
             { label: 'Deposit Required', value: `$${(quote.depositCents / 100).toFixed(2)} CAD` },
+            { label: 'Billing Terms', value: 'Billed upon completion based on actual hours worked' },
             { label: 'Quote Valid Until', value: quote.validUntil },
           ],
           ctaButton: {
@@ -723,7 +717,7 @@ export async function POST(request: NextRequest) {
         if (targetCustomerEmail && targetCustomerEmail.includes('@')) {
           const res = await sendEmailDirect({
             to: targetCustomerEmail,
-            subject: `Your QuickMove Solutions Quotation (${quote.quoteNumber}) — $${(quote.totalCents / 100).toFixed(2)} CAD`,
+            subject: `Your QuickMove Solutions Quotation (${quote.quoteNumber}) — Service Rates & Booking Details`,
             html: customerEmailHtml,
           });
           emailDispatched = res.success;

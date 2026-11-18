@@ -261,7 +261,7 @@ export default function BrandedQuotePdfDocumentPage() {
           </table>
         </div>
 
-        {/* Totals Box */}
+        {/* Booking Details & Deposit Box (Grand Total omitted to avoid customer confusion on hourly rates) */}
         <div className="mt-6 flex flex-col sm:flex-row justify-between gap-6 border-t border-brand-navy/15 pt-6">
           <div className="max-w-md space-y-2 text-[11px] text-brand-muted">
             <p className="font-bold text-brand-navy flex items-center gap-1.5">
@@ -270,40 +270,45 @@ export default function BrandedQuotePdfDocumentPage() {
             </p>
             <p>{quote.termsAndNotes}</p>
             <p className="font-semibold text-brand-navy">
-              <strong>Accepted Payment Methods:</strong> Interac e-Transfer and Debit Card only upon completion.
+              <strong>Billing Model:</strong> Rates above reflect the agreed hourly/service charges. Final invoice will be calculated and issued upon job completion based on actual hours worked (plus 5% Alberta GST on the final invoice).
+            </p>
+            <p className="font-semibold text-brand-navy">
+              <strong>Accepted Payment Methods:</strong> Interac e-Transfer and Debit Card upon job completion.
             </p>
             {quote.serviceCategory === 'JUNK_REMOVAL' && <p>{JUNK_REMOVAL_DISCLAIMER}</p>}
           </div>
 
-          <div className="w-full sm:w-72 rounded-2xl bg-brand-light p-5 text-xs space-y-2">
-            <div className="flex justify-between">
-              <span className="text-brand-muted">Subtotal:</span>
-              <span className="font-bold text-brand-navy">
-                ${(quote.subtotalCents / 100).toFixed(2)} CAD
-              </span>
-            </div>
-            {quote.discountCents > 0 && (
-              <div className="flex justify-between text-emerald-700">
-                <span>Discount Applied:</span>
-                <span className="font-bold">-${(quote.discountCents / 100).toFixed(2)} CAD</span>
+          <div className="w-full sm:w-80 rounded-2xl bg-brand-light p-5 text-xs space-y-3">
+            <p className="font-heading text-xs font-extrabold uppercase tracking-wider text-brand-navy border-b border-brand-navy/10 pb-2">
+              Booking Confirmation Summary
+            </p>
+            {quote.depositCents > 0 ? (
+              <div className="rounded-xl bg-white border border-brand-orange/30 p-3.5 text-center shadow-sm">
+                <span className="block text-[11px] font-extrabold uppercase tracking-wider text-brand-muted">
+                  Deposit Required to Lock Date
+                </span>
+                <span className="font-heading text-2xl font-black text-brand-orange mt-1 block">
+                  ${(quote.depositCents / 100).toFixed(2)} CAD
+                </span>
+                <span className="block text-[10px] text-slate-500 mt-1">
+                  Credited 100% directly toward your final move-day invoice
+                </span>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-white border border-brand-navy/10 p-3 text-center">
+                <span className="block text-xs font-bold text-brand-navy">
+                  No Upfront Deposit Required
+                </span>
+                <span className="block text-[10px] text-slate-500 mt-0.5">
+                  Payment due in full upon completion of service
+                </span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span className="text-brand-muted">Alberta GST ({quote.taxRatePercent}%):</span>
-              <span className="font-bold text-brand-navy">
-                ${(quote.taxCents / 100).toFixed(2)} CAD
-              </span>
+
+            <div className="rounded-xl bg-brand-navy/5 p-3 text-[11px] text-slate-600 leading-snug">
+              <span className="font-bold text-brand-navy block mb-1">⏱️ Hourly Service Notice:</span>
+              Final cost depends on the exact hours worked on your move date. No unexpected flat commitments — you only pay for the time actually used!
             </div>
-            <div className="flex justify-between border-t border-brand-navy/15 pt-2 text-sm font-extrabold text-brand-navy">
-              <span>Total Estimate:</span>
-              <span className="text-brand-orange">${(quote.totalCents / 100).toFixed(2)} CAD</span>
-            </div>
-            {quote.depositCents > 0 && (
-              <div className="flex justify-between text-[11px] text-brand-muted pt-1">
-                <span>Booking Deposit:</span>
-                <span className="font-bold">${(quote.depositCents / 100).toFixed(2)} CAD</span>
-              </div>
-            )}
           </div>
         </div>
 

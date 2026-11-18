@@ -641,25 +641,23 @@ function CustomerPortalContent() {
                             </div>
                           ))}
 
-                          <div className="pt-2 flex justify-between text-slate-500 border-t border-slate-200">
-                            <span>Subtotal:</span>
-                            <span>${(quo.subtotalCents / 100).toFixed(2)}</span>
-                          </div>
-                          {quo.discountCents > 0 && (
-                            <div className="flex justify-between text-emerald-600 font-semibold">
-                              <span>Special Discount:</span>
-                              <span>-${(quo.discountCents / 100).toFixed(2)}</span>
-                            </div>
-                          )}
-                          <div className="flex justify-between text-slate-500">
-                            <span>Alberta GST ({quo.taxRatePercent}%):</span>
-                            <span>${(quo.taxCents / 100).toFixed(2)}</span>
-                          </div>
-                          <div className="pt-2 border-t border-slate-200 flex justify-between text-sm font-extrabold text-slate-900">
-                            <span>Total Estimated Investment:</span>
-                            <span className="text-brand-orange text-base font-black">
-                              ${(quo.totalCents / 100).toFixed(2)} CAD
-                            </span>
+                          <div className="pt-3 border-t border-slate-200 space-y-2">
+                            {quo.depositCents > 0 ? (
+                              <div className="flex justify-between items-center text-sm font-extrabold text-slate-900 bg-brand-orange/10 p-2.5 rounded-xl border border-brand-orange/20">
+                                <span>Deposit Required to Confirm Booking:</span>
+                                <span className="text-brand-orange text-base font-black">
+                                  ${(quo.depositCents / 100).toFixed(2)} CAD
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex justify-between items-center text-xs font-bold text-slate-700 bg-slate-100 p-2.5 rounded-xl">
+                                <span>Deposit Required:</span>
+                                <span>No Upfront Deposit Required</span>
+                              </div>
+                            )}
+                            <p className="text-[11px] text-slate-500 italic leading-snug">
+                              ⏱️ Hourly Service Notice: Rates above reflect agreed hourly/service charges. Final invoice will be calculated upon move completion based on actual hours worked (plus 5% Alberta GST on final invoice).
+                            </p>
                           </div>
                         </div>
 
@@ -890,7 +888,7 @@ function CustomerPortalContent() {
                     Digital Signature &amp; Quote Acceptance
                   </h2>
                   <p className="text-xs text-white/60">
-                    Quotation #{signingQuote.quoteNumber} • Total: ${(signingQuote.totalCents / 100).toFixed(2)} CAD
+                    Quotation #{signingQuote.quoteNumber} • Deposit: ${(signingQuote.depositCents / 100).toFixed(2)} CAD
                   </p>
                 </div>
               </div>
@@ -955,9 +953,12 @@ function CustomerPortalContent() {
                     <span>{signingQuote.serviceType.replace(/_/g, ' ')}</span>
                   </div>
                   <div className="flex justify-between font-bold text-white border-t border-brand-orange/20 pt-1 mt-1">
-                    <span>Total Amount (Alberta 5% GST Included):</span>
-                    <span className="text-base text-brand-orange">${(signingQuote.totalCents / 100).toFixed(2)} CAD</span>
+                    <span>Deposit to Confirm Booking:</span>
+                    <span className="text-base text-brand-orange">${(signingQuote.depositCents / 100).toFixed(2)} CAD</span>
                   </div>
+                  <p className="text-[10px] text-white/70 italic pt-0.5">
+                    * Billed based on actual hours worked upon job completion (plus 5% GST on final invoice).
+                  </p>
                 </div>
 
                 {/* Full Legal Name for E-Signature */}
