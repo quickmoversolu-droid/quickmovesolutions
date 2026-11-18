@@ -9,6 +9,7 @@ import {
   Trash2,
   Send,
   CheckCircle2,
+  Check,
   Printer,
   Calendar,
   CreditCard,
@@ -1079,19 +1080,23 @@ function InvoicesManagerContent() {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <span
-                          className={`inline-block rounded-md px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateStatus(inv.id, isPaid ? 'ISSUED' : 'PAID')}
+                          title={isPaid ? 'Click to re-open invoice' : 'Click to mark as PAID'}
+                          className={`inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider transition-all hover:scale-105 cursor-pointer ${
                             isPaid
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30'
                               : isOverdue
-                              ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                              ? 'bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-emerald-500/20 hover:text-emerald-300'
                               : isPartiallyPaid
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-emerald-500/20 hover:text-emerald-300'
+                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-emerald-500/20 hover:text-emerald-300'
                           }`}
                         >
+                          {isPaid && <Check className="h-3 w-3 text-emerald-400" />}
                           {inv.status}
-                        </span>
+                        </button>
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
@@ -1117,9 +1122,10 @@ function InvoicesManagerContent() {
                             <button
                               type="button"
                               onClick={() => handleUpdateStatus(inv.id, 'PAID')}
-                              className="rounded-lg px-2 py-1 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-colors"
+                              className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-extrabold bg-emerald-500 text-brand-navy hover:bg-emerald-400 transition-colors shadow-sm"
                               title="Mark as Paid"
                             >
+                              <CheckCircle2 className="h-3.5 w-3.5 text-brand-navy" />
                               Mark Paid
                             </button>
                           ) : (

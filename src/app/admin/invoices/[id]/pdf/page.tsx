@@ -11,6 +11,7 @@ import {
   MapPin,
   ShieldCheck,
   CheckCircle2,
+  Check,
   AlertCircle,
   Clock,
   Send,
@@ -18,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BUSINESS_INFO } from '@/lib/constants/business';
-import type { PlatformDatabaseState, InvoiceRecord } from '@/lib/db/platform-store';
+import type { PlatformDatabaseState, InvoiceRecord, InvoicePaymentStatus } from '@/lib/db/platform-store';
 
 function formatCategoryLabel(category?: string): string {
   switch (category) {
@@ -190,6 +191,50 @@ export default function BrandedInvoicePdfDocumentPage() {
     }
   };
 
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  const handleUpdateStatus = async (newStatus: InvoicePaymentStatus) => {
+    if (!invoice) return;
+    setIsUpdatingStatus(true);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_INVOICE_STATUS',
+          invoiceId: invoice.id,
+          status: newStatus,
+          payload: {
+            invoiceId: invoice.id,
+            status: newStatus,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.ok && data.invoice) {
+        setDb((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            invoices: prev.invoices.map((inv) =>
+              inv.id === invoice.id ? { ...inv, ...data.invoice } : inv
+            ),
+          };
+        });
+        setEmailStatus(
+          newStatus === 'PAID'
+            ? '✅ Invoice marked as PAID in full! Status and balance updated successfully.'
+            : `Invoice status changed to ${newStatus}.`
+        );
+      }
+    } catch (err: any) {
+      console.error('[Update Invoice Status Error]:', err);
+      setEmailStatus('Failed to update invoice status.');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Non-Print Action Toolbar */}
@@ -202,6 +247,30 @@ export default function BrandedInvoicePdfDocumentPage() {
           Back to Invoice Directory
         </Link>
         <div className="flex flex-wrap items-center gap-3">
+          {!isPaid ? (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => handleUpdateStatus('PAID')}
+              disabled={isUpdatingStatus}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20"
+            >
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              {isUpdatingStatus ? 'Updating...' : 'Mark as Paid'}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleUpdateStatus('ISSUED')}
+              disabled={isUpdatingStatus}
+              className="border-emerald-600/30 text-emerald-700 hover:bg-emerald-50"
+            >
+              <Check className="mr-2 h-4 w-4 text-emerald-600" />
+              {isUpdatingStatus ? 'Updating...' : 'Paid in Full (Click to Re-open)'}
+            </Button>
+          )}
+
           <div className="flex items-center gap-2 rounded-xl border border-brand-navy/15 bg-white px-3 py-1.5 shadow-sm">
             <span className="text-xs font-bold text-brand-navy">Service Scope:</span>
             <select
@@ -295,19 +364,33 @@ export default function BrandedInvoicePdfDocumentPage() {
             </div>
 
             <div className="text-left sm:text-right">
-              <span
-                className={`inline-block rounded-lg px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-white ${
-                  isPaid
-                    ? 'bg-emerald-600'
-                    : isOverdue
-                    ? 'bg-red-600'
-                    : isPartiallyPaid
-                    ? 'bg-amber-600'
-                    : 'bg-brand-navy'
-                }`}
-              >
-                {isPaid ? 'PAID IN FULL' : isOverdue ? 'PAYMENT OVERDUE' : isPartiallyPaid ? 'PARTIAL PAYMENT' : 'OFFICIAL INVOICE'}
-              </span>
+              <div className="flex items-center justify-start sm:justify-end gap-2">
+                <span
+                  className={`inline-block rounded-lg px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-white ${
+                    isPaid
+                      ? 'bg-emerald-600'
+                      : isOverdue
+                      ? 'bg-red-600'
+                      : isPartiallyPaid
+                      ? 'bg-amber-600'
+                      : 'bg-brand-navy'
+                  }`}
+                >
+                  {isPaid ? 'PAID IN FULL' : isOverdue ? 'PAYMENT OVERDUE' : isPartiallyPaid ? 'PARTIAL PAYMENT' : 'OFFICIAL INVOICE'}
+                </span>
+                {!isPaid && (
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateStatus('PAID')}
+                    disabled={isUpdatingStatus}
+                    className="print:hidden inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-extrabold uppercase text-white shadow-sm hover:bg-emerald-500 transition-colors"
+                    title="Click to Mark Paid"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    {isUpdatingStatus ? 'Saving...' : 'Mark Paid'}
+                  </button>
+                )}
+              </div>
               <p className="mt-2 font-mono text-2xl font-extrabold text-brand-navy">
                 {invoice.invoiceNumber}
               </p>
