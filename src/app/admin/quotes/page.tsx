@@ -57,6 +57,9 @@ function QuotesManagerContent() {
 
   // New Quote Builder Form State
   const [jobRequestId, setJobRequestId] = useState<string>(initialJobId);
+  const [customerName, setCustomerName] = useState<string>('');
+  const [customerPhone, setCustomerPhone] = useState<string>('');
+  const [customerAddress, setCustomerAddress] = useState<string>('');
   const [recipientEmail, setRecipientEmail] = useState<string>('');
   const [overrideCustomerEmail, setOverrideCustomerEmail] = useState<string>('');
   const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
@@ -117,8 +120,11 @@ function QuotesManagerContent() {
         setProposedDate(matching.preferredDate || new Date().toISOString().slice(0, 10));
         setScopeSummary(matching.aiSummary || '');
         const matchingCust = json.data.customers?.find((c: any) => c.id === matching.customerId);
-        if (matchingCust?.email) {
-          setRecipientEmail(matchingCust.email);
+        if (matchingCust) {
+          setCustomerName(matchingCust.fullName || '');
+          setRecipientEmail(matchingCust.email || '');
+          setCustomerPhone(matchingCust.phone || '');
+          setCustomerAddress(matchingCust.address || '');
         }
       }
     }
@@ -149,8 +155,11 @@ function QuotesManagerContent() {
         setProposedDate(targetJob.preferredDate || new Date().toISOString().slice(0, 10));
         setScopeSummary(targetJob.aiSummary || '');
         const targetCust = db.customers.find((c) => c.id === targetJob.customerId);
-        if (targetCust?.email) {
-          setRecipientEmail(targetCust.email);
+        if (targetCust) {
+          setCustomerName(targetCust.fullName || '');
+          setRecipientEmail(targetCust.email || '');
+          setCustomerPhone(targetCust.phone || '');
+          setCustomerAddress(targetCust.address || '');
         }
         setShowBuilder(true);
       }
@@ -194,8 +203,10 @@ function QuotesManagerContent() {
 
   const handleCreateQuote = async (sendImmediately: boolean) => {
     setFeedback(null);
-    const resolvedJobId = jobRequestId || (db?.jobRequests[0]?.id ?? '');
-    const activeJob = db?.jobRequests.find((j) => j.id === resolvedJobId || j.leadId === resolvedJobId);
+    const resolvedJobId = jobRequestId || undefined;
+    const activeJob = resolvedJobId
+      ? db?.jobRequests.find((j) => j.id === resolvedJobId || j.leadId === resolvedJobId)
+      : undefined;
     const activeLead = activeJob ? db?.leads.find((l) => l.id === activeJob.leadId) : undefined;
     const targetCustomer = activeJob ? db?.customers.find((c) => c.id === activeJob.customerId) : undefined;
     const effectiveEmail = (recipientEmail.trim() || targetCustomer?.email || '').trim();
@@ -212,6 +223,9 @@ function QuotesManagerContent() {
           jobRequestId: resolvedJobId,
           leadId: activeJob?.leadId || activeLead?.id,
           customerId: activeJob?.customerId || activeLead?.customerId,
+          customerName: customerName.trim() || targetCustomer?.fullName || undefined,
+          customerPhone: customerPhone.trim() || targetCustomer?.phone || undefined,
+          customerAddress: customerAddress.trim() || targetCustomer?.address || undefined,
           customerEmail: effectiveEmail || undefined,
           proposedDate,
           proposedWindow,
@@ -355,13 +369,14 @@ function QuotesManagerContent() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-brand-navy">
-                Select Customer Job Request *
+                Link Existing Job / Lead (Optional)
               </label>
               <select
-                value={jobRequestId || (db.jobRequests[0]?.id ?? '')}
+                value={jobRequestId}
                 onChange={(e) => {
                   const targetId = e.target.value;
                   setJobRequestId(targetId);
+                  if (!targetId) return;
                   const foundJob = db.jobRequests.find((j) => j.id === targetId || j.leadId === targetId);
                   const foundLead = db.leads.find(
                     (l) => l.jobRequestId === targetId || l.id === targetId || l.referenceCode === targetId
@@ -373,12 +388,16 @@ function QuotesManagerContent() {
                     setProposedDate(foundJob.preferredDate || new Date().toISOString().slice(0, 10));
                     setScopeSummary(foundJob.aiSummary || '');
                   }
-                  if (cust?.email) {
-                    setRecipientEmail(cust.email);
+                  if (cust) {
+                    setCustomerName(cust.fullName || '');
+                    setRecipientEmail(cust.email || '');
+                    setCustomerPhone(cust.phone || '');
+                    setCustomerAddress(cust.address || '');
                   }
                 }}
                 className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy"
               >
+                <option value="">-- Custom / Direct Customer (Enter Below) --</option>
                 {(() => {
                   const mappedLeads = db.leads.map((l) => {
                     const cust = db.customers.find((c) => c.id === l.customerId);
@@ -416,6 +435,19 @@ function QuotesManagerContent() {
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-brand-navy">
+                Customer / Business Name
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. John Doe or Company"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy focus:border-brand-orange focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-brand-navy">
                 Customer Email (Optional)
               </label>
               <input
@@ -423,7 +455,35 @@ function QuotesManagerContent() {
                 placeholder="customer@email.com (optional)"
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy"
+                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy focus:border-brand-orange focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-brand-navy">
+                Customer Phone (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="(403) 555-0199"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 bg-white px-3.5 py-2.5 text-xs font-bold text-brand-navy focus:border-brand-orange focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-brand-navy">
+                Service / Billing Address (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. 123 4 Ave SW, Calgary, AB"
+                value={customerAddress}
+                onChange={(e) => setCustomerAddress(e.target.value)}
+                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 px-3.5 py-2.5 text-xs text-brand-navy focus:border-brand-orange focus:outline-none"
               />
             </div>
 
@@ -435,7 +495,7 @@ function QuotesManagerContent() {
                 type="date"
                 value={proposedDate}
                 onChange={(e) => setProposedDate(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 px-3.5 py-2.5 text-xs text-brand-navy"
+                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 px-3.5 py-2.5 text-xs text-brand-navy focus:border-brand-orange focus:outline-none"
               />
             </div>
 
@@ -447,7 +507,7 @@ function QuotesManagerContent() {
                 type="text"
                 value={proposedWindow}
                 onChange={(e) => setProposedWindow(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 px-3.5 py-2.5 text-xs text-brand-navy"
+                className="mt-1.5 w-full rounded-xl border border-brand-navy/15 px-3.5 py-2.5 text-xs text-brand-navy focus:border-brand-orange focus:outline-none"
               />
             </div>
           </div>

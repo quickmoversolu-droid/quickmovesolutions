@@ -20,6 +20,7 @@ import {
   BookingStatus,
   MarketingPostStatus,
   QuoteRecord,
+  CustomerRecord,
   JobRequestRecord,
   BookingRecord,
   MarketingPostRecord,
@@ -419,7 +420,15 @@ export async function POST(request: NextRequest) {
         validityDays,
         termsAndNotes,
         sendImmediately,
+        customerName: directCustomerName,
+        customerPhone: directCustomerPhone,
+        customerAddress: directCustomerAddress,
       } = body;
+
+      const overrideName = (directCustomerName || '').trim();
+      const overrideEmail = (body.customerEmail || body.recipientEmail || '').trim();
+      const overridePhone = (directCustomerPhone || '').trim();
+      const overrideAddress = (directCustomerAddress || '').trim();
 
       const job: JobRequestRecord = findJobRequestResiliently(db, jobRequestId, {
         leadId: body.leadId,
@@ -427,11 +436,11 @@ export async function POST(request: NextRequest) {
       }) || {
         id: `job_${crypto.randomBytes(5).toString('hex')}`,
         leadId: body.leadId || db.leads[0]?.id || `lead_${crypto.randomBytes(5).toString('hex')}`,
-        customerId: body.customerId || db.customers[0]?.id || `cust_${crypto.randomBytes(5).toString('hex')}`,
+        customerId: body.customerId || `cust_${crypto.randomBytes(5).toString('hex')}`,
         serviceType: 'Moving Service',
         serviceCategory: 'MOVING' as const,
         lifecycleStage: 'NEW_LEAD' as const,
-        pickupAddress: 'Calgary, AB',
+        pickupAddress: overrideAddress || 'Calgary, AB',
         pickupCity: 'Calgary',
         pickupPostalCode: 'T2P 1J9',
         pickupAccessDetails: 'Standard Access',
@@ -451,16 +460,48 @@ export async function POST(request: NextRequest) {
         db.jobRequests.unshift(job);
       }
 
-      let customer = db.customers.find((c) => c.id === job.customerId);
-      if (!customer && job.leadId) {
-        const lead = db.leads.find((l) => l.id === job.leadId);
-        if (lead) customer = db.customers.find((c) => c.id === lead.customerId);
-      }
-      if (!customer && body.customerId) {
+      let customer: CustomerRecord | undefined = undefined;
+      if (body.customerId) {
         customer = db.customers.find((c) => c.id === body.customerId);
       }
-      if (!customer && db.customers.length > 0) {
-        customer = db.customers[0];
+      if (!customer && job.customerId) {
+        customer = db.customers.find((c) => c.id === job.customerId);
+      }
+      if (!customer && overrideEmail) {
+        customer = db.customers.find((c) => c.email.toLowerCase() === overrideEmail.toLowerCase());
+      }
+      if (!customer && overrideName) {
+        customer = db.customers.find((c) => c.fullName.toLowerCase() === overrideName.toLowerCase());
+      }
+
+      // If overrideName was supplied and doesn't match an existing customer, synthesize new customer
+      if (!customer || (overrideName && customer.fullName.toLowerCase() !== overrideName.toLowerCase())) {
+        const newCustId = `cust_${crypto.randomBytes(5).toString('hex')}`;
+        customer = {
+          id: newCustId,
+          fullName: overrideName || 'Valued Customer',
+          email: overrideEmail || '',
+          phone: overridePhone || '(403) 555-0199',
+          preferredContact: overrideEmail ? 'email' : 'phone',
+          address: overrideAddress || 'Calgary, AB',
+          city: 'Calgary',
+          postalCode: 'T2P 1J9',
+          notes: 'Customer synthesized via Quotation Builder.',
+          portalPasscode: Math.floor(100000 + Math.random() * 900000).toString(),
+          createdAt: now,
+          updatedAt: now,
+        };
+        db.customers.unshift(customer);
+        job.customerId = customer.id;
+        try {
+          const { syncRecordToInsForge } = await import('@/lib/backend/insforge-service');
+          await syncRecordToInsForge('Customer', customer as any);
+        } catch {}
+      } else {
+        if (overridePhone && !customer.phone) customer.phone = overridePhone;
+        if (overrideAddress && !customer.address) customer.address = overrideAddress;
+        if (overrideEmail && !customer.email) customer.email = overrideEmail;
+        job.customerId = customer.id;
       }
 
       const calc = calculateServerQuoteTotals(

@@ -77,10 +77,23 @@ export default function BrandedQuotePdfDocumentPage() {
   }
 
   const quote = db.quotes.find((q) => q.id === quoteId) || db.quotes[0];
-  const customer = quote ? db.customers.find((c) => c.id === quote.customerId) : undefined;
+  const customer = (quote ? db.customers.find((c) => c.id === quote.customerId) : undefined) || {
+    id: 'cust_fallback',
+    fullName: 'Valued Customer',
+    email: '',
+    phone: '(403) 555-0199',
+    preferredContact: 'phone' as const,
+    address: 'Calgary, AB',
+    city: 'Calgary',
+    postalCode: 'T2P 1J9',
+    notes: '',
+    portalPasscode: '123456',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
   const job = quote ? db.jobRequests.find((j) => j.id === quote.jobRequestId) : undefined;
 
-  if (!quote || !customer) {
+  if (!quote) {
     return (
       <div className="p-12 text-center text-sm font-bold text-red-600">
         Quotation record not found.
