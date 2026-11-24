@@ -62,7 +62,12 @@ function InvoicesManagerContent() {
 
   const [db, setDb] = useState<PlatformDatabaseState | null>(null);
   const [showBuilder, setShowBuilder] = useState<boolean>(Boolean(initialBookingId || initialQuoteId));
-  const [feedback, setFeedback] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    text: string;
+    type: 'success' | 'error';
+    actionUrl?: string;
+    actionLabel?: string;
+  } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | InvoicePaymentStatus>('ALL');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -121,7 +126,10 @@ function InvoicesManagerContent() {
 
   const loadData = async () => {
     try {
-      const res = await fetch('/api/admin/platform');
+      const res = await fetch(`/api/admin/platform?_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
       const json = await res.json();
       if (json.ok && json.data) {
         setDb(json.data);
@@ -338,8 +346,22 @@ function InvoicesManagerContent() {
         setFeedback({
           text: successMessage,
           type: 'success',
+          actionUrl: inv?.id ? `/admin/invoices/${inv.id}/pdf` : undefined,
+          actionLabel: 'View / Print PDF',
         });
         setShowBuilder(false);
+        // Optimistically put the new invoice right into db.invoices state so it is visible immediately
+        if (inv && inv.id) {
+          setDb((prev) => {
+            if (!prev) return prev;
+            const existing = prev.invoices || [];
+            const filtered = existing.filter((i) => i.id !== inv.id);
+            return {
+              ...prev,
+              invoices: [inv, ...filtered],
+            };
+          });
+        }
         await loadData();
       } else {
         setFeedback({ text: data.error || 'Failed to create invoice.', type: 'error' });
@@ -492,20 +514,30 @@ function InvoicesManagerContent() {
 
       {feedback && (
         <div
-          className={`p-4 rounded-2xl text-xs font-bold flex items-center justify-between ${
+          className={`p-4 rounded-2xl text-xs font-bold flex flex-wrap items-center justify-between gap-3 ${
             feedback.type === 'success'
               ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
               : 'bg-red-500/15 border border-red-500/30 text-red-400'
           }`}
         >
           <span>{feedback.text}</span>
-          <button
-            type="button"
-            onClick={() => setFeedback(null)}
-            className="text-xs hover:underline opacity-80"
-          >
-            Dismiss
-          </button>
+          <div className="flex items-center gap-3">
+            {feedback.actionUrl && (
+              <Link
+                href={feedback.actionUrl}
+                className="inline-flex items-center gap-1 font-bold underline hover:text-white transition-colors"
+              >
+                {feedback.actionLabel || 'View PDF'} →
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setFeedback(null)}
+              className="text-xs hover:underline opacity-80"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 

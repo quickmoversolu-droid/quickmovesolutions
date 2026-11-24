@@ -59,7 +59,10 @@ export default function BrandedQuotePdfDocumentPage() {
   const [db, setDb] = useState<PlatformDatabaseState | null>(null);
 
   useEffect(() => {
-    fetch('/api/admin/platform')
+    fetch(`/api/admin/platform?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' },
+    })
       .then((r) => r.json())
       .then((res) => {
         if (res.ok && res.data) {
@@ -76,7 +79,23 @@ export default function BrandedQuotePdfDocumentPage() {
     );
   }
 
-  const quote = db.quotes.find((q) => q.id === quoteId) || db.quotes[0];
+  const quote = db.quotes.find((q) => q.id === quoteId || (q as any).quoteNumber === quoteId);
+  if (!quote) {
+    return (
+      <div className="p-12 text-center text-sm font-bold text-brand-navy space-y-4">
+        <p className="text-red-500 font-extrabold text-base">Quotation Not Found ({quoteId})</p>
+        <p className="text-slate-500 text-xs">This quote could not be located in the system records.</p>
+        <div className="pt-2">
+          <Link
+            href="/admin/quotes"
+            className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-brand-navy hover:text-brand-orange underline"
+          >
+            ← Back to Quotation Directory
+          </Link>
+        </div>
+      </div>
+    );
+  }
   const customer = (quote ? db.customers.find((c) => c.id === quote.customerId) : undefined) || {
     id: 'cust_fallback',
     fullName: 'Valued Customer',

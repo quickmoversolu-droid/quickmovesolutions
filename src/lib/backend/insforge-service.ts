@@ -504,7 +504,7 @@ let invoiceTablesChecked = false;
 async function ensureInvoiceTablesExist() {
   if (invoiceTablesChecked) return;
   try {
-    const ddl = `
+    const invoiceDdl = `
       CREATE TABLE IF NOT EXISTS "Invoice" (
         "id" text PRIMARY KEY,
         "invoiceNumber" text NOT NULL UNIQUE,
@@ -540,7 +540,8 @@ async function ensureInvoiceTablesExist() {
         "createdAt" timestamp without time zone NOT NULL DEFAULT NOW(),
         "updatedAt" timestamp without time zone NOT NULL DEFAULT NOW()
       );
-
+    `;
+    const lineItemDdl = `
       CREATE TABLE IF NOT EXISTS "InvoiceLineItem" (
         "id" text PRIMARY KEY,
         "invoiceId" text NOT NULL,
@@ -552,10 +553,11 @@ async function ensureInvoiceTablesExist() {
         "sortOrder" integer NOT NULL DEFAULT 1
       );
     `;
-    await executeInsForgeSql(ddl);
+    await executeInsForgeSql(invoiceDdl);
+    await executeInsForgeSql(lineItemDdl);
     invoiceTablesChecked = true;
-  } catch {
-    // Ignore schema creation warnings
+  } catch (err) {
+    console.warn('[ensureInvoiceTablesExist Error]:', err);
   }
 }
 

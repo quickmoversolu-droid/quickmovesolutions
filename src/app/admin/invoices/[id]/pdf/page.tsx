@@ -69,14 +69,17 @@ export default function BrandedInvoicePdfDocumentPage() {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
-    fetch('/api/admin/platform')
+    fetch(`/api/admin/platform?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' },
+    })
       .then((r) => r.json())
       .then((res) => {
         if (res.ok && res.data) {
           setDb(res.data);
           const foundInv = res.data.invoices?.find(
             (inv: any) => inv.id === invoiceId || inv.invoiceNumber === invoiceId
-          ) || res.data.invoices?.[0];
+          );
           if (foundInv?.serviceType) {
             setCurrentServiceType(foundInv.serviceType);
           }
@@ -127,8 +130,24 @@ export default function BrandedInvoicePdfDocumentPage() {
   }
 
   const invoice: InvoiceRecord | undefined =
-    db.invoices?.find((inv) => inv.id === invoiceId || inv.invoiceNumber === invoiceId) ||
-    db.invoices?.[0];
+    db.invoices?.find((inv) => inv.id === invoiceId || inv.invoiceNumber === invoiceId);
+
+  if (!invoice) {
+    return (
+      <div className="p-12 text-center text-sm font-bold text-brand-navy space-y-4">
+        <p className="text-red-500 font-extrabold text-base">Invoice Not Found ({invoiceId})</p>
+        <p className="text-slate-500 text-xs">This invoice could not be located in the system records.</p>
+        <div className="pt-2">
+          <Link
+            href="/admin/invoices"
+            className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-brand-navy hover:text-brand-orange underline"
+          >
+            ← Back to Invoice Directory
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const customer = invoice
     ? db.customers.find((c) => c.id === invoice.customerId)

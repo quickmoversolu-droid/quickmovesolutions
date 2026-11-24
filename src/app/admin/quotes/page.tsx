@@ -105,7 +105,10 @@ function QuotesManagerContent() {
   ]);
 
   const loadData = async () => {
-    const res = await fetch('/api/admin/platform');
+    const res = await fetch(`/api/admin/platform?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' },
+    });
     const json = await res.json();
     if (json.ok && json.data) {
       setDb(json.data);

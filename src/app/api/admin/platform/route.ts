@@ -39,6 +39,9 @@ import {
 } from '@/lib/marketing/image-prompt-builder';
 import { generateAiImage } from '@/lib/ai/openrouter-service';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   const session = getServerSession();
   const db = readPlatformStore();
@@ -144,24 +147,31 @@ export async function GET() {
     return p;
   });
 
-  return NextResponse.json({
-    ok: true,
-    session:
-      session && session.role !== 'CUSTOMER'
-        ? session
-        : {
-            userId: 'usr_owner_1',
-            email: BUSINESS_INFO.email,
-            name: 'QuickMove Owner',
-            role: 'OWNER',
-          },
-    permissions,
-    data: {
-      ...db,
-      users: sanitizedUsers,
-      marketingPosts: sanitizedMarketingPosts,
+  return NextResponse.json(
+    {
+      ok: true,
+      session:
+        session && session.role !== 'CUSTOMER'
+          ? session
+          : {
+              userId: 'usr_owner_1',
+              email: BUSINESS_INFO.email,
+              name: 'QuickMove Owner',
+              role: 'OWNER',
+            },
+      permissions,
+      data: {
+        ...db,
+        users: sanitizedUsers,
+        marketingPosts: sanitizedMarketingPosts,
+      },
     },
-  });
+    {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      },
+    }
+  );
 }
 
 function findJobRequestResiliently(
