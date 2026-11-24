@@ -66,6 +66,7 @@ export default function BrandedInvoicePdfDocumentPage() {
   const [emailStatus, setEmailStatus] = useState<string | null>(null);
   const [isUpdatingType, setIsUpdatingType] = useState(false);
   const [currentServiceType, setCurrentServiceType] = useState<string>('residential');
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     fetch('/api/admin/platform')
@@ -190,8 +191,6 @@ export default function BrandedInvoicePdfDocumentPage() {
       setIsSendingEmail(false);
     }
   };
-
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const handleUpdateStatus = async (newStatus: InvoicePaymentStatus) => {
     if (!invoice) return;
