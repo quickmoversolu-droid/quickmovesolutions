@@ -115,6 +115,17 @@ export async function GET() {
           }
         }
       }
+      // Enforce persistent deletions across Vercel serverless redeploys (including seeded records)
+      if (Array.isArray(remote.deletedIds) && remote.deletedIds.length > 0) {
+        const deletedSet = new Set(remote.deletedIds);
+        const origInvLen = (db.invoices || []).length;
+        db.invoices = (db.invoices || []).filter((inv) => !deletedSet.has(inv.id));
+        if (db.invoices.length !== origInvLen) changed = true;
+
+        const origQuoLen = (db.quotes || []).length;
+        db.quotes = (db.quotes || []).filter((q) => !deletedSet.has(q.id));
+        if (db.quotes.length !== origQuoLen) changed = true;
+      }
       if (changed) {
         writePlatformStore(db);
       }
@@ -791,11 +802,12 @@ export async function POST(request: NextRequest) {
       logActivity('QUOTE', removed.id, 'QUOTE_DELETED', `Quote ${removed.quoteNumber} deleted.`);
       writePlatformStore(db);
 
-      // Delete from InsForge Postgres as well
+      // Delete from InsForge Postgres as well and record deletion so seeded records never return
       try {
-        const { executeInsForgeSql } = await import('@/lib/backend/insforge-service');
+        const { executeInsForgeSql, recordDeletionInInsForge } = await import('@/lib/backend/insforge-service');
         await executeInsForgeSql(`DELETE FROM "QuoteLineItem" WHERE "quoteId" = '${removed.id}';`);
         await executeInsForgeSql(`DELETE FROM "Quote" WHERE "id" = '${removed.id}';`);
+        await recordDeletionInInsForge('QUOTE', removed.id);
       } catch {}
 
       return NextResponse.json({ ok: true, removedId: removed.id, data: { id: removed.id } });
@@ -1142,11 +1154,12 @@ export async function POST(request: NextRequest) {
       logActivity('INVOICE', removed.id, 'INVOICE_DELETED', `Invoice ${removed.invoiceNumber} deleted.`);
       writePlatformStore(db);
 
-      // Delete from InsForge Postgres as well
+      // Delete from InsForge Postgres as well and record deletion so seeded records never return
       try {
-        const { executeInsForgeSql } = await import('@/lib/backend/insforge-service');
+        const { executeInsForgeSql, recordDeletionInInsForge } = await import('@/lib/backend/insforge-service');
         await executeInsForgeSql(`DELETE FROM "InvoiceLineItem" WHERE "invoiceId" = '${removed.id}';`);
         await executeInsForgeSql(`DELETE FROM "Invoice" WHERE "id" = '${removed.id}';`);
+        await recordDeletionInInsForge('INVOICE', removed.id);
       } catch {}
 
       return NextResponse.json({ ok: true, removedId: removed.id, data: { id: removed.id } });

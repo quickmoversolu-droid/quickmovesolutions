@@ -26,13 +26,15 @@ function getInsForgeHost(): string {
 }
 
 function getInsForgeApiKey(): string {
-  return (
-    process.env.INSFORGE_API_KEY ||
-    process.env.INSFORGE_SERVICE_KEY ||
-    process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY ||
-    process.env.INSFORGE_ANON_KEY ||
-    DEFAULT_INSFORGE_KEY
-  );
+  const candidates = [
+    process.env.INSFORGE_API_KEY,
+    process.env.INSFORGE_SERVICE_KEY,
+    process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY,
+    process.env.INSFORGE_ANON_KEY,
+  ];
+  // The /api/database/advance/rawsql endpoint requires an admin API key (ik_*), NOT an anon key (anon_*)
+  const adminKey = candidates.find((k) => k && !k.startsWith('anon_'));
+  return adminKey || DEFAULT_INSFORGE_KEY;
 }
 
 export function getInsForgeConfig(): InsForgeConfig {
@@ -553,11 +555,33 @@ async function ensureInvoiceTablesExist() {
         "sortOrder" integer NOT NULL DEFAULT 1
       );
     `;
+    const deletedDdl = `
+      CREATE TABLE IF NOT EXISTS "DeletedRecord" (
+        "id" text PRIMARY KEY,
+        "entityType" text NOT NULL,
+        "deletedAt" timestamp without time zone NOT NULL DEFAULT NOW()
+      );
+    `;
     await executeInsForgeSql(invoiceDdl);
     await executeInsForgeSql(lineItemDdl);
+    await executeInsForgeSql(deletedDdl);
     invoiceTablesChecked = true;
   } catch (err) {
     console.warn('[ensureInvoiceTablesExist Error]:', err);
+  }
+}
+
+export async function recordDeletionInInsForge(entityType: 'INVOICE' | 'QUOTE', id: string): Promise<void> {
+  try {
+    await ensureInvoiceTablesExist();
+    const sql = `
+      INSERT INTO "DeletedRecord" ("id", "entityType", "deletedAt")
+      VALUES (${escapeSql(id)}, ${escapeSql(entityType)}, NOW())
+      ON CONFLICT ("id") DO NOTHING;
+    `;
+    await executeInsForgeSql(sql);
+  } catch (err) {
+    console.warn('[recordDeletionInInsForge Error]:', err);
   }
 }
 
@@ -571,10 +595,11 @@ export async function pullRemoteRecordsFromInsForge(): Promise<{
   quotes: any[];
   invoices: any[];
   bookings: any[];
+  deletedIds: string[];
 } | null> {
   try {
     await ensureInvoiceTablesExist();
-    const [custRes, leadsRes, jobsRes, quotesRes, lineItemsRes, bookingsRes, invRes, invItemsRes] =
+    const [custRes, leadsRes, jobsRes, quotesRes, lineItemsRes, bookingsRes, invRes, invItemsRes, delRes] =
       await Promise.all([
         executeInsForgeSql('SELECT * FROM "Customer" ORDER BY "createdAt" DESC LIMIT 200;'),
         executeInsForgeSql('SELECT * FROM "Lead" ORDER BY "createdAt" DESC LIMIT 200;'),
@@ -584,6 +609,7 @@ export async function pullRemoteRecordsFromInsForge(): Promise<{
         executeInsForgeSql('SELECT * FROM "Booking" ORDER BY "createdAt" DESC LIMIT 200;'),
         executeInsForgeSql('SELECT * FROM "Invoice" ORDER BY "createdAt" DESC LIMIT 200;'),
         executeInsForgeSql('SELECT * FROM "InvoiceLineItem" ORDER BY "sortOrder" ASC LIMIT 500;'),
+        executeInsForgeSql('SELECT "id" FROM "DeletedRecord" LIMIT 500;'),
       ]);
 
     // Attach line items to quotes
@@ -611,6 +637,7 @@ export async function pullRemoteRecordsFromInsForge(): Promise<{
       quotes: quotesWithItems,
       invoices: invoicesWithItems,
       bookings: bookingsRes.rows,
+      deletedIds: delRes.rows.map((r: any) => r.id),
     };
   } catch (err) {
     console.warn('[InsForge] pullRemoteRecords warning:', err);
