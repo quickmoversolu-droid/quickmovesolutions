@@ -802,12 +802,10 @@ export async function POST(request: NextRequest) {
       logActivity('QUOTE', removed.id, 'QUOTE_DELETED', `Quote ${removed.quoteNumber} deleted.`);
       writePlatformStore(db);
 
-      // Delete from InsForge Postgres as well and record deletion so seeded records never return
+      // Delete from Supabase Postgres and record deletion so seeded records never return
       try {
-        const { executeInsForgeSql, recordDeletionInInsForge } = await import('@/lib/backend/insforge-service');
-        await executeInsForgeSql(`DELETE FROM "QuoteLineItem" WHERE "quoteId" = '${removed.id}';`);
-        await executeInsForgeSql(`DELETE FROM "Quote" WHERE "id" = '${removed.id}';`);
-        await recordDeletionInInsForge('QUOTE', removed.id);
+        const { deleteRecordFromSupabase } = await import('@/lib/backend/supabase-service');
+        await deleteRecordFromSupabase('QUOTE', removed.id);
       } catch {}
 
       return NextResponse.json({ ok: true, removedId: removed.id, data: { id: removed.id } });
@@ -1154,12 +1152,10 @@ export async function POST(request: NextRequest) {
       logActivity('INVOICE', removed.id, 'INVOICE_DELETED', `Invoice ${removed.invoiceNumber} deleted.`);
       writePlatformStore(db);
 
-      // Delete from InsForge Postgres as well and record deletion so seeded records never return
+      // Delete from Supabase Postgres and record deletion so seeded records never return
       try {
-        const { executeInsForgeSql, recordDeletionInInsForge } = await import('@/lib/backend/insforge-service');
-        await executeInsForgeSql(`DELETE FROM "InvoiceLineItem" WHERE "invoiceId" = '${removed.id}';`);
-        await executeInsForgeSql(`DELETE FROM "Invoice" WHERE "id" = '${removed.id}';`);
-        await recordDeletionInInsForge('INVOICE', removed.id);
+        const { deleteRecordFromSupabase } = await import('@/lib/backend/supabase-service');
+        await deleteRecordFromSupabase('INVOICE', removed.id);
       } catch {}
 
       return NextResponse.json({ ok: true, removedId: removed.id, data: { id: removed.id } });
