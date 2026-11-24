@@ -54,6 +54,7 @@ function QuotesManagerContent() {
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [showBuilder, setShowBuilder] = useState<boolean>(Boolean(initialJobId));
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [isDeletingQuote, setIsDeletingQuote] = useState(false);
 
   // New Quote Builder Form State
   const [jobRequestId, setJobRequestId] = useState<string>(initialJobId);
@@ -318,7 +319,6 @@ function QuotesManagerContent() {
     }
   };
 
-  const [isDeletingQuote, setIsDeletingQuote] = useState(false);
   const handleDeleteQuote = async (quoteId: string, quoteNumber: string) => {
     if (!window.confirm(`Are you sure you want to permanently delete quotation ${quoteNumber}? This action cannot be undone.`)) {
       return;
