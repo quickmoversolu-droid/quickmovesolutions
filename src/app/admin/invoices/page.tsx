@@ -72,6 +72,7 @@ function InvoicesManagerContent() {
   const [statusFilter, setStatusFilter] = useState<'ALL' | InvoicePaymentStatus>('ALL');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+  const [deletingInvoiceId, setDeletingInvoiceId] = useState<string | null>(null);
 
   // Form State
   const [selectedBookingId, setSelectedBookingId] = useState<string>(initialBookingId);
@@ -429,6 +430,43 @@ function InvoicesManagerContent() {
       setFeedback({ text: 'Failed to dispatch email.', type: 'error' });
     } finally {
       setSendingEmailId(null);
+    }
+  };
+
+  // Delete Invoice
+  const handleDeleteInvoice = async (invoiceId: string, invoiceNumber: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete invoice ${invoiceNumber}? This action cannot be undone.`)) {
+      return;
+    }
+    setDeletingInvoiceId(invoiceId);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'DELETE_INVOICE',
+          invoiceId,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setFeedback({ text: `Invoice ${invoiceNumber} deleted successfully.`, type: 'success' });
+        setDb((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            invoices: (prev.invoices || []).filter((i) => i.id !== invoiceId && i.invoiceNumber !== invoiceId),
+          };
+        });
+        await loadData();
+      } else {
+        setFeedback({ text: data.error || 'Failed to delete invoice.', type: 'error' });
+      }
+    } catch (err: any) {
+      console.error('[Delete Invoice Error]:', err);
+      setFeedback({ text: 'Network error deleting invoice.', type: 'error' });
+    } finally {
+      setDeletingInvoiceId(null);
     }
   };
 
@@ -1148,6 +1186,16 @@ function InvoicesManagerContent() {
                             title="Send / Resend Invoice Email"
                           >
                             <Send className="h-4 w-4" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteInvoice(inv.id, inv.invoiceNumber)}
+                            disabled={deletingInvoiceId === inv.id}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                            title="Delete Invoice"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </button>
 
                           {!isPaid ? (

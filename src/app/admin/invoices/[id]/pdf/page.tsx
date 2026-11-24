@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Printer,
   ArrowLeft,
@@ -16,6 +16,7 @@ import {
   Clock,
   Send,
   CreditCard,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BUSINESS_INFO } from '@/lib/constants/business';
@@ -60,6 +61,7 @@ function formatCategoryLabel(category?: string): string {
 
 export default function BrandedInvoicePdfDocumentPage() {
   const params = useParams();
+  const router = useRouter();
   const invoiceId = String(params?.id || '');
   const [db, setDb] = useState<PlatformDatabaseState | null>(null);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -67,6 +69,7 @@ export default function BrandedInvoicePdfDocumentPage() {
   const [isUpdatingType, setIsUpdatingType] = useState(false);
   const [currentServiceType, setCurrentServiceType] = useState<string>('residential');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/platform?_t=${Date.now()}`, {
@@ -253,6 +256,39 @@ export default function BrandedInvoicePdfDocumentPage() {
     }
   };
 
+  const handleDeleteInvoice = async () => {
+    if (!invoice) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to permanently delete invoice ${invoice.invoiceNumber}? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'DELETE_INVOICE',
+          invoiceId: invoice.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        router.push('/admin/invoices');
+      } else {
+        alert(data.error || 'Failed to delete invoice.');
+      }
+    } catch (err) {
+      console.error('[Delete Invoice Error]:', err);
+      alert('Network error deleting invoice.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Non-Print Action Toolbar */}
@@ -316,6 +352,17 @@ export default function BrandedInvoicePdfDocumentPage() {
           <Button type="button" variant="primary" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
             Print / Save as Official PDF
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleDeleteInvoice}
+            disabled={isDeleting}
+            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            {isDeleting ? 'Deleting...' : 'Delete Invoice'}
           </Button>
         </div>
       </div>

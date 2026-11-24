@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Printer,
   ArrowLeft,
@@ -11,6 +11,7 @@ import {
   Mail,
   MapPin,
   ShieldCheck,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BUSINESS_INFO, JUNK_REMOVAL_DISCLAIMER } from '@/lib/constants/business';
@@ -55,8 +56,10 @@ function formatCategoryLabel(category?: string): string {
 
 export default function BrandedQuotePdfDocumentPage() {
   const params = useParams();
+  const router = useRouter();
   const quoteId = String(params?.id || '');
   const [db, setDb] = useState<PlatformDatabaseState | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/platform?_t=${Date.now()}`, {
@@ -120,6 +123,39 @@ export default function BrandedQuotePdfDocumentPage() {
     );
   }
 
+  const handleDeleteQuote = async () => {
+    if (!quote) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to permanently delete quotation ${quote.quoteNumber}? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'DELETE_QUOTE',
+          quoteId: quote.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        router.push('/admin/quotes');
+      } else {
+        alert(data.error || 'Failed to delete quote.');
+      }
+    } catch (err) {
+      console.error('[Delete Quote Error]:', err);
+      alert('Network error deleting quote.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Non-Print Action Toolbar */}
@@ -135,6 +171,17 @@ export default function BrandedQuotePdfDocumentPage() {
           <Button type="button" variant="primary" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
             Print / Save as Official PDF
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleDeleteQuote}
+            disabled={isDeleting}
+            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            {isDeleting ? 'Deleting...' : 'Delete Quote'}
           </Button>
         </div>
       </div>

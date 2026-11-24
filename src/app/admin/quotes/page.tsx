@@ -318,6 +318,47 @@ function QuotesManagerContent() {
     }
   };
 
+  const [isDeletingQuote, setIsDeletingQuote] = useState(false);
+  const handleDeleteQuote = async (quoteId: string, quoteNumber: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete quotation ${quoteNumber}? This action cannot be undone.`)) {
+      return;
+    }
+    setIsDeletingQuote(true);
+    try {
+      const res = await fetch('/api/admin/platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'DELETE_QUOTE',
+          quoteId,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setFeedback(`Quote ${quoteNumber} deleted successfully.`);
+        setDb((prev) => {
+          if (!prev) return prev;
+          const remainingQuotes = (prev.quotes || []).filter((q) => q.id !== quoteId && q.quoteNumber !== quoteId);
+          return {
+            ...prev,
+            quotes: remainingQuotes,
+          };
+        });
+        if (selectedQuoteId === quoteId) {
+          setSelectedQuoteId('');
+        }
+        await loadData();
+      } else {
+        setFeedback(data.error || 'Failed to delete quote.');
+      }
+    } catch (err) {
+      console.error('[Delete Quote Error]:', err);
+      setFeedback('Network error deleting quote.');
+    } finally {
+      setIsDeletingQuote(false);
+    }
+  };
+
   const activeQuote =
     db.quotes.find((q) => q.id === selectedQuoteId) || db.quotes[0];
   const activeQuoteCustomer = activeQuote
@@ -797,6 +838,16 @@ function QuotesManagerContent() {
                     <Calendar className="h-3.5 w-3.5" />
                     Convert to Booking
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteQuote(activeQuote.id, activeQuote.quoteNumber)}
+                    disabled={isDeletingQuote}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-red-300 px-3.5 py-2 text-xs font-extrabold text-red-600 hover:bg-red-50 hover:border-red-400 transition-colors"
+                    title="Delete Quote"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {isDeletingQuote ? 'Deleting...' : 'Delete'}
+                  </button>
                 </div>
               </div>
 

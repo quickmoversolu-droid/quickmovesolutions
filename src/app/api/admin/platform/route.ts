@@ -779,6 +779,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, quote });
     }
 
+    // 5.A DELETE QUOTE
+    if (action === 'DELETE_QUOTE') {
+      const params = body.payload || body;
+      const { quoteId } = params;
+      const idx = (db.quotes || []).findIndex((q) => q.id === quoteId || q.quoteNumber === quoteId);
+      if (idx === -1) {
+        return NextResponse.json({ ok: false, error: 'Quote not found.' }, { status: 404 });
+      }
+      const removed = db.quotes.splice(idx, 1)[0];
+      logActivity('QUOTE', removed.id, 'QUOTE_DELETED', `Quote ${removed.quoteNumber} deleted.`);
+      writePlatformStore(db);
+
+      // Delete from InsForge Postgres as well
+      try {
+        const { executeInsForgeSql } = await import('@/lib/backend/insforge-service');
+        await executeInsForgeSql(`DELETE FROM "QuoteLineItem" WHERE "quoteId" = '${removed.id}';`);
+        await executeInsForgeSql(`DELETE FROM "Quote" WHERE "id" = '${removed.id}';`);
+      } catch {}
+
+      return NextResponse.json({ ok: true, removedId: removed.id, data: { id: removed.id } });
+    }
+
     // 5.B CREATE INVOICE (With server-enforced Alberta GST calculations)
     if (action === 'CREATE_INVOICE') {
       if (!permissions.canManageQuotes && !permissions.canManageBookings) {
@@ -1119,6 +1141,14 @@ export async function POST(request: NextRequest) {
       const removed = db.invoices.splice(idx, 1)[0];
       logActivity('INVOICE', removed.id, 'INVOICE_DELETED', `Invoice ${removed.invoiceNumber} deleted.`);
       writePlatformStore(db);
+
+      // Delete from InsForge Postgres as well
+      try {
+        const { executeInsForgeSql } = await import('@/lib/backend/insforge-service');
+        await executeInsForgeSql(`DELETE FROM "InvoiceLineItem" WHERE "invoiceId" = '${removed.id}';`);
+        await executeInsForgeSql(`DELETE FROM "Invoice" WHERE "id" = '${removed.id}';`);
+      } catch {}
+
       return NextResponse.json({ ok: true, removedId: removed.id, data: { id: removed.id } });
     }
 
