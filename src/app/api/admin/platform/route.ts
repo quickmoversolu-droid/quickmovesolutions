@@ -678,6 +678,21 @@ export async function POST(request: NextRequest) {
         `Created Quote ${quoteNumber} ($${(newQuote.totalCents / 100).toFixed(2)} CAD) for ${customer?.fullName || 'Customer'}.`
       );
       writePlatformStore(db);
+
+      // Sync draft / no-email quote to Supabase Database
+      try {
+        const { syncRecordToSupabase } = await import('@/lib/backend/supabase-service');
+        const matchedLead = db.leads.find((l) => l.id === job.leadId);
+        await Promise.allSettled([
+          customer ? syncRecordToSupabase('Customer', customer as any) : Promise.resolve(),
+          job ? syncRecordToSupabase('JobRequest', job as any) : Promise.resolve(),
+          matchedLead ? syncRecordToSupabase('Lead', matchedLead as any) : Promise.resolve(),
+          syncRecordToSupabase('Quote', newQuote as any),
+        ]);
+      } catch (syncErr) {
+        console.warn('[Supabase Quote Sync Warning]:', syncErr);
+      }
+
       return NextResponse.json({ ok: true, quote: newQuote });
     }
 
@@ -787,6 +802,10 @@ export async function POST(request: NextRequest) {
 
       logActivity('QUOTE', quote.id, `QUOTE_${status}`, `Quote ${quote.quoteNumber} marked as ${status}.`);
       writePlatformStore(db);
+      try {
+        const { syncRecordToSupabase } = await import('@/lib/backend/supabase-service');
+        await syncRecordToSupabase('Quote', quote as any);
+      } catch {}
       return NextResponse.json({ ok: true, quote });
     }
 

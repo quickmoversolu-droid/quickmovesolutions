@@ -270,6 +270,13 @@ function QuotesManagerContent() {
         }
         setSelectedQuoteId(data.quote.id);
         setShowBuilder(false);
+        if (data.quote?.id) {
+          setDb((prev) => {
+            if (!prev) return prev;
+            const filtered = (prev.quotes || []).filter((q) => q.id !== data.quote.id);
+            return { ...prev, quotes: [data.quote, ...filtered] };
+          });
+        }
         await loadData();
       } else {
         setFeedback(data.error || 'Error creating quote.');
