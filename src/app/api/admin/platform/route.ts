@@ -531,7 +531,11 @@ export async function POST(request: NextRequest) {
         db.settings.albertaGstPercent || 5.0
       );
 
-      const quoteNumber = `Q-${new Date().getFullYear()}-${1001 + db.quotes.length}`;
+      const { getNextDocumentNumber } = await import('@/lib/backend/supabase-service');
+      const quoteNumber = await getNextDocumentNumber(
+        'QUOTE',
+        (db.quotes || []).map((q) => q.quoteNumber)
+      );
       const valDays = Number(validityDays) || db.settings.defaultQuoteValidityDays || 14;
       const validUntilDate = new Date(Date.now() + valDays * 86400000).toISOString().slice(0, 10);
 
@@ -937,7 +941,11 @@ export async function POST(request: NextRequest) {
         invoiceStatus = 'ISSUED';
       }
 
-      const invNumber = `INV-${new Date().getFullYear()}-${1001 + db.invoices.length}`;
+      const { getNextDocumentNumber } = await import('@/lib/backend/supabase-service');
+      const invNumber = await getNextDocumentNumber(
+        'INVOICE',
+        (db.invoices || []).map((i) => i.invoiceNumber)
+      );
       const newInvoice: InvoiceRecord = {
         id: `inv_${crypto.randomBytes(5).toString('hex')}`,
         invoiceNumber: invNumber,

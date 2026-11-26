@@ -382,6 +382,48 @@ export async function pullRemoteRecordsFromSupabase(): Promise<{
 }
 
 /**
+ * Compute the next strictly-unique sequential document number across Supabase + local store.
+ * Prevents duplicate INV-YYYY-XXXX or Q-YYYY-XXXX numbers across Vercel serverless containers.
+ */
+export async function getNextDocumentNumber(
+  type: 'INVOICE' | 'QUOTE',
+  localExistingNumbers: string[] = []
+): Promise<string> {
+  const year = new Date().getFullYear();
+  const prefix = type === 'INVOICE' ? `INV-${year}-` : `Q-${year}-`;
+  const allNumbers = new Set<string>(localExistingNumbers.filter(Boolean));
+
+  try {
+    const supabase = getSupabaseAdminClient();
+    if (supabase) {
+      const tableName = type === 'INVOICE' ? 'Invoice' : 'Quote';
+      const colName = type === 'INVOICE' ? 'invoiceNumber' : 'quoteNumber';
+      const { data } = await supabase.from(tableName).select(colName).limit(1000);
+      if (Array.isArray(data)) {
+        for (const row of data as Record<string, any>[]) {
+          if (row[colName]) allNumbers.add(String(row[colName]));
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`[Supabase getNextDocumentNumber Warning - ${type}]:`, err);
+  }
+
+  let maxSeq = 1000;
+  for (const num of Array.from(allNumbers)) {
+    const match = num.match(/(\d+)$/);
+    if (match) {
+      const parsed = parseInt(match[1], 10);
+      if (!Number.isNaN(parsed) && parsed > maxSeq) {
+        maxSeq = parsed;
+      }
+    }
+  }
+
+  return `${prefix}${maxSeq + 1}`;
+}
+
+/**
  * Upload file to Supabase Storage Bucket
  * Supported buckets: 'customer-photos', 'marketing-creatives', 'quote-documents'
  */
