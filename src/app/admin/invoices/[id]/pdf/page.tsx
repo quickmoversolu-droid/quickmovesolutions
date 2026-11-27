@@ -617,14 +617,16 @@ export default function BrandedInvoicePdfDocumentPage() {
                   </span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-brand-muted">
-                  Alberta GST ({invoice.taxRatePercent}%):
-                </span>
-                <span className="font-bold text-brand-navy">
-                  ${(invoice.taxCents / 100).toFixed(2)} CAD
-                </span>
-              </div>
+              {(invoice.taxRatePercent > 0 || invoice.taxCents > 0) && (
+                <div className="flex justify-between">
+                  <span className="text-brand-muted">
+                    GST ({invoice.taxRatePercent}%):
+                  </span>
+                  <span className="font-bold text-brand-navy">
+                    ${(invoice.taxCents / 100).toFixed(2)} CAD
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between border-t border-brand-navy/15 pt-2 text-sm font-extrabold text-brand-navy">
                 <span>Grand Total:</span>
                 <span className="text-brand-navy">

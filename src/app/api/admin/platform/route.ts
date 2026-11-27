@@ -922,7 +922,11 @@ export async function POST(request: NextRequest) {
 
       const discount = Math.max(0, Math.round(Number(discountCents) || 0));
       const adjustedSubtotal = Math.max(0, subtotal - discount);
-      const taxRate = db.settings?.albertaGstPercent || 5.0;
+      const rawTaxRate = params.taxRatePercent;
+      const taxRate =
+        rawTaxRate !== undefined && rawTaxRate !== null && rawTaxRate !== '' && !Number.isNaN(Number(rawTaxRate))
+          ? Math.max(0, Number(rawTaxRate))
+          : 0;
       const tax = Math.round(adjustedSubtotal * (taxRate / 100));
       const grandTotal = adjustedSubtotal + tax;
 
@@ -1021,7 +1025,9 @@ export async function POST(request: NextRequest) {
               { label: 'Service', value: newInvoice.serviceType },
               { label: 'Completion Date', value: newInvoice.completionDate || newInvoice.issueDate },
               { label: 'Subtotal', value: `$${(newInvoice.subtotalCents / 100).toFixed(2)} CAD` },
-              { label: 'Alberta GST (5%)', value: `$${(newInvoice.taxCents / 100).toFixed(2)} CAD` },
+              ...(newInvoice.taxRatePercent > 0 || newInvoice.taxCents > 0
+                ? [{ label: `GST (${newInvoice.taxRatePercent}%)`, value: `$${(newInvoice.taxCents / 100).toFixed(2)} CAD` }]
+                : []),
               { label: 'Total Amount', value: `$${(newInvoice.totalCents / 100).toFixed(2)} CAD` },
               { label: 'Amount Paid', value: `$${(newInvoice.amountPaidCents / 100).toFixed(2)} CAD` },
               { label: 'Balance Due', value: `$${(newInvoice.balanceDueCents / 100).toFixed(2)} CAD` },
@@ -1134,7 +1140,9 @@ export async function POST(request: NextRequest) {
           { label: 'Service', value: invoice.serviceType },
           { label: 'Completion Date', value: invoice.completionDate || invoice.issueDate },
           { label: 'Subtotal', value: `$${(invoice.subtotalCents / 100).toFixed(2)} CAD` },
-          { label: 'Alberta GST (5%)', value: `$${(invoice.taxCents / 100).toFixed(2)} CAD` },
+          ...(invoice.taxRatePercent > 0 || invoice.taxCents > 0
+            ? [{ label: `GST (${invoice.taxRatePercent}%)`, value: `$${(invoice.taxCents / 100).toFixed(2)} CAD` }]
+            : []),
           { label: 'Total Amount', value: `$${(invoice.totalCents / 100).toFixed(2)} CAD` },
           { label: 'Amount Paid', value: `$${(invoice.amountPaidCents / 100).toFixed(2)} CAD` },
           { label: 'Balance Due', value: `$${(invoice.balanceDueCents / 100).toFixed(2)} CAD` },

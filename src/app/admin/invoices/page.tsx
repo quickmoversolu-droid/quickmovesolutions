@@ -88,6 +88,7 @@ function InvoicesManagerContent() {
   const [dueDate, setDueDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [completionDate, setCompletionDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [status, setStatus] = useState<InvoicePaymentStatus>('ISSUED');
+  const [gstPercentInput, setGstPercentInput] = useState<string>('');
   const [discountDollars, setDiscountDollars] = useState<number>(0);
   const [depositPaidDollars, setDepositPaidDollars] = useState<number>(0);
   const [amountPaidDollars, setAmountPaidDollars] = useState<number>(0);
@@ -231,7 +232,8 @@ function InvoicesManagerContent() {
   }, [lineItems]);
 
   const afterDiscountDollars = Math.max(0, subtotalDollars - discountDollars);
-  const taxDollars = afterDiscountDollars * 0.05; // Alberta 5% GST
+  const parsedGstPercent = Math.max(0, parseFloat(gstPercentInput) || 0);
+  const taxDollars = afterDiscountDollars * (parsedGstPercent / 100);
   const grandTotalDollars = afterDiscountDollars + taxDollars;
   const balanceDueDollars = Math.max(0, grandTotalDollars - depositPaidDollars - amountPaidDollars);
 
@@ -315,6 +317,7 @@ function InvoicesManagerContent() {
         totalCents: Math.round(Number(li.quantity) * Number(li.unitPriceDollars) * 100),
       })),
       discountCents: Math.round(discountDollars * 100),
+      taxRatePercent: parsedGstPercent,
       depositPaidCents: Math.round(depositPaidDollars * 100),
       amountPaidCents: Math.round(amountPaidDollars * 100),
       paymentMethod,
@@ -521,13 +524,13 @@ function InvoicesManagerContent() {
             <span className="rounded-md bg-brand-orange/10 px-2.5 py-1 text-xs font-extrabold uppercase tracking-wider text-brand-orange">
               Billing &amp; Financials
             </span>
-            <span className="text-xs text-brand-muted">Alberta 5% GST Enforced</span>
+            <span className="text-xs text-brand-muted">Optional GST %</span>
           </div>
           <h1 className="mt-1 font-heading text-2xl font-extrabold text-white sm:text-3xl">
             Invoices &amp; Client Billing Engine
           </h1>
           <p className="mt-0.5 text-xs text-slate-400">
-            Issue post-job invoices with automated Alberta GST, Interac e-Transfer instructions, and executive printable PDFs.
+            Issue post-job invoices with optional GST %, Interac e-Transfer instructions, and executive printable PDFs.
           </p>
         </div>
 
@@ -634,7 +637,7 @@ function InvoicesManagerContent() {
               </div>
             </div>
             <span className="rounded-full bg-brand-orange/20 px-3 py-1 text-[11px] font-extrabold text-brand-orange">
-              Alberta 5% GST Auto-Calculated
+              Optional GST % (Leave Blank for No GST)
             </span>
           </div>
 
@@ -880,7 +883,19 @@ function InvoicesManagerContent() {
             {/* Adjustments & Totals Summary */}
             <div className="grid gap-6 sm:grid-cols-2 border-t border-white/10 pt-4">
               <div className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">GST % (Optional)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={gstPercentInput}
+                      onChange={(e) => setGstPercentInput(e.target.value)}
+                      placeholder="0 (No GST)"
+                      className="w-full rounded-xl border border-white/15 bg-brand-charcoal/60 px-3 py-1.5 text-xs text-white focus:border-brand-orange focus:outline-none"
+                    />
+                  </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-300 mb-1">Discount ($ CAD)</label>
                     <input
@@ -953,7 +968,9 @@ function InvoicesManagerContent() {
 
               {/* Calculations Card */}
               <div className="rounded-2xl border border-white/15 bg-brand-charcoal/60 p-5 space-y-2 text-xs">
-                <p className="font-heading text-sm font-extrabold text-white mb-2">Financial Breakdown (Alberta 5% GST)</p>
+                <p className="font-heading text-sm font-extrabold text-white mb-2">
+                  Financial Breakdown {parsedGstPercent > 0 ? `(GST ${parsedGstPercent}%)` : '(No GST)'}
+                </p>
                 <div className="flex justify-between text-slate-300">
                   <span>Subtotal:</span>
                   <span className="font-mono font-bold text-white">${subtotalDollars.toFixed(2)} CAD</span>
@@ -964,10 +981,12 @@ function InvoicesManagerContent() {
                     <span className="font-mono font-bold">-${discountDollars.toFixed(2)} CAD</span>
                   </div>
                 )}
-                <div className="flex justify-between text-slate-300">
-                  <span>Alberta GST (5%):</span>
-                  <span className="font-mono font-bold text-white">${taxDollars.toFixed(2)} CAD</span>
-                </div>
+                {parsedGstPercent > 0 && (
+                  <div className="flex justify-between text-slate-300">
+                    <span>GST ({parsedGstPercent}%):</span>
+                    <span className="font-mono font-bold text-white">${taxDollars.toFixed(2)} CAD</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-t border-white/15 pt-2 text-sm font-extrabold text-white">
                   <span>Grand Total:</span>
                   <span className="font-mono text-brand-orange">${grandTotalDollars.toFixed(2)} CAD</span>
