@@ -22,6 +22,7 @@ import {
   FileCheck,
   Building2,
   User,
+  Pencil,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -59,9 +60,12 @@ function InvoicesManagerContent() {
   const searchParams = useSearchParams();
   const initialBookingId = searchParams.get('bookingId') || '';
   const initialQuoteId = searchParams.get('quoteId') || '';
+  const initialEditId = searchParams.get('editId') || '';
 
   const [db, setDb] = useState<PlatformDatabaseState | null>(null);
   const [showBuilder, setShowBuilder] = useState<boolean>(Boolean(initialBookingId || initialQuoteId));
+  const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+  const [editingInvoiceNumber, setEditingInvoiceNumber] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
     text: string;
     type: 'success' | 'error';
@@ -144,6 +148,69 @@ function InvoicesManagerContent() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Populate builder form from an existing invoice for editing
+  const handleStartEdit = (inv: InvoiceRecord) => {
+    setEditingInvoiceId(inv.id);
+    setEditingInvoiceNumber(inv.invoiceNumber);
+    setSelectedBookingId(inv.bookingId || '');
+    setSelectedQuoteId(inv.quoteId || '');
+    setCustomerId(inv.customerId || '');
+    setCustomerName(inv.customerName || '');
+    setCustomerEmail(inv.customerEmail || inv.recipientEmail || '');
+    setCustomerPhone(inv.customerPhone || '');
+    setCustomerAddress(inv.customerAddress || '');
+    setServiceCategory(inv.serviceCategory || 'MOVING');
+    setServiceType(inv.serviceType || 'residential');
+    setIssueDate(inv.issueDate || new Date().toISOString().slice(0, 10));
+    setDueDate(inv.dueDate || new Date().toISOString().slice(0, 10));
+    setCompletionDate(inv.completionDate || inv.issueDate || new Date().toISOString().slice(0, 10));
+    setStatus(inv.status || 'ISSUED');
+    setGstPercentInput(inv.taxRatePercent > 0 ? String(inv.taxRatePercent) : '');
+    setDiscountDollars((inv.discountCents || 0) / 100);
+    setDepositPaidDollars((inv.depositPaidCents || 0) / 100);
+    setAmountPaidDollars((inv.amountPaidCents || 0) / 100);
+    setPaymentMethod(inv.paymentMethod || 'INTERAC_E_TRANSFER');
+    setPaymentReference(inv.paymentReference || '');
+    setPaymentTerms(
+      inv.paymentTerms ||
+        'Payment due immediately upon completion of services rendered via Interac e-Transfer to quickmoversolu@gmail.com'
+    );
+    setNotesAndInstructions(
+      inv.notesAndInstructions ||
+        'Thank you for choosing QuickMove Solutions. Please include the Invoice Number in your Interac e-Transfer memo.'
+    );
+    if (Array.isArray(inv.lineItems) && inv.lineItems.length > 0) {
+      setLineItems(
+        inv.lineItems.map((li, idx) => ({
+          id: li.id || `item_${idx + 1}`,
+          category: li.category || 'MOVING_SERVICE',
+          description: li.description || 'Service Line Item',
+          quantity: Number(li.quantity) || 1,
+          unitPriceDollars: (li.unitPriceCents || 0) / 100,
+        }))
+      );
+    }
+    setShowBuilder(true);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleCloseBuilder = () => {
+    setShowBuilder(false);
+    setEditingInvoiceId(null);
+    setEditingInvoiceNumber(null);
+  };
+
+  // Auto-open editor if navigated via ?editId=... from PDF view
+  useEffect(() => {
+    if (!db || !initialEditId || editingInvoiceId) return;
+    const match = db.invoices?.find((inv) => inv.id === initialEditId || inv.invoiceNumber === initialEditId);
+    if (match) {
+      handleStartEdit(match);
+    }
+  }, [db, initialEditId]);
 
   // Sync form when booking or quote is selected
   useEffect(() => {
@@ -328,24 +395,28 @@ function InvoicesManagerContent() {
     };
 
     try {
+      const isEditing = Boolean(editingInvoiceId);
       const res = await fetch('/api/admin/platform', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'CREATE_INVOICE',
+          action: isEditing ? 'UPDATE_INVOICE' : 'CREATE_INVOICE',
+          ...(isEditing ? { invoiceId: editingInvoiceId } : {}),
           ...payload,
-          payload,
+          payload: isEditing ? { ...payload, invoiceId: editingInvoiceId } : payload,
         }),
       });
 
       const data = await res.json();
       if (data.ok) {
         const inv = data.invoice || data.data || data;
-        let successMessage = `Invoice ${inv?.invoiceNumber || ''} saved successfully!`;
+        let successMessage = isEditing
+          ? `Invoice ${inv?.invoiceNumber || editingInvoiceNumber || ''} updated successfully!`
+          : `Invoice ${inv?.invoiceNumber || ''} saved successfully!`;
         if (shouldDispatchEmail) {
           successMessage += ` Email dispatched to ${customerEmail.trim()}.`;
         } else if (sendEmailDirectly && !customerEmail?.trim()) {
-          successMessage += ` (Saved as issued; email was skipped because no customer email address was provided).`;
+          successMessage += ` (Saved; email was skipped because no customer email address was provided).`;
         }
         setFeedback({
           text: successMessage,
@@ -354,7 +425,9 @@ function InvoicesManagerContent() {
           actionLabel: 'View / Print PDF',
         });
         setShowBuilder(false);
-        // Optimistically put the new invoice right into db.invoices state so it is visible immediately
+        setEditingInvoiceId(null);
+        setEditingInvoiceNumber(null);
+        // Optimistically update db.invoices state immediately
         if (inv && inv.id) {
           setDb((prev) => {
             if (!prev) return prev;
@@ -368,7 +441,7 @@ function InvoicesManagerContent() {
         }
         await loadData();
       } else {
-        setFeedback({ text: data.error || 'Failed to create invoice.', type: 'error' });
+        setFeedback({ text: data.error || 'Failed to save invoice.', type: 'error' });
       }
     } catch (err: any) {
       console.error('[Create Invoice Error]:', err);
@@ -538,7 +611,15 @@ function InvoicesManagerContent() {
           <Button
             type="button"
             variant="primary"
-            onClick={() => setShowBuilder(!showBuilder)}
+            onClick={() => {
+              if (showBuilder) {
+                handleCloseBuilder();
+              } else {
+                setEditingInvoiceId(null);
+                setEditingInvoiceNumber(null);
+                setShowBuilder(true);
+              }
+            }}
             className="flex items-center gap-2 shadow-lg shadow-brand-orange/20"
           >
             {showBuilder ? (
@@ -629,10 +710,14 @@ function InvoicesManagerContent() {
               </div>
               <div>
                 <h2 className="font-heading text-lg font-extrabold text-white">
-                  Executive Invoice Generator
+                  {editingInvoiceId
+                    ? `Edit Invoice ${editingInvoiceNumber || ''}`
+                    : 'Executive Invoice Generator'}
                 </h2>
                 <p className="text-xs text-slate-400">
-                  Select a completed booking or accepted quote to auto-populate all client and job details.
+                  {editingInvoiceId
+                    ? 'Modify line items, customer details, GST %, dates, or payment amounts, then save your changes.'
+                    : 'Select a completed booking or accepted quote to auto-populate all client and job details.'}
                 </p>
               </div>
             </div>
@@ -1029,7 +1114,7 @@ function InvoicesManagerContent() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowBuilder(false)}
+                onClick={handleCloseBuilder}
                 className="border-white/20 text-white hover:bg-white/10"
               >
                 Cancel
@@ -1041,7 +1126,11 @@ function InvoicesManagerContent() {
                 disabled={isSubmitting}
                 className="bg-brand-charcoal text-white hover:bg-slate-700"
               >
-                {isSubmitting ? 'Saving...' : 'Save as Issued Invoice'}
+                {isSubmitting
+                  ? 'Saving...'
+                  : editingInvoiceId
+                  ? 'Save Invoice Changes'
+                  : 'Save as Issued Invoice'}
               </Button>
               <Button
                 type="button"
@@ -1189,6 +1278,15 @@ function InvoicesManagerContent() {
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(inv)}
+                            className="rounded-lg p-1.5 text-slate-300 hover:bg-white/10 hover:text-brand-orange transition-colors"
+                            title="Edit Invoice"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+
                           <Link
                             href={`/admin/invoices/${inv.id}/pdf`}
                             className="rounded-lg p-1.5 text-slate-300 hover:bg-white/10 hover:text-brand-orange transition-colors"

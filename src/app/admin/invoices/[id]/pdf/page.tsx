@@ -17,6 +17,7 @@ import {
   Send,
   CreditCard,
   Trash2,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BUSINESS_INFO } from '@/lib/constants/business';
@@ -349,6 +350,14 @@ export default function BrandedInvoicePdfDocumentPage() {
               {isSendingEmail ? 'Sending Email...' : 'Email Invoice to Client'}
             </Button>
           )}
+          <Link
+            href={`/admin/invoices?editId=${invoice.id}`}
+            className="inline-flex items-center justify-center rounded-xl border border-brand-navy/20 bg-white px-4 py-2 text-xs font-extrabold text-brand-navy hover:bg-brand-navy hover:text-white transition-colors shadow-sm"
+          >
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit Invoice
+          </Link>
+
           <Button type="button" variant="primary" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
             Print / Save as Official PDF

@@ -1065,6 +1065,182 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // 5.B2 UPDATE EXISTING INVOICE (Full edit of line items, customer, dates, GST %, payments, notes)
+    if (action === 'UPDATE_INVOICE') {
+      if (!permissions.canManageQuotes && !permissions.canManageBookings) {
+        return NextResponse.json({ ok: false, error: 'Role cannot manage invoices.' }, { status: 403 });
+      }
+
+      if (!db.invoices) db.invoices = [];
+      const params = body.payload || body;
+      const targetId = params.invoiceId || body.invoiceId;
+      let existingIdx = db.invoices.findIndex((i) => i.id === targetId || i.invoiceNumber === targetId);
+
+      // If not found in local /tmp store (e.g. fresh Vercel container), pull from Supabase first
+      if (existingIdx === -1) {
+        try {
+          const { pullRemoteRecordsFromSupabase } = await import('@/lib/backend/supabase-service');
+          const remote = await pullRemoteRecordsFromSupabase();
+          if (remote?.invoices) {
+            for (const ri of remote.invoices) {
+              if (!db.invoices.some((inv) => inv.id === ri.id)) {
+                db.invoices.unshift(ri);
+              }
+            }
+            existingIdx = db.invoices.findIndex((i) => i.id === targetId || i.invoiceNumber === targetId);
+          }
+        } catch {}
+      }
+
+      if (existingIdx === -1) {
+        return NextResponse.json({ ok: false, error: 'Invoice not found.' }, { status: 404 });
+      }
+
+      const existing = db.invoices[existingIdx];
+      const rawItems = Array.isArray(params.lineItems) ? params.lineItems : existing.lineItems || [];
+      let subtotal = 0;
+      const computedItems: InvoiceLineItemRecord[] = rawItems.map((item: any, idx: number) => {
+        const qty = Number(item.quantity) || 1;
+        const rate = Math.round(Number(item.unitPriceCents) || 0);
+        const itemTotal = Math.round(qty * rate);
+        subtotal += itemTotal;
+        return {
+          id: item.id || `ili_${crypto.randomBytes(4).toString('hex')}`,
+          category: item.category || 'MOVING_SERVICE',
+          description: item.description || 'Service Line Item',
+          quantity: qty,
+          unitPriceCents: rate,
+          totalCents: itemTotal,
+          sortOrder: idx + 1,
+        };
+      });
+
+      const discount = Math.max(0, Math.round(Number(params.discountCents ?? existing.discountCents) || 0));
+      const adjustedSubtotal = Math.max(0, subtotal - discount);
+      const rawTaxRate = params.taxRatePercent;
+      const taxRate =
+        rawTaxRate !== undefined && rawTaxRate !== null && rawTaxRate !== '' && !Number.isNaN(Number(rawTaxRate))
+          ? Math.max(0, Number(rawTaxRate))
+          : 0;
+      const tax = Math.round(adjustedSubtotal * (taxRate / 100));
+      const grandTotal = adjustedSubtotal + tax;
+
+      const depositPaid = Math.max(0, Math.round(Number(params.depositPaidCents ?? existing.depositPaidCents) || 0));
+      const directPaid = Math.max(0, Math.round(Number(params.amountPaidCents ?? existing.amountPaidCents) || 0));
+      const totalPaid = depositPaid + directPaid;
+      const balanceDue = Math.max(0, grandTotal - totalPaid);
+
+      let invoiceStatus: InvoicePaymentStatus = params.status || existing.status || 'ISSUED';
+      if (balanceDue === 0 && grandTotal > 0) {
+        invoiceStatus = 'PAID';
+      } else if (totalPaid > 0 && balanceDue > 0) {
+        invoiceStatus = 'PARTIALLY_PAID';
+      }
+
+      const targetEmail = (params.customerEmail || params.recipientEmail || '').trim();
+      const updatedInvoice: InvoiceRecord = {
+        ...existing,
+        customerName: (params.customerName || '').trim() || existing.customerName,
+        customerEmail: targetEmail || undefined,
+        recipientEmail: targetEmail || undefined,
+        customerPhone: (params.customerPhone || '').trim() || existing.customerPhone,
+        customerAddress: (params.customerAddress || '').trim() || existing.customerAddress,
+        serviceCategory: params.serviceCategory || existing.serviceCategory,
+        serviceType: params.serviceType || existing.serviceType,
+        issueDate: params.issueDate || existing.issueDate,
+        dueDate: params.dueDate || existing.dueDate,
+        completionDate: params.completionDate || existing.completionDate,
+        lineItems: computedItems,
+        subtotalCents: adjustedSubtotal,
+        discountCents: discount,
+        taxRatePercent: taxRate,
+        taxCents: tax,
+        totalCents: grandTotal,
+        depositPaidCents: depositPaid,
+        amountPaidCents: directPaid,
+        balanceDueCents: balanceDue,
+        status: invoiceStatus,
+        paidAt: invoiceStatus === 'PAID' ? existing.paidAt || now : undefined,
+        paymentMethod: params.paymentMethod || existing.paymentMethod,
+        paymentReference: params.paymentReference !== undefined ? params.paymentReference : existing.paymentReference,
+        paymentTerms: params.paymentTerms !== undefined ? params.paymentTerms : existing.paymentTerms,
+        notesAndInstructions:
+          params.notesAndInstructions !== undefined ? params.notesAndInstructions : existing.notesAndInstructions,
+        updatedAt: now,
+      };
+
+      db.invoices[existingIdx] = updatedInvoice;
+
+      try {
+        const { syncRecordToSupabase } = await import('@/lib/backend/supabase-service');
+        await syncRecordToSupabase('Invoice', updatedInvoice as any);
+      } catch (err) {
+        console.warn('[Supabase Update Invoice Warning]:', err);
+      }
+
+      let emailDispatched = false;
+      let emailError: string | null = null;
+      const willSendImmediately = Boolean(params.sendImmediately || params.sendEmail);
+      if (willSendImmediately && targetEmail) {
+        try {
+          const itemsSummary = computedItems
+            .map((item) => `• ${item.description}: ${item.quantity} x $${(item.unitPriceCents / 100).toFixed(2)} = $${(item.totalCents / 100).toFixed(2)} CAD`)
+            .join('\n');
+
+          const invoiceEmailHtml = generateEmailHtml({
+            title: `Updated Invoice ${updatedInvoice.invoiceNumber} from QuickMove Solutions`,
+            recipientName: updatedInvoice.customerName || 'Valued Customer',
+            contentParagraphs: [
+              `Hi ${updatedInvoice.customerName || 'Valued Customer'}, here is your updated official itemized invoice for your ${updatedInvoice.serviceType} service.`,
+              `Below is your updated itemized service summary:`,
+              itemsSummary,
+              updatedInvoice.balanceDueCents === 0
+                ? `<strong>Status: PAID IN FULL. Thank you for your payment!</strong>`
+                : `<strong>Balance Due: $${(updatedInvoice.balanceDueCents / 100).toFixed(2)} CAD</strong> (Due: ${updatedInvoice.dueDate})`,
+              `Payment Instructions:\n• Interac E-Transfer to: quickmoversolu@gmail.com\n• Direct questions or credit card processing: call ${BUSINESS_INFO.phoneDisplay}.`,
+            ],
+            detailsBox: [
+              { label: 'Invoice #', value: updatedInvoice.invoiceNumber },
+              { label: 'Service', value: updatedInvoice.serviceType },
+              { label: 'Completion Date', value: updatedInvoice.completionDate || updatedInvoice.issueDate },
+              { label: 'Subtotal', value: `$${(updatedInvoice.subtotalCents / 100).toFixed(2)} CAD` },
+              ...(updatedInvoice.taxRatePercent > 0 || updatedInvoice.taxCents > 0
+                ? [{ label: `GST (${updatedInvoice.taxRatePercent}%)`, value: `$${(updatedInvoice.taxCents / 100).toFixed(2)} CAD` }]
+                : []),
+              { label: 'Total Amount', value: `$${(updatedInvoice.totalCents / 100).toFixed(2)} CAD` },
+              { label: 'Balance Due', value: `$${(updatedInvoice.balanceDueCents / 100).toFixed(2)} CAD` },
+              { label: 'Status', value: updatedInvoice.status },
+            ],
+            ctaButton: {
+              label: 'View / Print Official Invoice PDF',
+              url: `${BUSINESS_INFO.website}/admin/invoices/${updatedInvoice.id}/pdf`,
+            },
+          });
+
+          await sendEmailDirect({
+            to: targetEmail,
+            subject: `📄 [Updated Invoice ${updatedInvoice.invoiceNumber}] QuickMove Solutions — $${(updatedInvoice.totalCents / 100).toFixed(2)} CAD`,
+            html: invoiceEmailHtml,
+          });
+          emailDispatched = true;
+        } catch (err) {
+          emailError = err instanceof Error ? err.message : 'Email dispatch failed';
+        }
+      }
+
+      logActivity('INVOICE', updatedInvoice.id, 'INVOICE_UPDATED', `Invoice ${updatedInvoice.invoiceNumber} updated ($${(updatedInvoice.totalCents / 100).toFixed(2)} CAD).`);
+      writePlatformStore(db);
+
+      return NextResponse.json({
+        ok: true,
+        invoice: updatedInvoice,
+        data: updatedInvoice,
+        emailDispatched,
+        recipientEmail: targetEmail,
+        emailError: emailError || undefined,
+      });
+    }
+
     // 5.C UPDATE INVOICE STATUS / MARK AS PAID
     if (action === 'UPDATE_INVOICE_STATUS') {
       const params = body.payload || body;
